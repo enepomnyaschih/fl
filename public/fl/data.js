@@ -22,7 +22,7 @@ JW.extend(FL.Data, JW.Class, {
 		this.units.add(unit);
 		this.map.getCell(ij).unit = unit;
 		if (player == 0) {
-			this.reveal(ij, unit.type.sightRangeSqr)
+			this.reveal(ij, type.sightRangeSqr)
 		}
 	},
 
@@ -51,9 +51,12 @@ JW.extend(FL.Data, JW.Class, {
 
 	endTurn: function() {
 		this.resetVision();
+		this._produce(0);
+		this._produce(1);
 		this.units.each(function(unit) {
 			unit.movement = unit.type.movement;
 		}, this);
+		this.resetVision();
 	},
 
 	reveal: function(cij, distanceSqr) {
@@ -252,7 +255,7 @@ JW.extend(FL.Data, JW.Class, {
 				break;
 			}
 			this.createBase(ij, p);
-			this.createUnit(ij, p, "militia");
+			this.createUnit(ij, p, FL.Unit.types["militia"]);
 		}
 	},
 
@@ -267,5 +270,28 @@ JW.extend(FL.Data, JW.Class, {
 			path.push(d);
 			tij = FL.Vector.diff(tij, FL.dir8[d]);
 		}
+	},
+
+	_produce: function(player) {
+		this.bases.each(function(base) {
+			if (base.player !== player) {
+				return;
+			}
+			var type = base.unitType.get();
+			if (!type) {
+				return;
+			}
+			var production = base.production[type.id] + base.overflow + 1;
+			var cell = this.map.getCell(base.ij);
+			if ((production >= type.cost) && !cell.unit) {
+				this.createUnit(base.ij, base.player, type);
+				base.production[type.id] = 0;
+				base.overflow = production - type.cost;
+				base.unitType.set(null);
+			} else {
+				base.production[type.id] = Math.min(production, type.cost);
+				base.overflow = 0;
+			}
+		}, this);
 	}
 });

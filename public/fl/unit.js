@@ -2,7 +2,7 @@ FL.Unit = function(ij, player, type) {
 	FL.Unit._super.call(this);
 	this.ij = ij;
 	this.player = player;
-	this.type = FL.Unit.types[type];
+	this.type = type;
 	this.movement = this.type.movement;
 	this.ijTarget = null;
 };
@@ -13,7 +13,7 @@ JW.extend(FL.Unit, JW.Class, {
 FL.Unit.typeArray = [
 	{
 		id: "mcv",
-		name: "MCV",
+		name: "Mobile Construction Vehicle",
 		attack: 0,
 		defense: 1,
 		movement: 1,
