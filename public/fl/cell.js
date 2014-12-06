@@ -5,6 +5,7 @@ FL.Cell = function(ij) {
 	this.base = null;
 	this.miningBase = null; // who makes money from this tile
 	this.unit = null;
+	this.resource = null;
 	this.scouted = false; // removes black mask
 	this.visible = false; // reveals units
 	this.invalid = false; // forces to redraw

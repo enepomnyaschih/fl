@@ -141,6 +141,11 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		} else {
 			el.removeAttr("fl-player");
 		}
+		if (cell.resource) {
+			var resourceEl = jQuery('<div class="fl-resource"></div>');
+			resourceEl.attr("fl-type", cell.resource.id);
+			el.append(resourceEl);
+		}
 		if (cell.base) {
 			var baseEl = jQuery('<div class="fl-base"></div>');
 			baseEl.attr("fl-player", "n" + cell.base.player);

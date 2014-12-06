@@ -31,6 +31,7 @@
 		"fl/panel/unit.jw.html : FL.Panel.Unit",
 		"fl/panel/unitButton.js",
 		"fl/panel/unitButton.jw.html : FL.Panel.UnitButton",
+		"fl/resource.js",
 		"fl/unit.js",
 		"fl/unitInfo.js",
 		"fl/unitInfo.jw.html : FL.UnitInfo",
