@@ -27,6 +27,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 
 	_updateCell: function(el, ij) {
 		var cell = this.data.map.getCell(ij);
+		el.empty();
 		el.toggleClass("fl-scouted", cell.scouted);
 		el.toggleClass("fl-visible", cell.visible);
 		el.toggleClass("fl-rock", cell.rock);
@@ -34,6 +35,12 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			el.attr("fl-base", "n" + cell.base.player);
 		} else {
 			el.removeAttr("fl-base");
+		}
+		if (cell.unit) {
+			var unitEl = jQuery('<div class="fl-monitor-unit">');
+			unitEl.attr("fl-type", cell.unit.type.id);
+			unitEl.attr("fl-player", "n" + cell.unit.player);
+			el.append(unitEl);
 		}
 	}
 });

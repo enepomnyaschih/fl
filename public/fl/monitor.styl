@@ -23,3 +23,15 @@
 
 			&[fl-base=n1]
 				background-color #FF0000
+
+	&-cell.fl-visible > &-unit
+		background transparent none scroll 0 0 no-repeat
+		position absolute
+		xy 0 0
+		size 16px 16px
+
+		&[fl-type=soldier]
+			&[fl-player=n0]
+				background-image url(../images/soldier-0.png)
+			&[fl-player=n1]
+				background-image url(../images/soldier-1.png)

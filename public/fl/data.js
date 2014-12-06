@@ -2,6 +2,7 @@ FL.Data = function() {
 	FL.Data._super.call(this);
 	this.map = null;
 	this.bases = new JW.Set();
+	this.units = new JW.Set();
 	this._generateMap();
 };
 
@@ -14,6 +15,15 @@ JW.extend(FL.Data, JW.Class, {
 			this.reveal(ij, FL.baseSightRangeSqr);
 		}
 		return base;
+	},
+
+	createUnit: function(ij, player, type) {
+		var unit = new FL.Unit(ij, player, type);
+		this.units.add(unit);
+		this.map.getCell(ij).unit = unit;
+		if (player == 0) {
+			this.reveal(ij, unit.type.sightRangeSqr)
+		}
 	},
 
 	reveal: function(cij, distanceSqr) {
@@ -133,6 +143,7 @@ JW.extend(FL.Data, JW.Class, {
 				break;
 			}
 			this.createBase(ij, p);
+			this.createUnit(ij, p, "soldier");
 		}
 	}
 });
