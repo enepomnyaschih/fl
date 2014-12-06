@@ -19,6 +19,12 @@ JW.extend(FL.Data, JW.Class, {
 		return base;
 	},
 
+	destroyBase: function(base) {
+		this.bases.remove(base);
+		this.map.getCell(base.ij).setBase(null);
+		base.destroy();
+	},
+
 	createUnit: function(ij, player, type) {
 		var unit = new FL.Unit(ij, player, type);
 		this.units.add(unit);
@@ -52,7 +58,14 @@ JW.extend(FL.Data, JW.Class, {
 			if (targetCell.unit) {
 				if (unit.type.attack !== 0) {
 					sourceCell.invalid = true;
-					this.fight(unit, targetCell.unit);
+					this.fightUnit(unit, targetCell.unit);
+				}
+				break;
+			}
+			if (targetCell.base) {
+				if (unit.type.attack !== 0) {
+					sourceCell.invalid = true;
+					this.fightBase(unit, targetCell.base);
 				}
 				break;
 			}
@@ -65,7 +78,7 @@ JW.extend(FL.Data, JW.Class, {
 		}
 	},
 
-	fight: function(attacker, defender) {
+	fightUnit: function(attacker, defender) {
 		var win = FL.fight(attacker.type.attack, defender.type.defense);
 		if (win) {
 			this.destroyUnit(defender);
@@ -95,6 +108,41 @@ JW.extend(FL.Data, JW.Class, {
 					" (attack: " + attacker.type.attack +
 					") has been killed by your " + defender.type.name +
 					" (defense: " + defender.type.defense +
+					") in failed attack", "fl-good");
+			}
+		}
+	},
+
+	fightBase: function(attacker, base) {
+		var win = FL.fight(attacker.type.attack, FL.baseDefense);
+		if (win) {
+			this.destroyBase(base);
+			if (attacker.player === 0) {
+				this.log("Your " + attacker.type.name +
+					" (attack: " + attacker.type.attack +
+					") has destroyed enemy base" +
+					" (defense: " + FL.baseDefense +
+					") in successful attack", "fl-good");
+			} else {
+				this.log("Enemy " + attacker.type.name +
+					" (attack: " + attacker.type.attack +
+					") has destroyed your base" +
+					" (defense: " + FL.baseDefense +
+					") in successful attack", "fl-bad");
+			}
+		} else {
+			this.destroyUnit(attacker);
+			if (attacker.player === 0) {
+				this.log("Your " + attacker.type.name +
+					" (attack: " + attacker.type.attack +
+					") has been killed by enemy base" +
+					" (defense: " + FL.baseDefense +
+					") in failed attack", "fl-bad");
+			} else {
+				this.log("Enemy " + attacker.type.name +
+					" (attack: " + attacker.type.attack +
+					") has been killed by your base" +
+					" (defense: " + FL.baseDefense +
 					") in failed attack", "fl-good");
 			}
 		}
@@ -235,6 +283,10 @@ JW.extend(FL.Data, JW.Class, {
 					}
 				}
 				if (!unit && this.isByEnemy(cij, player) && this.isByEnemy(dij, player)) {
+					continue;
+				}
+				var base = cell.base;
+				if (base && (base.player !== player) && !FL.Vector.equal(dij, tij)) {
 					continue;
 				}
 				queue.push(dij);

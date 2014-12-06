@@ -4,6 +4,10 @@ FL.Panel.Base = function(base) {
 };
 
 JW.extend(FL.Panel.Base, JW.UI.Component, {
+	renderDefense: function(el) {
+		el.text(FL.baseDefense);
+	},
+
 	renderUnits: function() {
 		return JW.Array.$map(FL.Unit.typeArray, function(type) {
 			return this.own(new FL.Panel.UnitButton(this.base, type));

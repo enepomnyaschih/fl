@@ -26,6 +26,14 @@ JW.extend(FL.Cell, JW.Class, {
 		this.invalid = true;
 	},
 
+	setBase: function(base) {
+		if (this.base === base) {
+			return;
+		}
+		this.base = base;
+		this.invalid = true;
+	},
+
 	setUnit: function(unit) {
 		if (this.unit === unit) {
 			return;

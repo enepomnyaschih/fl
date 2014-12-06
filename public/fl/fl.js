@@ -9,6 +9,7 @@ var FL = {
 	minMainBaseSideDistance: 4,
 	minMainBaseCenterDistance: 5,
 	baseSightRangeSqr: 12,
+	baseDefense: 6,
 
 	dir4: [
 		[1, 0],
