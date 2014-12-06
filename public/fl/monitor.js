@@ -136,6 +136,11 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		el.toggleClass("fl-visible", cell.visible);
 		el.toggleClass("fl-rock", cell.rock);
 		el.toggleClass("fl-hold", (cell.unit != null) && cell.unit.hold);
+		if (cell.miningBase) {
+			el.attr("fl-player", "n" + cell.miningBase.player);
+		} else {
+			el.removeAttr("fl-player");
+		}
 		if (cell.base) {
 			var baseEl = jQuery('<div class="fl-base"></div>');
 			baseEl.attr("fl-player", "n" + cell.base.player);

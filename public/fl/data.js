@@ -132,6 +132,7 @@ JW.extend(FL.Data, JW.Class, {
 		var win = FL.fight(attacker.type.attack, FL.baseDefense);
 		if (win) {
 			this.destroyBase(base);
+			this.resetMining();
 			if (attacker.player === 0) {
 				this.log("Your " + attacker.type.name +
 					" (attack: " + attacker.type.attack +
@@ -176,19 +177,7 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	reveal: function(cij, distanceSqr) {
-		var distance = Math.ceil(Math.sqrt(distanceSqr));
-		var iMin = Math.max(0, cij[0] - distance);
-		var iMax = Math.min(this.map.size - 1, cij[0] + distance);
-		var jMin = Math.max(0, cij[1] - distance);
-		var jMax = Math.min(this.map.size - 1, cij[1] + distance);
-		for (var i = iMin; i <= iMax; ++i) {
-			for (var j = jMin; j <= jMax; ++j) {
-				var ij = [i, j];
-				if (FL.Vector.lengthSqr(FL.Vector.diff(ij, cij)) <= distanceSqr) {
-					this.map.getCell(ij).reveal();
-				}
-			}
-		}
+		this.map.eachWithin(cij, distanceSqr, JW.byMethod("reveal"));
 	},
 
 	resetVision: function() {
@@ -207,6 +196,30 @@ JW.extend(FL.Data, JW.Class, {
 				this.reveal(unit.ij, unit.type.sightRangeSqr);
 			}
 		}, this);
+	},
+
+	resetMining: function() {
+		var m = new FL.Matrix(this.map.size);
+		this.bases.each(function(base) {
+			this.map.eachWithin(base.ij, FL.baseMiningRangeSqr, function(cell, ij) {
+				var miningBase = m.getCell(ij);
+				if (!miningBase) {
+					m.setCell(ij, base);
+					return;
+				}
+				if (FL.Vector.lengthSqr(FL.Vector.diff(ij, miningBase.ij)) >
+					FL.Vector.lengthSqr(FL.Vector.diff(ij, base.ij))) {
+					m.setCell(ij, base);
+					return;
+				}
+			}, this);
+		}, this);
+		for (var i = 0; i < this.map.size; ++i) {
+			for (var j = 0; j < this.map.size; ++j) {
+				var ij = [i, j];
+				this.map.getCell(ij).setMiningBase(m.getCell(ij));
+			}
+		}
 	},
 
 	isBaseBuildable: function(ij, minDistance) {
@@ -330,6 +343,7 @@ JW.extend(FL.Data, JW.Class, {
 		}
 		this._generateRocks();
 		this._generateBases();
+		this.resetMining();
 	},
 
 	_generateRocks: function() {

@@ -29,6 +29,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 			var ij = this.unit.ij;
 			this.monitor.data.createBase(ij, this.unit.player);
 			this.monitor.data.destroyUnit(this.unit);
+			this.monitor.data.resetMining();
 			this.monitor.updateMap();
 			this.monitor.selectCell(ij);
 		}, this));
