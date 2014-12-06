@@ -252,7 +252,7 @@ JW.extend(FL.Data, JW.Class, {
 				break;
 			}
 			this.createBase(ij, p);
-			this.createUnit(ij, p, "soldier");
+			this.createUnit(ij, p, "militia");
 		}
 	},
 

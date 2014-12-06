@@ -21,8 +21,8 @@ FL.Unit.typeArray = [
 		cost: 10
 	},
 	{
-		id: "soldier",
-		name: "Soldier",
+		id: "militia",
+		name: "Militia",
 		attack: 1,
 		defense: 2,
 		movement: 1,
