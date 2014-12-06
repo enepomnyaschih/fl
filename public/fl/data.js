@@ -1,43 +1,43 @@
 FL.Data = function() {
 	FL.Data._super.call(this);
-	var self = this;
-
-	this.map = new FL.Matrix(FL.mapSize);
-	for (var i = 0; i < FL.mapSize; ++i) {
-		for (var j = 0; j < FL.mapSize; ++j) {
-			var ij = [i, j];
-			var cell = new FL.Cell(ij);
-			this.map.setCell(ij, cell);
-		}
-	}
-	for (var i = 0; i < FL.rockCount; ++i) {
-		var ij, good;
-		do {
-			ij = this.map.ijRandom();
-			good = this.isPassable(ij) && !this.isChoke(ij);
-		} while (!good);
-
-		var currentRockCells = [];
-		function addRock(ij) {
-			if (!self.isPassable(ij) || self.isChoke(ij)) {
-				return;
-			}
-			gg.push(ij);
-			currentRockCells.push(ij);
-			self.map.getCell(ij).rock = true;
-		}
-		addRock(ij);
-
-		var density = FL.random(FL.rockDensity);
-		for (var j = 0; j < density; ++j) {
-			var d = FL.random(4);
-			var dij = FL.Vector.add(currentRockCells[FL.random(currentRockCells.length)], FL.dir4[d]);
-			addRock(dij);
-		}
-	}
+	this.map = null;
+	this.bases = new JW.Set();
+	this._generateMap();
 };
-var gg = [];
+
 JW.extend(FL.Data, JW.Class, {
+	createBase: function(ij, player) {
+		var base = new FL.Base(ij, player);
+		this.bases.add(base);
+		this.map.getCell(ij).base = base;
+		if (player == 0) {
+			this.reveal(ij, FL.baseSightRangeSqr);
+		}
+		return base;
+	},
+
+	reveal: function(cij, distanceSqr) {
+		var distance = Math.ceil(Math.sqrt(distanceSqr));
+		for (var i = cij[0] - distance, I = cij[0] + distance; i <= I; ++i) {
+			for (var j = cij[1] - distance, J = cij[1] + distance; j <= J; ++j) {
+				var ij = [i, j];
+				if (FL.Vector.lengthSqr(FL.Vector.diff(ij, cij)) <= distanceSqr) {
+					this.map.getCell(ij).reveal();
+				}
+			}
+		}
+	},
+
+	isBaseBuildable: function(ij, minDistance) {
+		if (!this.isPassable(ij)) {
+			return false;
+		}
+		minDistance = minDistance || FL.minBaseDistanceSqr;
+		return this.bases.every(function(base) {
+			return FL.Vector.lengthSqr(FL.Vector.diff(ij, base.ij)) >= minDistance;
+		}, this);
+	},
+
 	isPassable: function(ij) {
 		return this.map.inMatrix(ij) && !this.map.getCell(ij).rock;
 	},
@@ -70,5 +70,69 @@ JW.extend(FL.Data, JW.Class, {
 			}
 		}
 		return false;
+	},
+
+	_generateMap: function() {
+		this.map = new FL.Matrix(FL.mapSize);
+		for (var i = 0; i < FL.mapSize; ++i) {
+			for (var j = 0; j < FL.mapSize; ++j) {
+				var ij = [i, j];
+				var cell = new FL.Cell(ij);
+				this.map.setCell(ij, cell);
+			}
+		}
+		this._generateRocks();
+		this._generateBases();
+	},
+
+	_generateRocks: function() {
+		for (var i = 0; i < FL.rockCount; ++i) {
+			var ij, good;
+			do {
+				ij = this.map.ijRandom();
+				good = this.isPassable(ij) && !this.isChoke(ij);
+			} while (!good);
+
+			var currentRockCells = [];
+			var addRock = JW.inScope(function(ij) {
+				if (!this.isPassable(ij) || this.isChoke(ij)) {
+					return;
+				}
+				currentRockCells.push(ij);
+				this.map.getCell(ij).rock = true;
+			}, this);
+			addRock(ij);
+
+			var density = FL.random(FL.rockDensity);
+			for (var j = 0; j < density; ++j) {
+				var d = FL.random(4);
+				var dij = FL.Vector.add(currentRockCells[FL.random(currentRockCells.length)], FL.dir4[d]);
+				addRock(dij);
+			}
+		}
+	},
+
+	_generateBases: function() {
+		for (var p = 0; p < FL.playerCount; ++p) {
+			var ij;
+			while (true) {
+				ij = this.map.ijRandom();
+				if (!this.isBaseBuildable(ij, FL.minMainBaseDistanceSqr)) {
+					continue;
+				}
+				var ijCenter = this.map.ijCenter();
+				var ijDistance = FL.Vector.diff(ij, ijCenter);
+				var centerDistance = FL.Vector.length8(ijDistance);
+				if (centerDistance < FL.minMainBaseCenterDistance) {
+					continue;
+				}
+				var sideDistance = this.map.size / 2 - centerDistance;
+				if (sideDistance < FL.minMainBaseSideDistance) {
+					continue;
+				}
+				break;
+			}
+			this.createBase(ij, p);
+		}
 	}
 });

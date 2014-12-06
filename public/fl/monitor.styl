@@ -6,10 +6,20 @@
 	size 512px 512px
 
 	&-cell
-		background #22BB22 none scroll 0 0 no-repeat
+		background black none scroll 0 0 no-repeat
 		float left
 		position relative
 		size 16px 16px
 
-		&.fl-rock
-			background-color #7F3300
+		&.fl-scouted
+			background-color #22BB22
+
+			&.fl-rock
+				background-color #7F3300
+
+		&.fl-visible
+			&[fl-base=n0]
+				background-color #00FF00
+
+			&[fl-base=n1]
+				background-color #FF0000

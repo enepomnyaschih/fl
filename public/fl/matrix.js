@@ -22,5 +22,9 @@ JW.extend(FL.Matrix, JW.Class, {
 
 	ijRandom: function() {
 		return [FL.random(this.size), FL.random(this.size)];
+	},
+
+	ijCenter: function() {
+		return FL.Vector.mult([this.size, this.size], .5);
 	}
 });

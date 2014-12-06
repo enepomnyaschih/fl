@@ -12,6 +12,7 @@
 		"fl/app.js",
 		"fl/app.jw.html : FL.App",
 		"fl/app.styl",
+		"fl/base.js",
 		"fl/cell.js",
 		"fl/data.js",
 		"fl/el.js",

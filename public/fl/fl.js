@@ -3,6 +3,12 @@ var FL = {
 	cellSize: 16,
 	rockCount: 20,
 	rockDensity: 20,
+	playerCount: 2,
+	minBaseDistanceSqr: 12,
+	minMainBaseDistanceSqr: 100,
+	minMainBaseSideDistance: 4,
+	minMainBaseCenterDistance: 5,
+	baseSightRangeSqr: 12,
 
 	dir4: [
 		[1, 0],
