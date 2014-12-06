@@ -74,11 +74,11 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this.cellSelect = ij ? this.data.map.getCell(ij) : null;
 		if (this.cellSelect) {
 			this._getCell(ij).addClass("fl-selected");
-			this.panel.set(new FL.Panel(this.cellSelect));
 			var base = this.cellSelect.base;
 			if (this._isBaseAutoSelectable(base)) {
 				this.baseExitAttachment.set(base.unitType.changeEvent.bind(this.selectNext, this));
 			}
+			this.panel.set(new FL.Panel(this, this.cellSelect));
 		} else {
 			this.panel.set(null);
 		}
@@ -121,12 +121,14 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	_updateCell: function(el, ij) {
+		el = el || this._getCell(ij);
 		var cell = this.data.map.getCell(ij);
 		cell.invalid = false;
 		el.empty();
 		el.toggleClass("fl-scouted", cell.scouted);
 		el.toggleClass("fl-visible", cell.visible);
 		el.toggleClass("fl-rock", cell.rock);
+		el.toggleClass("fl-hold", (cell.unit != null) && cell.unit.hold);
 		if (cell.base) {
 			el.attr("fl-base", "n" + cell.base.player);
 		} else {
@@ -194,14 +196,17 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			}
 		}, this);
 		this.data.bases.each(function(base) {
-			if (this._isBaseAutoSelectable(base)) {
+			var contains = JW.Array.some(this.selectionQueue, function(ij) {
+				return FL.Vector.equal(ij, base.ij);
+			}, this);
+			if (!contains && this._isBaseAutoSelectable(base)) {
 				this.selectionQueue.push(base.ij);
 			}
 		}, this);
 	},
 
 	_isUnitAutoSelectable: function(unit) {
-		return unit && (unit.player === 0) && (unit.movement !== 0);
+		return unit && (unit.player === 0) && (unit.movement !== 0) && !unit.hold;
 	},
 
 	_isBaseAutoSelectable: function(base) {

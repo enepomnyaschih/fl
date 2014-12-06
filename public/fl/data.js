@@ -43,22 +43,23 @@ JW.extend(FL.Data, JW.Class, {
 			unit.ijTarget = null;
 			return;
 		}
-		if (unit.player === 0) {
-			for (var i = 0; (i < path.length) && unit.movement; ++i) {
-				--unit.movement;
-				var tij = FL.Vector.add(unit.ij, FL.dir8[path[i]]);
-				var sourceCell = this.map.getCell(unit.ij);
-				var targetCell = this.map.getCell(tij);
-				if (targetCell.unit) {
-					if (unit.type.attack !== 0) {
-						sourceCell.invalid = true;
-						this.fight(unit, targetCell.unit);
-					}
-					break;
+		unit.hold = false;
+		for (var i = 0; (i < path.length) && unit.movement; ++i) {
+			--unit.movement;
+			var tij = FL.Vector.add(unit.ij, FL.dir8[path[i]]);
+			var sourceCell = this.map.getCell(unit.ij);
+			var targetCell = this.map.getCell(tij);
+			if (targetCell.unit) {
+				if (unit.type.attack !== 0) {
+					sourceCell.invalid = true;
+					this.fight(unit, targetCell.unit);
 				}
-				sourceCell.setUnit(null);
-				unit.ij = tij;
-				targetCell.setUnit(unit);
+				break;
+			}
+			sourceCell.setUnit(null);
+			unit.ij = tij;
+			targetCell.setUnit(unit);
+			if (unit.player === 0) {
 				this.reveal(unit.ij, unit.type.sightRangeSqr);
 			}
 		}

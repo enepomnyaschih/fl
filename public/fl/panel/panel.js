@@ -1,5 +1,6 @@
-FL.Panel = function(cell) {
+FL.Panel = function(monitor, cell) {
 	FL.Panel._super.call(this);
+	this.monitor = monitor;
 	this.cell = cell;
 };
 
@@ -14,8 +15,7 @@ JW.extend(FL.Panel, JW.UI.Component, {
 
 	renderUnit: function() {
 		if (this.cell.visible && this.cell.unit) {
-			return this.own(new FL.UnitInfo(this.cell.unit.type,
-				this.cell.unit.player, this.cell.unit.movement, false));
+			return this.own(new FL.Panel.Unit(this.monitor, this.cell.unit));
 		}
 	},
 
