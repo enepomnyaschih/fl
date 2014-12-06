@@ -3,14 +3,25 @@ FL.Monitor = function(data) {
 	this.data = data;
 	this.cellSelect = null;
 	this.panel = this.own(new JW.Property()).ownValue();
+	this.selectionQueue = [];
+	this.selectionTail = 0;
+	this.baseExitAttachment = this.own(new JW.Property()).ownValue();
 };
 
 JW.extend(FL.Monitor, JW.UI.Component, {
+	renderNext: function(el) {
+		el.click(JW.inScope(function() {
+			this.selectNext();
+		}, this));
+	},
+
 	renderEndTurn: function(el) {
 		el.click(JW.inScope(function() {
+			el.removeClass("fl-active");
 			this.selectCell(null);
 			this.data.endTurn();
 			this.updateMap();
+			this.selectNext();
 		}, this));
 	},
 
@@ -49,16 +60,45 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		return this.panel;
 	},
 
+	afterRender: function() {
+		this._super();
+		this.selectNext();
+	},
+
 	selectCell: function(ij) {
 		if (this.cellSelect) {
 			this._getCell(this.cellSelect.ij).removeClass("fl-selected");
 		}
+		this.baseExitAttachment.set(null);
 		this.cellSelect = ij ? this.data.map.getCell(ij) : null;
 		if (this.cellSelect) {
 			this._getCell(ij).addClass("fl-selected");
 			this.panel.set(new FL.Panel(this.cellSelect));
+			var base = this.cellSelect.base;
+			if (this._isBaseAutoSelectable(base)) {
+				this.baseExitAttachment.set(base.unitType.changeEvent.bind(this.selectNext, this));
+			}
 		} else {
 			this.panel.set(null);
+		}
+	},
+
+	selectNext: function() {
+		while (this.selectionTail < this.selectionQueue.length) {
+			var cell = this.data.map.getCell(this.selectionQueue[this.selectionTail++]);
+			var isUnit = this._isUnitAutoSelectable(cell.unit);
+			var isBase = this._isBaseAutoSelectable(cell.base);
+			if (isUnit || isBase) {
+				this.selectCell(cell.ij);
+				return;
+			}
+		}
+		this._refreshSelectionQueue();
+		if (this.selectionQueue.length) {
+			this.selectCell(this.selectionQueue[this.selectionTail++]);
+		} else {
+			this.selectCell(null);
+			this.getElement("end-turn").addClass("fl-active");
 		}
 	},
 
@@ -140,7 +180,30 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		if (unit.movement) {
 			this.selectCell(unit.ij);
 		} else {
-			this.selectCell(null);
+			this.selectNext();
 		}
+	},
+
+	_refreshSelectionQueue: function() {
+		this.selectionQueue = [];
+		this.selectionTail = 0;
+		this.data.units.each(function(unit) {
+			if (this._isUnitAutoSelectable(unit)) {
+				this.selectionQueue.push(unit.ij);
+			}
+		}, this);
+		this.data.bases.each(function(base) {
+			if (this._isBaseAutoSelectable(base)) {
+				this.selectionQueue.push(base.ij);
+			}
+		}, this);
+	},
+
+	_isUnitAutoSelectable: function(unit) {
+		return unit && (unit.player === 0) && (unit.movement !== 0);
+	},
+
+	_isBaseAutoSelectable: function(base) {
+		return base && (base.player === 0) && (base.unitType.get() == null);
 	}
 });

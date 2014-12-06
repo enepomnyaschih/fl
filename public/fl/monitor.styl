@@ -12,6 +12,17 @@
 		height 30px
 		text-align right
 
+	&-end-turn.fl-active
+		animation-name fl-monitor-end-turn-anim
+		-webkit-animation-name fl-monitor-end-turn-anim
+		animation-duration .7s
+		-webkit-animation-duration .7s
+		animation-direction alternate
+		-webkit-animation-direction alternate
+		animation-iteration-count infinite
+		-webkit-animation-iteration-count infinite
+		color white
+
 	&-log
 		height 400px
 		overflow-y auto
@@ -71,3 +82,15 @@
 			position absolute
 			size 16px 16px
 			xy -1px -1px
+
+@keyframes fl-monitor-end-turn-anim {
+	from {
+		background-color #00D000
+		border-color #00D000
+	}
+
+	to {
+		background-color #009000
+		border-color #009000
+	}
+}
