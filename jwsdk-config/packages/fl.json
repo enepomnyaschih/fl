@@ -20,6 +20,12 @@
 		"fl/monitor.js",
 		"fl/monitor.jw.html : FL.Monitor",
 		"fl/monitor.styl",
+		"fl/panel/panel.js",
+		"fl/panel/panel.jw.html : FL.Panel",
+		"fl/panel/panel.styl",
+		"fl/panel/base.js",
+		"fl/panel/unit.js",
+		"fl/panel/unit.jw.html : FL.Panel.Unit",
 		"fl/unit.js",
 		"fl/vector.js",
 

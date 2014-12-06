@@ -1,5 +1,17 @@
 @import 'fl/imports'
 
 .fl-app
+	font-family sans-serif
+	font-size 13px
 	margin 0 auto
-	width 512px
+	width 1133px
+
+.fl-unit
+	background transparent none scroll 0 0 no-repeat
+	size 16px 16px
+
+	&[fl-type=soldier]
+		&[fl-player=n0]
+			background-image url(../images/soldier-0.png)
+		&[fl-player=n1]
+			background-image url(../images/soldier-1.png)
