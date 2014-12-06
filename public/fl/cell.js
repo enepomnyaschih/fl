@@ -10,8 +10,27 @@ FL.Cell = function(ij) {
 
 JW.extend(FL.Cell, JW.Class, {
 	reveal: function() {
+		if (this.scouted && this.visible) {
+			return;
+		}
 		this.scouted = true;
 		this.visible = true;
+		this.invalid = true;
+	},
+
+	hide: function() {
+		if (!this.scouted || !this.visible) {
+			return;
+		}
+		this.visible = false;
+		this.invalid = true;
+	},
+
+	setUnit: function(unit) {
+		if (this.unit === unit) {
+			return;
+		}
+		this.unit = unit;
 		this.invalid = true;
 	}
 });

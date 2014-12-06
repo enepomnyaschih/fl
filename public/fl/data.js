@@ -40,13 +40,20 @@ JW.extend(FL.Data, JW.Class, {
 				var tij = FL.Vector.add(unit.ij, FL.dir8[path[i]]);
 				var sourceCell = this.map.getCell(unit.ij);
 				var targetCell = this.map.getCell(tij);
-				sourceCell.unit = null;
+				sourceCell.setUnit(null);
 				unit.ij = tij
-				targetCell.unit = unit;
+				targetCell.setUnit(unit);
 				--unit.movement;
 				this.reveal(unit.ij, unit.type.sightRangeSqr);
 			}
 		}
+	},
+
+	endTurn: function() {
+		this.resetVision();
+		this.units.each(function(unit) {
+			unit.movement = unit.type.movement;
+		}, this);
 	},
 
 	reveal: function(cij, distanceSqr) {
@@ -63,6 +70,24 @@ JW.extend(FL.Data, JW.Class, {
 				}
 			}
 		}
+	},
+
+	resetVision: function() {
+		for (var i = 0; i < this.map.size; ++i) {
+			for (var j = 0; j < this.map.size; ++j) {
+				this.map.getCell([i, j]).hide();
+			}
+		}
+		this.bases.each(function(base) {
+			if (base.player === 0) {
+				this.reveal(base.ij, FL.baseSightRangeSqr);
+			}
+		}, this);
+		this.units.each(function(unit) {
+			if (unit.player === 0) {
+				this.reveal(unit.ij, unit.type.sightRangeSqr);
+			}
+		}, this);
 	},
 
 	isBaseBuildable: function(ij, minDistance) {

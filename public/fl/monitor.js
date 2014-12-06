@@ -6,6 +6,14 @@ FL.Monitor = function(data) {
 };
 
 JW.extend(FL.Monitor, JW.UI.Component, {
+	renderEndTurn: function(el) {
+		el.click(JW.inScope(function() {
+			this.selectCell(null);
+			this.data.endTurn();
+			this.updateMap();
+		}, this));
+	},
+
 	renderMap: function(el) {
 		el.mousedown(JW.inScope(this._onMapMouseDown, this));
 		el.bind("contextmenu", JW.UI.preventDefault);
@@ -76,6 +84,9 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			unitEl.attr("fl-type", cell.unit.type.id);
 			unitEl.attr("fl-player", "n" + cell.unit.player);
 			el.append(unitEl);
+		}
+		if (cell.scouted && !cell.visible) {
+			el.append('<div class="fl-fog"></div>')
 		}
 	},
 
