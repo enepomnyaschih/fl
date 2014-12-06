@@ -137,12 +137,12 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		el.toggleClass("fl-rock", cell.rock);
 		el.toggleClass("fl-hold", (cell.unit != null) && cell.unit.hold);
 		if (cell.base) {
-			el.attr("fl-base", "n" + cell.base.player);
-		} else {
-			el.removeAttr("fl-base");
+			var baseEl = jQuery('<div class="fl-base"></div>');
+			baseEl.attr("fl-player", "n" + cell.base.player);
+			el.append(baseEl);
 		}
 		if (cell.unit) {
-			var unitEl = jQuery('<div class="fl-unit">');
+			var unitEl = jQuery('<div class="fl-unit"></div>');
 			unitEl.attr("fl-type", cell.unit.type.id);
 			unitEl.attr("fl-player", "n" + cell.unit.player);
 			unitEl.toggleClass("fl-moved", cell.unit.movement === 0);

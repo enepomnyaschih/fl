@@ -46,15 +46,15 @@
 			&.fl-rock
 				background-color #7F3300
 
-		& > .fl-unit
+		& > .fl-unit, & > .fl-base
 			display none
+			z-index 1
 
 		&.fl-visible
-			&[fl-base=n0]
-				background-color #00FF00
-
-			&[fl-base=n1]
-				background-color #FF0000
+			& > .fl-base
+				display block
+				position absolute
+				xy -3px -3px
 
 			& > .fl-unit
 				display block
