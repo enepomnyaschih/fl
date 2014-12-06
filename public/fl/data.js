@@ -51,6 +51,7 @@ JW.extend(FL.Data, JW.Class, {
 				var targetCell = this.map.getCell(tij);
 				if (targetCell.unit) {
 					if (unit.type.attack !== 0) {
+						sourceCell.invalid = true;
 						this.fight(unit, targetCell.unit);
 					}
 					break;

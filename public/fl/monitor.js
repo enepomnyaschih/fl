@@ -95,6 +95,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			var unitEl = jQuery('<div class="fl-unit">');
 			unitEl.attr("fl-type", cell.unit.type.id);
 			unitEl.attr("fl-player", "n" + cell.unit.player);
+			unitEl.toggleClass("fl-moved", cell.unit.movement === 0);
 			el.append(unitEl);
 		}
 		if (cell.scouted && !cell.visible) {
