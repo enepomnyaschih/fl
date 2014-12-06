@@ -97,10 +97,17 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this._refreshSelectionQueue();
 		if (this.selectionQueue.length) {
 			this.selectCell(this.selectionQueue[this.selectionTail++]);
-		} else {
-			this.selectCell(null);
-			this.getElement("end-turn").addClass("fl-active");
+			return;
 		}
+		this.data.moveUnits(0);
+		this.updateMap();
+		this._refreshSelectionQueue();
+		if (this.selectionQueue.length) {
+			this.selectCell(this.selectionQueue[this.selectionTail++]);
+			return;
+		}
+		this.selectCell(null);
+		this.getElement("end-turn").addClass("fl-active");
 	},
 
 	updateMap: function() {
@@ -206,7 +213,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	_isUnitAutoSelectable: function(unit) {
-		return unit && (unit.player === 0) && (unit.movement !== 0) && !unit.hold;
+		return unit && (unit.player === 0) && (unit.movement !== 0) && !unit.hold && !unit.ijTarget;
 	},
 
 	_isBaseAutoSelectable: function(base) {

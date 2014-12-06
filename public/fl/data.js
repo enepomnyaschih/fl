@@ -41,7 +41,7 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	moveUnit: function(unit) {
-		if (!unit.ijTarget || FL.Vector.equal(unit.ijTarget, unit.ij) || (unit.movement === 0)) {
+		if (!unit.ijTarget || FL.Vector.equal(unit.ijTarget, unit.ij)) {
 			return;
 		}
 		var path = this.getPath(unit.ij, unit.ijTarget, unit.player);
@@ -51,31 +51,46 @@ JW.extend(FL.Data, JW.Class, {
 		}
 		unit.hold = false;
 		for (var i = 0; (i < path.length) && unit.movement; ++i) {
-			--unit.movement;
 			var tij = FL.Vector.add(unit.ij, FL.dir8[path[i]]);
+			if (!this.isPassable(tij)) {
+				break;
+			}
 			var sourceCell = this.map.getCell(unit.ij);
 			var targetCell = this.map.getCell(tij);
 			if (targetCell.unit) {
-				if (unit.type.attack !== 0) {
+				if ((targetCell.unit.player !== unit.player) &&
+						FL.Vector.equal(tij, unit.ijTarget) && (unit.type.attack !== 0)) {
+					--unit.movement;
+					unit.ijTarget = null;
 					sourceCell.invalid = true;
 					this.fightUnit(unit, targetCell.unit);
 				}
 				break;
 			}
-			if (targetCell.base) {
-				if (unit.type.attack !== 0) {
+			if (targetCell.base && (targetCell.base.player !== unit.player)) {
+				if (FL.Vector.equal(tij, unit.ijTarget) && (unit.type.attack !== 0)) {
+					--unit.movement;
+					unit.ijTarget = null;
 					sourceCell.invalid = true;
 					this.fightBase(unit, targetCell.base);
 				}
 				break;
 			}
 			sourceCell.setUnit(null);
+			--unit.movement;
 			unit.ij = tij;
 			targetCell.setUnit(unit);
 			if (unit.player === 0) {
 				this.reveal(unit.ij, unit.type.sightRangeSqr);
 			}
 		}
+		if (unit.ijTarget && FL.Vector.equal(unit.ij, unit.ijTarget)) {
+			unit.ijTarget = null;
+		}
+	},
+
+	moveUnits: function(player) {
+		this.units.$filter(JW.byValue("player", player)).each(this.moveUnit, this);
 	},
 
 	fightUnit: function(attacker, defender) {
@@ -266,28 +281,29 @@ JW.extend(FL.Data, JW.Class, {
 			for (var d = 0; d < FL.dir8.length; ++d) {
 				var dir = (d < 4) ? (2 * d) : (2 * d - 7);
 				var dij = FL.Vector.add(cij, FL.dir8[dir]);
-				if (!this.isPassable(dij)) {
-					continue;
-				}
-				if (dirs.getCell(dij) != null) {
+				if (!this.map.inMatrix(dij) || (dirs.getCell(dij) != null)) {
 					continue;
 				}
 				var cell = this.map.getCell(dij);
-				if ((player === 0) && !cell.visible) {
-					continue;
-				}
-				var unit = cell.unit;
-				if (unit) {
-					if ((unit.player === player) || !FL.Vector.equal(dij, tij)) {
+				if ((player !== 0) || cell.scouted) {
+					if (!this.isPassable(dij)) {
 						continue;
 					}
 				}
-				if (!unit && this.isByEnemy(cij, player) && this.isByEnemy(dij, player)) {
-					continue;
-				}
-				var base = cell.base;
-				if (base && (base.player !== player) && !FL.Vector.equal(dij, tij)) {
-					continue;
+				if ((player !== 0) || cell.visible) {
+					var unit = cell.unit;
+					if (unit) {
+						if ((unit.player === player) || !FL.Vector.equal(dij, tij)) {
+							continue;
+						}
+					}
+					if (!unit && this.isByEnemy(cij, player) && this.isByEnemy(dij, player)) {
+						continue;
+					}
+					var base = cell.base;
+					if (base && (base.player !== player) && !FL.Vector.equal(dij, tij)) {
+						continue;
+					}
 				}
 				queue.push(dij);
 				dirs.setCell(dij, dir);
