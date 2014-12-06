@@ -3,6 +3,8 @@ FL.Data = function() {
 	this.map = null;
 	this.bases = new JW.Set();
 	this.units = new JW.Set();
+	this.logEvent = new JW.Event();
+	this.turn = 1;
 	this._generateMap();
 };
 
@@ -26,6 +28,12 @@ JW.extend(FL.Data, JW.Class, {
 		}
 	},
 
+	destroyUnit: function(unit) {
+		this.units.remove(unit);
+		this.map.getCell(unit.ij).setUnit(null);
+		unit.destroy();
+	},
+
 	moveUnit: function(unit) {
 		if (!unit.ijTarget || FL.Vector.equal(unit.ijTarget, unit.ij) || (unit.movement === 0)) {
 			return;
@@ -37,14 +45,55 @@ JW.extend(FL.Data, JW.Class, {
 		}
 		if (unit.player === 0) {
 			for (var i = 0; (i < path.length) && unit.movement; ++i) {
+				--unit.movement;
 				var tij = FL.Vector.add(unit.ij, FL.dir8[path[i]]);
 				var sourceCell = this.map.getCell(unit.ij);
 				var targetCell = this.map.getCell(tij);
+				if (targetCell.unit) {
+					if (unit.type.attack !== 0) {
+						this.fight(unit, targetCell.unit);
+					}
+					break;
+				}
 				sourceCell.setUnit(null);
-				unit.ij = tij
+				unit.ij = tij;
 				targetCell.setUnit(unit);
-				--unit.movement;
 				this.reveal(unit.ij, unit.type.sightRangeSqr);
+			}
+		}
+	},
+
+	fight: function(attacker, defender) {
+		var win = FL.fight(attacker.type.attack, defender.type.defense);
+		if (win) {
+			this.destroyUnit(defender);
+			if (attacker.player === 0) {
+				this.log("Your " + attacker.type.name +
+					" (attack: " + attacker.type.attack +
+					") has killed enemy " + defender.type.name +
+					" (defense: " + defender.type.defense +
+					") in successful attack", "fl-good");
+			} else {
+				this.log("Enemy " + attacker.type.name +
+					" (attack: " + attacker.type.attack +
+					") has killed your " + defender.type.name +
+					" (defense: " + defender.type.defense +
+					") in successful attack", "fl-bad");
+			}
+		} else {
+			this.destroyUnit(attacker);
+			if (attacker.player === 0) {
+				this.log("Your " + attacker.type.name +
+					" (attack: " + attacker.type.attack +
+					") has been killed by enemy " + defender.type.name +
+					" (defense: " + defender.type.defense +
+					") in failed attack", "fl-bad");
+			} else {
+				this.log("Enemy " + attacker.type.name +
+					" (attack: " + attacker.type.attack +
+					") has been killed by your " + defender.type.name +
+					" (defense: " + defender.type.defense +
+					") in failed attack", "fl-good");
 			}
 		}
 	},
@@ -57,6 +106,8 @@ JW.extend(FL.Data, JW.Class, {
 			unit.movement = unit.type.movement;
 		}, this);
 		this.resetVision();
+		++this.turn;
+		this.log("Turn " + this.turn);
 	},
 
 	reveal: function(cij, distanceSqr) {
@@ -194,6 +245,10 @@ JW.extend(FL.Data, JW.Class, {
 		return null;
 	},
 
+	log: function(message, cls) {
+		this.logEvent.trigger([message, cls]);
+	},
+
 	_generateMap: function() {
 		this.map = new FL.Matrix(FL.mapSize);
 		for (var i = 0; i < FL.mapSize; ++i) {
@@ -256,6 +311,9 @@ JW.extend(FL.Data, JW.Class, {
 			}
 			this.createBase(ij, p);
 			this.createUnit(ij, p, FL.Unit.types["militia"]);
+			for (var d = 0; d < 8; ++d) {
+				this.createUnit(FL.Vector.add(ij, FL.dir8[d]), (p + 1) % 2, FL.Unit.types["militia"]);
+			}
 		}
 	},
 

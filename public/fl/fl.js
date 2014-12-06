@@ -52,5 +52,9 @@ var FL = {
 			dij.push(FL.Vector.add(ij, FL.dir8[d]));
 		}
 		return dij;
+	},
+
+	fight: function(attack, defense) {
+		return FL.random(attack + defense) < attack;
 	}
 };

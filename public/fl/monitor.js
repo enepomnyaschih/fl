@@ -14,6 +14,18 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}, this));
 	},
 
+	renderLog: function(el) {
+		this.data.logEvent.bind(function(message) {
+			var messageEl = jQuery('<div class="fl-message"></div>');
+			messageEl.text(message[0]);
+			if (message[1]) {
+				messageEl.addClass(message[1]);
+			}
+			el.append(messageEl);
+			el.scrollTop(1000000);
+		}, this);
+	},
+
 	renderMap: function(el) {
 		el.mousedown(JW.inScope(this._onMapMouseDown, this));
 		el.bind("contextmenu", JW.UI.preventDefault);
