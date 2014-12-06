@@ -27,11 +27,11 @@
 		"fl/panel/base.jw.html : FL.Panel.Base",
 		"fl/panel/production.js",
 		"fl/panel/production.jw.html : FL.Panel.Production",
-		"fl/panel/unit.js",
-		"fl/panel/unit.jw.html : FL.Panel.Unit",
 		"fl/panel/unitButton.js",
 		"fl/panel/unitButton.jw.html : FL.Panel.UnitButton",
 		"fl/unit.js",
+		"fl/unitInfo.js",
+		"fl/unitInfo.jw.html : FL.UnitInfo",
 		"fl/vector.js",
 
 		"fl/boot.js"

@@ -14,7 +14,7 @@ JW.extend(FL.Panel, JW.UI.Component, {
 
 	renderUnit: function() {
 		if (this.cell.visible && this.cell.unit) {
-			return this.own(new FL.Panel.Unit(this.cell.unit.type,
+			return this.own(new FL.UnitInfo(this.cell.unit.type,
 				this.cell.unit.player, this.cell.unit.movement, false));
 		}
 	},

@@ -1,12 +1,12 @@
-FL.Panel.Unit = function(type, player, movement, showCost) {
-	FL.Panel.Unit._super.call(this);
+FL.UnitInfo = function(type, player, movement, showCost) {
+	FL.UnitInfo._super.call(this);
 	this.type = type;
 	this.player = player || 0;
 	this.movement = JW.defn(movement, type.movement);
 	this.showCost = showCost || false;
 };
 
-JW.extend(FL.Panel.Unit, JW.UI.Component, {
+JW.extend(FL.UnitInfo, JW.UI.Component, {
 	renderTitle: function(el) {
 		return !this.showCost;
 	},

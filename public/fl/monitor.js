@@ -17,6 +17,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 
 	renderEndTurn: function(el) {
 		el.click(JW.inScope(function() {
+			this.selectionQueue = [];
 			el.removeClass("fl-active");
 			this.selectCell(null);
 			this.data.endTurn();
