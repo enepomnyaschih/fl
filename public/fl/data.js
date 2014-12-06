@@ -26,10 +26,37 @@ JW.extend(FL.Data, JW.Class, {
 		}
 	},
 
+	moveUnit: function(unit) {
+		if (!unit.ijTarget || FL.Vector.equal(unit.ijTarget, unit.ij) || (unit.movement === 0)) {
+			return;
+		}
+		var path = this.getPath(unit.ij, unit.ijTarget, unit.player);
+		if (!path) {
+			unit.ijTarget = null;
+			return;
+		}
+		if (unit.player === 0) {
+			for (var i = 0; (i < path.length) && unit.movement; ++i) {
+				var tij = FL.Vector.add(unit.ij, FL.dir8[path[i]]);
+				var sourceCell = this.map.getCell(unit.ij);
+				var targetCell = this.map.getCell(tij);
+				sourceCell.unit = null;
+				unit.ij = tij
+				targetCell.unit = unit;
+				--unit.movement;
+				this.reveal(unit.ij, unit.type.sightRangeSqr);
+			}
+		}
+	},
+
 	reveal: function(cij, distanceSqr) {
 		var distance = Math.ceil(Math.sqrt(distanceSqr));
-		for (var i = cij[0] - distance, I = cij[0] + distance; i <= I; ++i) {
-			for (var j = cij[1] - distance, J = cij[1] + distance; j <= J; ++j) {
+		var iMin = Math.max(0, cij[0] - distance);
+		var iMax = Math.min(this.map.size - 1, cij[0] + distance);
+		var jMin = Math.max(0, cij[1] - distance);
+		var jMax = Math.min(this.map.size - 1, cij[1] + distance);
+		for (var i = iMin; i <= iMax; ++i) {
+			for (var j = jMin; j <= jMax; ++j) {
 				var ij = [i, j];
 				if (FL.Vector.lengthSqr(FL.Vector.diff(ij, cij)) <= distanceSqr) {
 					this.map.getCell(ij).reveal();
@@ -80,6 +107,63 @@ JW.extend(FL.Data, JW.Class, {
 			}
 		}
 		return false;
+	},
+
+	isByEnemy: function(ij, player) {
+		for (var d = 0; d < FL.dir8.length; ++d) {
+			var dij = FL.Vector.add(ij, FL.dir8[d]);
+			var dCell = this.map.getCell(dij);
+			if (!dCell) {
+				continue;
+			}
+			var dUnit = dCell.unit;
+			if (dUnit && (dUnit.player !== player)) {
+				return true;
+			}
+		}
+		return false;
+	},
+
+	getPath: function(sij, tij, player) {
+		if (FL.Vector.equal(sij, tij)) {
+			return [];
+		}
+		var queue = [sij];
+		var tail = 0;
+		var dirs = new FL.Matrix(this.map.size);
+		dirs.setCell(sij, true);
+		while (tail < queue.length) {
+			var cij = queue[tail++];
+			for (var d = 0; d < FL.dir8.length; ++d) {
+				var dir = (d < 4) ? (2 * d) : (2 * d - 7);
+				var dij = FL.Vector.add(cij, FL.dir8[dir]);
+				if (!this.isPassable(dij)) {
+					continue;
+				}
+				if (dirs.getCell(dij) != null) {
+					continue;
+				}
+				var cell = this.map.getCell(dij);
+				if ((player === 0) && !cell.visible) {
+					continue;
+				}
+				var unit = cell.unit;
+				if (unit) {
+					if ((unit.player === player) || !FL.Vector.equal(dij, tij)) {
+						continue;
+					}
+				}
+				if (!unit && this.isByEnemy(cij, player) && this.isByEnemy(dij, player)) {
+					continue;
+				}
+				queue.push(dij);
+				dirs.setCell(dij, dir);
+				if (FL.Vector.equal(dij, tij)) {
+					return this._backtracePath(dirs, tij);
+				}
+			}
+		}
+		return null;
 	},
 
 	_generateMap: function() {
@@ -144,6 +228,19 @@ JW.extend(FL.Data, JW.Class, {
 			}
 			this.createBase(ij, p);
 			this.createUnit(ij, p, "soldier");
+		}
+	},
+
+	_backtracePath: function(dirs, tij) {
+		var path = [];
+		while (true) {
+			var d = dirs.getCell(tij);
+			if (d === true) {
+				path.reverse();
+				return path;
+			}
+			path.push(d);
+			tij = FL.Vector.diff(tij, FL.dir8[d]);
 		}
 	}
 });

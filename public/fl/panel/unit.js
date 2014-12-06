@@ -25,7 +25,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 	},
 
 	renderMovement: function(el) {
-		if (this.movement === this.type.movement) {
+		if ((this.movement === this.type.movement) || (this.player !== 0)) {
 			el.text(this.movement);
 		} else {
 			el.text(this.movement + "/" + this.type.movement);

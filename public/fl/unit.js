@@ -4,6 +4,7 @@ FL.Unit = function(ij, player, type) {
 	this.player = player;
 	this.type = FL.Unit.types[type];
 	this.movement = this.type.movement;
+	this.ijTarget = null;
 };
 
 JW.extend(FL.Unit, JW.Class, {
