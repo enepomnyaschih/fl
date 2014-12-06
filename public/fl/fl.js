@@ -4,7 +4,7 @@ var FL = {
 	rockCount: 20,
 	rockDensity: 20,
 	playerCount: 2,
-	minBaseDistanceSqr: 12,
+	minBaseDistanceSqr: 8,
 	minMainBaseDistanceSqr: 100,
 	minMainBaseSideDistance: 4,
 	minMainBaseCenterDistance: 5,

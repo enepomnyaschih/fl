@@ -16,5 +16,21 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 			this.monitor._updateCell(null, this.unit.ij);
 			this.monitor.selectNext();
 		}, this))
+	},
+
+	renderBuild: function(el) {
+		if ((this.unit.type.id !== "mcv") || (this.unit.movement === 0)) {
+			return false;
+		}
+		if (!this.monitor.data.isBaseBuildable(this.unit.ij, FL.minBaseDistanceSqr)) {
+			return false;
+		}
+		el.click(JW.inScope(function() {
+			var ij = this.unit.ij;
+			this.monitor.data.createBase(ij, this.unit.player);
+			this.monitor.data.destroyUnit(this.unit);
+			this.monitor.updateMap();
+			this.monitor.selectCell(ij);
+		}, this));
 	}
 });

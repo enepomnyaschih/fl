@@ -41,7 +41,7 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	moveUnit: function(unit) {
-		if (!unit.ijTarget || FL.Vector.equal(unit.ijTarget, unit.ij)) {
+		if (!unit.ijTarget) {
 			return;
 		}
 		var path = this.getPath(unit.ij, unit.ijTarget, unit.player);
@@ -379,10 +379,17 @@ JW.extend(FL.Data, JW.Class, {
 				}
 				break;
 			}
+			for (var i = -1; i <= 1; ++i) {
+				for (var j = -1; j <= 1; ++j) {
+					var cell = this.map.getCell(FL.Vector.add(ij, [i, j]));
+					if (cell) {
+						cell.rock = false;
+					}
+				}
+			}
 			this.createBase(ij, p);
-			this.createUnit(ij, p, FL.Unit.types["militia"]);
-			for (var d = 0; d < 8; ++d) {
-				this.createUnit(FL.Vector.add(ij, FL.dir8[d]), (p + 1) % 2, FL.Unit.types["militia"]);
+			for (var d = 0; d < 4; ++d) {
+				this.createUnit(FL.Vector.add(ij, FL.dir4[d]), p, FL.Unit.types["militia"]);
 			}
 		}
 	},
