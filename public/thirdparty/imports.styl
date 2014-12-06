@@ -1,0 +1,22 @@
+vendor(prop, args)
+	-webkit-{prop} args
+	-moz-{prop} args
+	{prop} args
+
+border-radius()
+	vendor('border-radius', arguments)
+
+box-shadow()
+	vendor('box-shadow', arguments)
+
+xy(x, y)
+	left x
+	top y
+
+size(w, h)
+	width w
+	height h
+
+location(x, y, w, h)
+	xy x y
+	size w h

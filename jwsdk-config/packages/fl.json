@@ -1,0 +1,26 @@
+{
+	"requires": [
+		"bower_components/jquery/dist/jquery.js|auto",
+		"bower_components/jwidget/jwlib.js|auto",
+		"bower_components/jwidget/jwui.js|auto",
+		"thirdparty/reset.css"
+	],
+
+	"resources": [
+		"fl/fl.js",
+
+		"fl/app.js",
+		"fl/app.jw.html : FL.App",
+		"fl/app.styl",
+		"fl/cell.js",
+		"fl/data.js",
+		"fl/el.js",
+		"fl/matrix.js",
+		"fl/monitor.js",
+		"fl/monitor.jw.html : FL.Monitor",
+		"fl/monitor.styl",
+		"fl/vector.js",
+
+		"fl/boot.js"
+	]
+}

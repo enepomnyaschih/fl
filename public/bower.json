@@ -1,0 +1,8 @@
+{
+  "name": "dune",
+  "version": "0.0.0",
+  "dependencies": {
+    "jquery": "~2.1.0",
+    "jwidget": "~1.1"
+  }
+}
