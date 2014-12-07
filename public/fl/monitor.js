@@ -45,7 +45,6 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 
 	renderMap: function(el) {
 		el.mousedown(JW.inScope(this._onMapMouseDown, this));
-		el.bind("contextmenu", JW.UI.preventDefault);
 		var map = this.data.map;
 		for (var i = 0; i < map.size; ++i) {
 			var rowEl = jQuery('<div class="fl-monitor-row"></div>');

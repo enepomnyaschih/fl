@@ -4,6 +4,10 @@ FL.App = function(data) {
 };
 
 JW.extend(FL.App, JW.UI.Component, {
+	renderRoot: function(el) {
+		el.bind("contextmenu", JW.UI.preventDefault);
+	},
+
 	renderMonitor: function() {
 		return new FL.Monitor(this.data);
 	},
@@ -13,7 +17,7 @@ JW.extend(FL.App, JW.UI.Component, {
 		this.data.lostEvent.bind(this._onLost, this);
 	},
 
-	_onLost: function(player) {
-		this.children.set(new FL.ScreenWin(player === 0), "monitor");
+	_onLost: function(lostPlayer) {
+		this.children.set(new FL.ScreenWin(lostPlayer !== 0), "monitor");
 	}
 });
