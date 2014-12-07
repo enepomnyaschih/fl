@@ -202,6 +202,7 @@ JW.extend(FL.Data, JW.Class, {
 		var m = new FL.Matrix(this.map.size);
 		this.bases.each(function(base) {
 			base.mining = 0;
+			base.resources = [];
 			this.map.eachWithin(base.ij, FL.baseMiningRangeSqr, function(cell, ij) {
 				var miningBase = m.getCell(ij);
 				if (!miningBase) {
@@ -224,6 +225,9 @@ JW.extend(FL.Data, JW.Class, {
 					continue;
 				}
 				var cell = this.map.getCell(ij);
+				if (cell.resource) {
+					base.resources.push(cell.resource);
+				}
 				if (cell.rock) {
 					continue;
 				}

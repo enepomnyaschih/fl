@@ -53,7 +53,7 @@ FL.Unit.typeArray = [
 	{
 		id: "marine",
 		name: "Marine \"Hotheads\"",
-		attack: 4,
+		attack: 3,
 		defense: 6,
 		movement: 1,
 		sightRangeSqr: 8,
