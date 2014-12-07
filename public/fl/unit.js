@@ -29,8 +29,8 @@ FL.Unit.typeArray = [
 		attack: 1,
 		defense: 3,
 		movement: 1,
-		sightRangeSqr: 8,
-		cost: 70,
+		sightRangeSqr: 2,
+		cost: 60,
 		ai: ["patrol", "hold"]
 	},
 	{
@@ -39,7 +39,7 @@ FL.Unit.typeArray = [
 		attack: 3,
 		defense: 2,
 		movement: 1,
-		sightRangeSqr: 8,
+		sightRangeSqr: 2,
 		cost: 90,
 		ai: ["patrol", "attack"]
 	},
@@ -114,20 +114,20 @@ FL.Unit.typeArray = [
 		cost: 240,
 		resources: ["light"],
 		ai: ["support"]
-	},
+	},*/
 	{
 		id: "radar",
-		name: "Radar artillery \"I see you\"",
-		attack: 6,
-		defense: 3,
+		name: "Radar vehicle \"I see you\"",
+		attack: 3,
+		defense: 8,
 		movement: 2,
-		sightRangeSqr: 20,
+		sightRangeSqr: 18,
 		bombRangeSqr: 12,
 		bombAttack: 2,
-		cost: 240,
+		cost: 200,
 		resources: ["light"],
-		ai: ["bombard"]
-	},*/
+		ai: ["patrol"]
+	},
 	{
 		id: "tank",
 		name: "Tank \"Shushpanzer\"",
