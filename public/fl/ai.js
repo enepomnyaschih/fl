@@ -97,7 +97,7 @@ FL.AI = {
 			}
 			orderedUnits.add(nearestUnit);
 			var ijTarget = FL.Vector.round(
-				FL.Vector.between(attackUnit.ij, nearestBase.ij, .6));
+				FL.Vector.between(attackUnit.ij, nearestBase.ij, .45));
 			if (!nearestUnit.ijTarget || !FL.Vector.equal(ijTarget, nearestUnit.ijTarget)) {
 				nearestUnit.ijTarget = ijTarget;
 			} else if (attackUnit.type.attack * nearestUnit.type.attack >

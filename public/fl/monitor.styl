@@ -72,6 +72,11 @@
 			&.fl-rock
 				background-color #7F3300
 
+			& > .fl-resource
+				display block
+				position absolute
+				xy -1px -1px
+
 		& > .fl-unit, & > .fl-base, & > .fl-resource
 			display none
 			z-index 1
@@ -87,16 +92,18 @@
 				position absolute
 				xy -1px -1px
 
-			& > .fl-resource
-				display block
-				position absolute
-				xy -1px -1px
-
 		&.fl-hold
 			border 1px dotted white
 
 		&.fl-selected
-			border-color #FFFF00
+			animation-name fl-monitor-selected-anim
+			-webkit-animation-name fl-monitor-selected-anim
+			animation-duration .5s
+			-webkit-animation-duration .5s
+			animation-direction alternate
+			-webkit-animation-direction alternate
+			animation-iteration-count infinite
+			-webkit-animation-iteration-count infinite
 			padding 0
 
 		& > .fl-fog
@@ -106,14 +113,12 @@
 			size 16px 16px
 			xy -1px -1px
 
-@keyframes fl-monitor-end-turn-anim {
+@keyframes fl-monitor-selected-anim {
 	from {
-		background-color #00D000
-		border-color #00D000
+		border-color #808080
 	}
 
 	to {
-		background-color #009000
-		border-color #009000
+		border-color #FFFF00
 	}
 }
