@@ -108,7 +108,6 @@
 			border 1px dotted white
 
 		&.fl-selected > .fl-border
-			border 1px solid transparent
 			animation-name fl-monitor-selected-anim
 			-webkit-animation-name fl-monitor-selected-anim
 			animation-duration .5s
@@ -117,7 +116,6 @@
 			-webkit-animation-direction alternate
 			animation-iteration-count infinite
 			-webkit-animation-iteration-count infinite
-			padding 0
 
 		& > .fl-order-overlay
 		& > .fl-fog
@@ -131,10 +129,10 @@
 
 @keyframes fl-monitor-selected-anim {
 	from {
-		border-color #A0A0A0
+		background rgba(255, 255, 255, 0)
 	}
 
 	to {
-		border-color #FFFF80
+		background rgba(255, 255, 255, 1)
 	}
 }
