@@ -27,10 +27,10 @@ FL.Unit.typeArray = [
 		id: "militia",
 		name: "Militia \"Meat shield\"",
 		attack: 1,
-		defense: 2,
+		defense: 3,
 		movement: 1,
 		sightRangeSqr: 8,
-		cost: 60,
+		cost: 70,
 		ai: ["patrol", "hold"]
 	},
 	{
@@ -66,7 +66,7 @@ FL.Unit.typeArray = [
 		resources: ["yard"],
 		ai: ["patrol", "hold"]
 	},
-	/*{
+	{
 		id: "paratrooper",
 		name: "Paratrooper \"Zealot bomb\"",
 		attack: 6,
@@ -75,10 +75,10 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 8,
 		cost: 150,
 		resources: ["yard"],
-		landing: true,
-		ai: ["patrol", "attack", "rush"]
+		paradropRangeSqr: 20,
+		ai: ["attack"]
 	},
-	{
+	/*{
 		id: "artillery",
 		name: "Artillery \"Eat it\"",
 		attack: 3,

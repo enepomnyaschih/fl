@@ -80,16 +80,20 @@ JW.extend(FL.Data, JW.Class, {
 				unit.ijTarget = null;
 				break;
 			}
-			sourceCell.setUnit(null);
 			--unit.movement;
-			unit.ij = tij;
-			targetCell.setUnit(unit);
-			if (unit.player === 0) {
-				this.reveal(unit.ij, unit.type.sightRangeSqr);
-			}
+			this.transferUnit(unit, tij);
 		}
 		if (unit.ijTarget && FL.Vector.equal(unit.ij, unit.ijTarget)) {
 			unit.ijTarget = null;
+		}
+	},
+
+	transferUnit: function(unit, tij) {
+		this.map.getCell(unit.ij).setUnit(null);
+		unit.ij = tij;
+		this.map.getCell(tij).setUnit(unit);
+		if (unit.player === 0) {
+			this.reveal(tij, unit.type.sightRangeSqr);
 		}
 	},
 

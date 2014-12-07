@@ -30,5 +30,22 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 			this.monitor.updateMap();
 			this.monitor.selectCell(this.unit.ij);
 		}, this));
+	},
+
+	renderDrop: function(el) {
+		if (!this.unit.type.paradropRangeSqr || (this.unit.movement === 0)) {
+			return false;
+		}
+		if (!this.monitor.data.map.getCell(this.unit.ij).base) {
+			return false;
+		}
+		el.click(JW.inScope(function() {
+			var unit = this.unit;
+			var data = this.monitor.data;
+			this.monitor.initOrder(unit.ij, unit.type.paradropRangeSqr, function(ij) {
+				unit.movement = 0;
+				data.transferUnit(unit, ij);
+			});
+		}, this));
 	}
 });

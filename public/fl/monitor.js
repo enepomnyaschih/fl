@@ -6,6 +6,10 @@ FL.Monitor = function(data) {
 	this.selectionQueue = [];
 	this.selectionTail = 0;
 	this.baseExitAttachment = this.own(new JW.Property()).ownValue();
+	this.orderIj = null;
+	this.orderRangeSqr = null;
+	this.orderCallback = null;
+	this.orderScope = null;
 };
 
 JW.extend(FL.Monitor, JW.UI.Component, {
@@ -67,6 +71,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	selectCell: function(ij) {
+		this.resetOrder();
 		if (this.cellSelect) {
 			this._getCell(this.cellSelect.ij).removeClass("fl-selected");
 		}
@@ -110,17 +115,38 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this.getElement("end-turn").addClass("fl-active");
 	},
 
-	updateMap: function() {
+	updateMap: function(force) {
 		var map = this.data.map;
 		for (var i = 0; i < map.size; ++i) {
 			for (var j = 0; j < map.size; ++j) {
 				var ij = [i, j];
 				var cell = this.data.map.getCell(ij);
-				if (cell.invalid) {
+				if (force || cell.invalid) {
 					this._updateCell(this._getCell(ij), ij);
 				}
 			}
 		}
+	},
+
+	initOrder: function(cij, rangeSqr, callback, scope) {
+		this.selectCell(null);
+		this.orderIj = cij;
+		this.orderRangeSqr = rangeSqr;
+		this.orderCallback = callback;
+		this.orderScope = scope;
+		this.updateMap(true);
+		this.panel.set(new FL.Panel.Order());
+	},
+
+	resetOrder: function() {
+		if (!this.orderIj) {
+			return;
+		}
+		this.orderIj = null;
+		this.orderRangeSqr = null;
+		this.orderCallback = null;
+		this.orderScope = null;
+		this.updateMap(true);
 	},
 
 	_getCell: function(ij) {
@@ -166,8 +192,15 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			unitEl.toggleClass("fl-moved", cell.unit.movement === 0);
 			el.append(unitEl);
 		}
-		if (cell.scouted && !cell.visible) {
-			el.append('<div class="fl-fog"></div>')
+		if (cell.scouted) {
+			if (this.orderIj) {
+				var rangeSqr = FL.Vector.lengthSqr(FL.Vector.diff(this.orderIj, ij));
+				if (rangeSqr > this.orderRangeSqr) {
+					el.append('<div class="fl-fog"></div>')
+				}
+			} else if (!cell.visible) {
+				el.append('<div class="fl-fog"></div>')
+			}
 		}
 	},
 
@@ -195,6 +228,19 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	_onRightMouseDown: function(cellEl, ij) {
+		if (this.orderIj) {
+			if (FL.Vector.lengthSqr(FL.Vector.diff(this.orderIj, ij)) >= this.orderRangeSqr) {
+				return;
+			}
+			var cell = this.data.map.getCell(ij);
+			if (!cell.scouted || !this.data.isPassable(ij) || cell.unit || cell.base) {
+				return;
+			}
+			this.orderCallback.call(this.orderScope, ij);
+			this.resetOrder();
+			this.selectNext();
+			return;
+		}
 		if (!this.cellSelect) {
 			return;
 		}

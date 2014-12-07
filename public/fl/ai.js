@@ -116,7 +116,6 @@ FL.AI = {
 		} else {
 			FL.AI.attack++;
 			var newBehaviour = FL.random(2) ? "assaulting" : "attacking";
-			console.log(newBehaviour);
 			behaviourUnits[newBehaviour] = behaviourUnits[newBehaviour].concat(behaviourUnits["attack"]);
 			JW.Array.each(behaviourUnits["attack"], function(unit) {
 				unit.behaviour = newBehaviour;

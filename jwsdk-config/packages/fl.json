@@ -26,6 +26,7 @@
 		"fl/panel/panel.styl",
 		"fl/panel/base.js",
 		"fl/panel/base.jw.html : FL.Panel.Base",
+		"fl/panel/order.js",
 		"fl/panel/production.js",
 		"fl/panel/production.jw.html : FL.Panel.Production",
 		"fl/panel/unit.js",
