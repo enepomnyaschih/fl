@@ -31,7 +31,7 @@ FL.Unit.typeArray = [
 		movement: 1,
 		sightRangeSqr: 8,
 		cost: 40,
-		ai: ["patrol", "hold", "rush"]
+		ai: ["patrol", "hold"]
 	},
 	{
 		id: "infantry",
@@ -64,7 +64,7 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 8,
 		cost: 80,
 		resources: ["yard"],
-		ai: ["patrol", "hold", "rush"]
+		ai: ["patrol", "hold"]
 	},
 	/*{
 		id: "paratrooper",
@@ -100,7 +100,7 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 8,
 		cost: 100,
 		resources: ["light"],
-		ai: ["patrol", "attack", "rush"]
+		ai: ["patrol", "attack"]
 	},
 	/*{
 		id: "sam",

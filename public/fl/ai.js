@@ -15,6 +15,7 @@ FL.AI = {
 	aquisitionDistanceSqr: 50,
 	baseHoldRangeSqr: 10,
 	unitHoldRangeSqr: 4,
+	patrolPerBase: 3,
 
 	process: function(data, player) {
 		var bases = data.bases.$toArray().filter(JW.byValue("player", player));
@@ -25,6 +26,10 @@ FL.AI = {
 		JW.Array.each(units, function(unit) {
 			++unitCount[unit.type.id];
 			++totalUnitCount[unit.type.id];
+			if ((unit.behaviour === "patrol") &&
+				(behaviourUnits["patrol"].length >= FL.AI.patrolPerBase * bases.length)) {
+				unit.behaviour = "attack";
+			}
 			behaviourUnits[unit.behaviour].push(unit);
 		});
 		JW.Array.each(bases, function(base) {
