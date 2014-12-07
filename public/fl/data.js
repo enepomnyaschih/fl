@@ -28,7 +28,7 @@ JW.extend(FL.Data, JW.Class, {
 	createUnit: function(ij, player, type, behaviour) {
 		var unit = new FL.Unit(ij, player, type, behaviour);
 		this.units.add(unit);
-		this.map.getCell(ij).unit = unit;
+		this.map.getCell(ij).setUnit(unit);
 		if (player == 0) {
 			this.reveal(ij, type.sightRangeSqr)
 		}

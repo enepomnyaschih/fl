@@ -135,7 +135,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		el.toggleClass("fl-scouted", true);//cell.scouted);
 		el.toggleClass("fl-visible", true);//cell.visible);
 		el.toggleClass("fl-rock", cell.rock);
-		el.toggleClass("fl-hold", (cell.unit != null) && cell.unit.hold);
+		el.toggleClass("fl-hold", (cell.unit != null) && cell.unit.hold && (cell.unit.player === 0));
 		for (var d = 0; d < 4; ++d) {
 			var dij = FL.Vector.add(cell.ij, FL.dir4[d]);
 			var dCell = this.data.map.getCell(dij);

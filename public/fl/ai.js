@@ -13,6 +13,8 @@ FL.AI = {
 	attack: 2,
 	patrolDistance: 3,
 	aquisitionDistanceSqr: 50,
+	baseHoldRangeSqr: 10,
+	unitHoldRangeSqr: 4,
 
 	process: function(data, player) {
 		var bases = data.bases.$toArray().filter(JW.byValue("player", player));
@@ -41,7 +43,8 @@ FL.AI = {
 			if (totalUnitCount["mcv"] !== 0) {
 				JW.Array.removeItem(availableUnitTypes, FL.Unit.types["mcv"]);
 			}
-			var unitType = FL.Unit.types["infantry"];//availableUnitTypes[FL.random(availableUnitTypes.length)];
+			//var unitType = FL.Unit.types["militia"];
+			var unitType = availableUnitTypes[FL.random(availableUnitTypes.length)];
 			base.unitType.set(unitType);
 			++totalUnitCount[unitType.id];
 		});
@@ -154,6 +157,59 @@ FL.AI = {
 				unit.ijTarget = nearestTarget;
 			} else {
 				unit.ijTarget = ijTargets[FL.random(ijTargets.length)];
+			}
+		});
+
+		// hold
+		var holdMap = new FL.Matrix(data.map.size);
+		JW.Array.each(bases, function(base) {
+			data.map.eachWithin(base.ij, FL.AI.baseHoldRangeSqr, function(cell, ij) {
+				holdMap.setCell(ij, true);
+			});
+		});
+		JW.Array.each(behaviourUnits["hold"], function(unit) {
+			if (!unit.hold) {
+				return;
+			}
+			data.map.eachWithin(unit.ij, FL.AI.unitHoldRangeSqr, function(cell, ij) {
+				holdMap.setCell(ij, true);
+			});
+		});
+		JW.Array.each(behaviourUnits["hold"], function(unit) {
+			if (!holdMap.getCell(unit.ij)) {
+				unit.hold = true;
+				data.map.eachWithin(unit.ij, FL.AI.unitHoldRangeSqr, function(cell, ij) {
+					holdMap.setCell(ij, true);
+				});
+			}
+			if (unit.hold) {
+				return;
+			}
+			var nearestTarget, nearestTargetDistanceSqr = Number.POSITIVE_INFINITY;
+			for (var i = 0; i < data.map.size; ++i) {
+				for (var j = 0; j < data.map.size; ++j) {
+					var ij = [i, j];
+					if (holdMap.getCell(ij)) {
+						continue;
+					}
+					if (!data.isPassable(ij)) {
+						continue;
+					}
+					var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij, ij)) +
+						.2 * FL.Vector.lengthSqr(FL.Vector.diff(data.map.ijCenter(), ij));
+					if (distanceSqr < nearestTargetDistanceSqr) {
+						nearestTarget = ij;
+						nearestTargetDistanceSqr = distanceSqr;
+					}
+				}
+			}
+			if (nearestTarget) {
+				unit.ijTarget = nearestTarget;
+			} else {
+				unit.ijTarget = FL.Vector.add(unit.ij, FL.dir8[FL.random(8)]);
+				if (!data.map.inMatrix(unit.ijTarget)) {
+					unit.ijTarget = null;
+				}
 			}
 		});
 	},

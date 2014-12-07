@@ -33,5 +33,9 @@ FL.Vector = {
 
 	round: function(a) {
 		return [Math.round(a[0]), Math.round(a[1])];
+	},
+
+	norm8: function(a) {
+		return [JW.sgn(a[0]), JW.sgn(a[1])];
 	}
 };

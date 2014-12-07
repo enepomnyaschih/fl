@@ -41,7 +41,7 @@ FL.Unit.typeArray = [
 		movement: 1,
 		sightRangeSqr: 8,
 		cost: 60,
-		ai: ["attack"]
+		ai: ["patrol", "attack"]
 	},
 	/*{
 		id: "ack",
