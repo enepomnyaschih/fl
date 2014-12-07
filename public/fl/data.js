@@ -4,6 +4,7 @@ FL.Data = function() {
 	this.bases = new JW.Set();
 	this.units = new JW.Set();
 	this.logEvent = new JW.Event();
+	this.lostEvent = new JW.Event();
 	this.turn = 1;
 	this._generateMap();
 };
@@ -23,6 +24,9 @@ JW.extend(FL.Data, JW.Class, {
 		this.bases.remove(base);
 		this.map.getCell(base.ij).setBase(null);
 		base.destroy();
+		if (this.bases.count(JW.byValue("player", base.player)) === 0) {
+			this.lostEvent.trigger(base.player);
+		}
 	},
 
 	createUnit: function(ij, player, type, behaviour) {

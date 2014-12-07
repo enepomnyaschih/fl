@@ -17,7 +17,9 @@ FL.AI = {
 	baseHoldRangeSqr: 10,
 	unitHoldRangeSqr: 4,
 	patrolPerBase: 3,
-	productionCoef: 1.5,
+	initialProductionCoef: 1,
+	productionCoefPerWin: .1,
+	productionCoefPerLoss: .05,
 
 	process: function(data, player) {
 		var bases = data.bases.$toArray().filter(JW.byValue("player", player));
@@ -285,3 +287,7 @@ FL.AI = {
 		});
 	}
 };
+
+FL.AI.productionCoef = FL.AI.initialProductionCoef +
+	(localStorage["wins"] || 0) * FL.AI.productionCoefPerWin -
+	(localStorage["losses"] || 0) * FL.AI.productionCoefPerLoss;

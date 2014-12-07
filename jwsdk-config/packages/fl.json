@@ -33,6 +33,8 @@
 		"fl/panel/unitButton.js",
 		"fl/panel/unitButton.jw.html : FL.Panel.UnitButton",
 		"fl/resource.js",
+		"fl/screenWin.js",
+		"fl/screenWin.jw.html : FL.ScreenWin",
 		"fl/unit.js",
 		"fl/unitInfo.js",
 		"fl/unitInfo.jw.html : FL.UnitInfo",
