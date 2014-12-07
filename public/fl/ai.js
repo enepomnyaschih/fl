@@ -5,6 +5,7 @@ FL.AI = {
 		"hold",
 		"rush",
 		"attack",
+		"attacking",
 		"support",
 		"bombard",
 		"fly"
@@ -30,6 +31,8 @@ FL.AI = {
 				++totalUnitCount[type.id];
 			}
 		});
+
+		// produce units
 		JW.Array.each(bases, function(base) {
 			if (base.unitType.get()) {
 				return;
@@ -38,10 +41,12 @@ FL.AI = {
 			if (totalUnitCount["mcv"] !== 0) {
 				JW.Array.removeItem(availableUnitTypes, FL.Unit.types["mcv"]);
 			}
-			var unitType = FL.Unit.types['mcv'];//availableUnitTypes[FL.random(availableUnitTypes.length)];
+			var unitType = FL.Unit.types["infantry"];//availableUnitTypes[FL.random(availableUnitTypes.length)];
 			base.unitType.set(unitType);
 			++totalUnitCount[unitType.id];
 		});
+
+		// build bases
 		JW.Array.each(behaviourUnits["build"], function(unit) {
 			var ijTarget = unit.ijTarget || FL.AI.findBaseSpot(data, unit.ij, player);
 			if (FL.Vector.equal(ijTarget, unit.ij)) {
@@ -50,6 +55,8 @@ FL.AI = {
 				unit.ijTarget = ijTarget;
 			}
 		});
+
+		// defend
 		var orderedUnits = new JW.Set();
 		data.units.each(function(attackUnit) {
 			if (attackUnit.player === player) {
@@ -82,7 +89,7 @@ FL.AI = {
 			}
 			orderedUnits.add(nearestUnit);
 			var ijTarget = FL.Vector.round(
-				FL.Vector.between(attackUnit.ij, nearestUnit.ij, .6));
+				FL.Vector.between(attackUnit.ij, nearestBase.ij, .6));
 			if (!nearestUnit.ijTarget || !FL.Vector.equal(ijTarget, nearestUnit.ijTarget)) {
 				nearestUnit.ijTarget = ijTarget;
 			} else if (attackUnit.type.attack * nearestUnit.type.attack >
@@ -90,6 +97,17 @@ FL.AI = {
 				nearestUnit.ijTarget = attackUnit.ij;
 			}
 		});
+
+		// patrol
+		if (behaviourUnits["attack"].length < FL.AI.attack) {
+			behaviourUnits["patrol"] = behaviourUnits["patrol"].concat(behaviourUnits["attack"]);
+		} else {
+			FL.AI.attack++;
+			behaviourUnits["attacking"] = behaviourUnits["attacking"].concat(behaviourUnits["attack"]);
+			JW.Array.each(behaviourUnits["attack"], function(unit) {
+				unit.behaviour = "attacking";
+			});
+		}
 		JW.Array.each(behaviourUnits["patrol"], function(unit) {
 			if (orderedUnits.contains(unit)) {
 				return;
@@ -106,6 +124,37 @@ FL.AI = {
 				rect.iMin + FL.random(rect.iMax - rect.iMin + 1),
 				rect.jMin + FL.random(rect.jMax - rect.jMin + 1)
 			];
+		});
+
+		// attack
+		var ijTargets = [];
+		data.bases.each(function(base) {
+			if (base.player !== player) {
+				ijTargets.push(base.ij);
+			}
+		});
+		data.units.each(function(unit) {
+			if (unit.player !== player) {
+				ijTargets.push(unit.ij);
+			}
+		});
+		JW.Array.each(behaviourUnits["attacking"], function(unit) {
+			var nearestTarget, nearestTargetDistanceSqr = Number.POSITIVE_INFINITY;
+			JW.Array.each(ijTargets, function(ij) {
+				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij, ij));
+				if (distanceSqr < nearestTargetDistanceSqr) {
+					nearestTarget = ij;
+					nearestTargetDistanceSqr = distanceSqr;
+				}
+			});
+			if (!nearestTarget) {
+				return; // just in case
+			}
+			if (data.getPath(unit.ij, nearestTarget, player)) {
+				unit.ijTarget = nearestTarget;
+			} else {
+				unit.ijTarget = ijTargets[FL.random(ijTargets.length)];
+			}
 		});
 	},
 
