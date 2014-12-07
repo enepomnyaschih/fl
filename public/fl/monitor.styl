@@ -38,20 +38,35 @@
 
 	&-cell
 		background black none scroll 0 0 no-repeat
-		border 1px solid black
+		border 1px solid transparent
 		float left
 		position relative
 		size 16px 16px
 
 		&.fl-scouted
 			background-color #77BB44
-			border-color #444444
 
 			&[fl-player=n0]
 				background-color #22DD22
+				&.fl-border-0
+					border-right 1px solid #44FF44
+				&.fl-border-1
+					border-top 1px solid #44FF44
+				&.fl-border-2
+					border-left 1px solid #44FF44
+				&.fl-border-3
+					border-bottom 1px solid #44FF44
 
 			&[fl-player=n1]
 				background-color #DD2222
+				&.fl-border-0
+					border-right 1px solid #FF4444
+				&.fl-border-1
+					border-top 1px solid #FF4444
+				&.fl-border-2
+					border-left 1px solid #FF4444
+				&.fl-border-3
+					border-bottom 1px solid #FF4444
 
 			&.fl-rock
 				background-color #7F3300

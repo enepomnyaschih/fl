@@ -136,6 +136,14 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		el.toggleClass("fl-visible", cell.visible);
 		el.toggleClass("fl-rock", cell.rock);
 		el.toggleClass("fl-hold", (cell.unit != null) && cell.unit.hold);
+		for (var d = 0; d < 4; ++d) {
+			var dij = FL.Vector.add(cell.ij, FL.dir4[d]);
+			var dCell = this.data.map.getCell(dij);
+			el.toggleClass("fl-border-" + d,
+				dCell && !dCell.rock && !cell.rock &&
+				cell.miningBase && (dCell.miningBase !== cell.miningBase) &&
+				(dCell.miningBase ? (cell.miningBase._iid > dCell.miningBase._iid) : true));
+		}
 		if (cell.miningBase) {
 			el.attr("fl-player", "n" + cell.miningBase.player);
 		} else {

@@ -38,11 +38,10 @@ JW.extend(FL.Cell, JW.Class, {
 	},
 
 	setMiningBase: function(base) {
-		if (this.miningBase === base) {
-			return;
+		if (base || (base !== this.miningBase)) {
+			this.invalid = true; // force borders to redraw always
 		}
 		this.miningBase = base;
-		this.invalid = true;
 	},
 
 	setUnit: function(unit) {

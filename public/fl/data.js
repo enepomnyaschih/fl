@@ -202,8 +202,7 @@ JW.extend(FL.Data, JW.Class, {
 		var m = new FL.Matrix(this.map.size);
 		this.bases.each(function(base) {
 			this.map.eachWithin(base.ij, FL.baseMiningRangeSqr, function(cell, ij) {
-				m.setCell(ij, base);
-				/*var miningBase = m.getCell(ij);
+				var miningBase = m.getCell(ij);
 				if (!miningBase) {
 					m.setCell(ij, base);
 					return;
@@ -212,7 +211,7 @@ JW.extend(FL.Data, JW.Class, {
 					FL.Vector.lengthSqr(FL.Vector.diff(ij, base.ij))) {
 					m.setCell(ij, base);
 					return;
-				}*/
+				}
 			}, this);
 		}, this);
 		for (var i = 0; i < this.map.size; ++i) {
