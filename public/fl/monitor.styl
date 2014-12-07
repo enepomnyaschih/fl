@@ -47,6 +47,19 @@
 		&.fl-scouted
 			background-color #77BB44
 
+			&.fl-rock
+				background-color #7F3300
+
+			& > .fl-resource
+				display block
+				position absolute
+				xy -1px -1px
+
+		& > .fl-unit, & > .fl-base, & > .fl-resource
+			display none
+			z-index 1
+
+		&.fl-visible
 			&[fl-player=n0]
 				background-color #22DD22
 				&.fl-border-0
@@ -69,19 +82,6 @@
 				&.fl-border-3
 					border-bottom 1px solid #FF4444
 
-			&.fl-rock
-				background-color #7F3300
-
-			& > .fl-resource
-				display block
-				position absolute
-				xy -1px -1px
-
-		& > .fl-unit, & > .fl-base, & > .fl-resource
-			display none
-			z-index 1
-
-		&.fl-visible
 			& > .fl-base
 				display block
 				position absolute
