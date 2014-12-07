@@ -9,6 +9,7 @@
 	"resources": [
 		"fl/fl.js",
 
+		"fl/ai.js",
 		"fl/app.js",
 		"fl/app.jw.html : FL.App",
 		"fl/app.styl",

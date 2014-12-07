@@ -25,8 +25,8 @@ JW.extend(FL.Data, JW.Class, {
 		base.destroy();
 	},
 
-	createUnit: function(ij, player, type) {
-		var unit = new FL.Unit(ij, player, type);
+	createUnit: function(ij, player, type, behaviour) {
+		var unit = new FL.Unit(ij, player, type, behaviour);
 		this.units.add(unit);
 		this.map.getCell(ij).unit = unit;
 		if (player == 0) {
@@ -61,19 +61,19 @@ JW.extend(FL.Data, JW.Class, {
 				if ((targetCell.unit.player !== unit.player) &&
 						FL.Vector.equal(tij, unit.ijTarget) && (unit.type.attack !== 0)) {
 					--unit.movement;
-					unit.ijTarget = null;
 					sourceCell.invalid = true;
 					this.fightUnit(unit, targetCell.unit);
 				}
+				unit.ijTarget = null;
 				break;
 			}
 			if (targetCell.base && (targetCell.base.player !== unit.player)) {
 				if (FL.Vector.equal(tij, unit.ijTarget) && (unit.type.attack !== 0)) {
 					--unit.movement;
-					unit.ijTarget = null;
 					sourceCell.invalid = true;
 					this.fightBase(unit, targetCell.base);
 				}
+				unit.ijTarget = null;
 				break;
 			}
 			sourceCell.setUnit(null);
@@ -165,15 +165,21 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	endTurn: function() {
-		this.resetVision();
-		this._produce(0);
-		this._produce(1);
-		this.units.each(function(unit) {
+		this.log("End turn");
+		this._endTurnPlayer(0);
+		FL.AI.process(this, 1);
+		this._endTurnPlayer(1);
+		++this.turn;
+		this.log("Turn " + this.turn);
+	},
+
+	_endTurnPlayer: function(player) {
+		this.moveUnits(player);
+		this.units.$filter(JW.byValue("player", player)).each(function(unit) {
 			unit.movement = unit.type.movement;
 		}, this);
 		this.resetVision();
-		++this.turn;
-		this.log("Turn " + this.turn);
+		this._produce(player);
 	},
 
 	reveal: function(cij, distanceSqr) {
@@ -237,6 +243,12 @@ JW.extend(FL.Data, JW.Class, {
 				}
 			}
 		}
+	},
+
+	buildBase: function(unit) {
+		this.createBase(unit.ij, unit.player);
+		this.destroyUnit(unit);
+		this.resetMining();
 	},
 
 	isBaseBuildable: function(ij, minDistance) {
@@ -437,7 +449,7 @@ JW.extend(FL.Data, JW.Class, {
 			}
 			this.createBase(ij, p);
 			for (var d = 0; d < 4; ++d) {
-				this.createUnit(FL.Vector.add(ij, FL.dir4[d]), p, FL.Unit.types["militia"]);
+				this.createUnit(FL.Vector.add(ij, FL.dir4[d]), p, FL.Unit.types["militia"], "patrol");
 			}
 		}
 	},

@@ -17,5 +17,9 @@ JW.extend(FL.Base, JW.Class, {
 		return JW.Array.every(type.resources, function(resourceId) {
 			return JW.Array.containsItem(this.resources, FL.Resource.types[resourceId]);
 		}, this);
+	},
+
+	getAvailableUnitTypes: function() {
+		return JW.Array.filter(FL.Unit.typeArray, this.isUnitTypeAvailable, this);
 	}
 });

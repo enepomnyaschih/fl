@@ -25,5 +25,13 @@ FL.Vector = {
 
 	length8: function(a) {
 		return Math.max(Math.abs(a[0]), Math.abs(a[1]));
+	},
+
+	between: function(a, b, c) {
+		return FL.Vector.add(a, FL.Vector.mult(FL.Vector.diff(b, a), c))
+	},
+
+	round: function(a) {
+		return [Math.round(a[0]), Math.round(a[1])];
 	}
 };

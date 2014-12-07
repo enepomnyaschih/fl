@@ -1,4 +1,4 @@
-FL.Unit = function(ij, player, type) {
+FL.Unit = function(ij, player, type, behaviour) {
 	FL.Unit._super.call(this);
 	this.ij = ij;
 	this.player = player;
@@ -6,6 +6,7 @@ FL.Unit = function(ij, player, type) {
 	this.movement = this.type.movement;
 	this.ijTarget = null;
 	this.hold = false;
+	this.behaviour = behaviour || type.ai[FL.random(type.ai.length)];
 };
 
 JW.extend(FL.Unit, JW.Class, {
@@ -19,7 +20,8 @@ FL.Unit.typeArray = [
 		defense: 1,
 		movement: 1,
 		sightRangeSqr: 2,
-		cost: 200
+		cost: 200,
+		ai: ["build"]
 	},
 	{
 		id: "militia",
@@ -28,7 +30,8 @@ FL.Unit.typeArray = [
 		defense: 2,
 		movement: 1,
 		sightRangeSqr: 8,
-		cost: 40
+		cost: 40,
+		ai: ["patrol", "hold", "rush"]
 	},
 	{
 		id: "infantry",
@@ -37,7 +40,8 @@ FL.Unit.typeArray = [
 		defense: 2,
 		movement: 1,
 		sightRangeSqr: 8,
-		cost: 60
+		cost: 60,
+		ai: ["patrol", "attack"]
 	},
 	/*{
 		id: "ack",
@@ -48,7 +52,8 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 8,
 		samRangeSqr: 2,
 		samAttack: 1,
-		cost: 80
+		cost: 80,
+		ai: ["support"]
 	},*/
 	{
 		id: "marine",
@@ -58,7 +63,8 @@ FL.Unit.typeArray = [
 		movement: 1,
 		sightRangeSqr: 8,
 		cost: 80,
-		resources: ["yard"]
+		resources: ["yard"],
+		ai: ["patrol", "hold", "rush"]
 	},
 	/*{
 		id: "paratrooper",
@@ -69,7 +75,8 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 8,
 		cost: 100,
 		resources: ["yard"],
-		landing: true
+		landing: true,
+		ai: ["patrol", "attack", "rush"]
 	},
 	{
 		id: "artillery",
@@ -81,7 +88,8 @@ FL.Unit.typeArray = [
 		bombRangeSqr: 5,
 		bombAttack: 1,
 		cost: 100,
-		resources: ["yard"]
+		resources: ["yard"],
+		ai: ["bombard"]
 	},*/
 	{
 		id: "humvee",
@@ -91,7 +99,8 @@ FL.Unit.typeArray = [
 		movement: 4,
 		sightRangeSqr: 8,
 		cost: 100,
-		resources: ["light"]
+		resources: ["light"],
+		ai: ["patrol", "attack", "rush"]
 	},
 	/*{
 		id: "sam",
@@ -103,7 +112,8 @@ FL.Unit.typeArray = [
 		samRangeSqr: 8,
 		samAttack: 2,
 		cost: 160,
-		resources: ["light"]
+		resources: ["light"],
+		ai: ["support"]
 	},
 	{
 		id: "radar",
@@ -115,7 +125,8 @@ FL.Unit.typeArray = [
 		bombRangeSqr: 12,
 		bombAttack: 2,
 		cost: 160,
-		resources: ["light"]
+		resources: ["light"],
+		ai: ["bombard"]
 	},*/
 	{
 		id: "tank",
@@ -125,7 +136,8 @@ FL.Unit.typeArray = [
 		movement: 2,
 		sightRangeSqr: 8,
 		cost: 240,
-		resources: ["heavy"]
+		resources: ["heavy"],
+		ai: ["attack"]
 	},
 	{
 		id: "mobile",
@@ -135,7 +147,8 @@ FL.Unit.typeArray = [
 		movement: 2,
 		sightRangeSqr: 8,
 		cost: 240,
-		resources: ["heavy"]
+		resources: ["heavy"],
+		ai: ["attack"]
 	}/*,
 	{
 		id: "helicopter",
@@ -145,7 +158,8 @@ FL.Unit.typeArray = [
 		flight: 6,
 		sightRangeSqr: 12,
 		cost: 160,
-		resources: ["airport"]
+		resources: ["airport"],
+		ai: ["fly"]
 	}*/
 ];
 

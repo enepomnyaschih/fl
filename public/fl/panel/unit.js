@@ -26,12 +26,9 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 			return false;
 		}
 		el.click(JW.inScope(function() {
-			var ij = this.unit.ij;
-			this.monitor.data.createBase(ij, this.unit.player);
-			this.monitor.data.destroyUnit(this.unit);
-			this.monitor.data.resetMining();
+			this.monitor.data.buildBase(this.unit);
 			this.monitor.updateMap();
-			this.monitor.selectCell(ij);
+			this.monitor.selectCell(this.unit.ij);
 		}, this));
 	}
 });

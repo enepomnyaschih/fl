@@ -28,17 +28,23 @@ JW.extend(FL.Matrix, JW.Class, {
 		return FL.Vector.mult([this.size, this.size], .5);
 	},
 
+	getRect: function(cij, distance) {
+		return {
+			iMin: Math.max(0, cij[0] - distance),
+			iMax: Math.min(this.size - 1, cij[0] + distance),
+			jMin: Math.max(0, cij[1] - distance),
+			jMax: Math.min(this.size - 1, cij[1] + distance)
+		};
+	},
+
 	eachWithin: function(cij, distanceSqr, callback, scope) {
 		var distance = Math.ceil(Math.sqrt(distanceSqr));
-		var iMin = Math.max(0, cij[0] - distance);
-		var iMax = Math.min(this.size - 1, cij[0] + distance);
-		var jMin = Math.max(0, cij[1] - distance);
-		var jMax = Math.min(this.size - 1, cij[1] + distance);
-		for (var i = iMin; i <= iMax; ++i) {
-			for (var j = jMin; j <= jMax; ++j) {
+		var rect = this.getRect(cij, distance);
+		for (var i = rect.iMin; i <= rect.iMax; ++i) {
+			for (var j = rect.jMin; j <= rect.jMax; ++j) {
 				var ij = [i, j];
 				if (FL.Vector.lengthSqr(FL.Vector.diff(ij, cij)) <= distanceSqr) {
-					callback.call(scope, this.getCell(ij), ij);
+					callback.call(scope || this, this.getCell(ij), ij);
 				}
 			}
 		}
