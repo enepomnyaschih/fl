@@ -119,11 +119,15 @@
 			-webkit-animation-iteration-count infinite
 			padding 0
 
+		& > .fl-order-overlay
 		& > .fl-fog
 			background black
 			opacity .5
 			position absolute
 			size 16px 16px
+
+		.fl-order-active & > .fl-fog
+			display none
 
 @keyframes fl-monitor-selected-anim {
 	from {

@@ -41,10 +41,13 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		}
 		el.click(JW.inScope(function() {
 			var unit = this.unit;
+			var monitor = this.monitor;
 			var data = this.monitor.data;
 			this.monitor.initOrder(unit.ij, unit.type.paradropRangeSqr, function(ij) {
 				unit.movement = 0;
+				unit.ijTarget = null;
 				data.transferUnit(unit, ij);
+				monitor.updateMap();
 			});
 		}, this));
 	}

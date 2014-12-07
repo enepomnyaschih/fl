@@ -279,6 +279,20 @@ JW.extend(FL.Data, JW.Class, {
 		return this.map.inMatrix(ij) && !this.map.getCell(ij).rock;
 	},
 
+	isDroppable: function(sij, tij, rangeSqr, player) {
+		if (FL.Vector.lengthSqr(FL.Vector.diff(sij, tij)) > rangeSqr) {
+			return false;
+		}
+		var cell = this.map.getCell(tij);
+		if (!this.isPassable(tij) || cell.unit || cell.base) {
+			return false;
+		}
+		if ((player === 0) && !cell.scouted) {
+			return false;
+		}
+		return true;
+	},
+
 	isChoke: function(ij) {
 		var dij = FL.getIjs8(ij);
 		// check sides

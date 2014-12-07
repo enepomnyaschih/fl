@@ -10,6 +10,7 @@ FL.Monitor = function(data) {
 	this.orderRangeSqr = null;
 	this.orderCallback = null;
 	this.orderScope = null;
+	this.cells = new FL.Matrix(this.data.map.size);
 };
 
 JW.extend(FL.Monitor, JW.UI.Component, {
@@ -51,6 +52,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			for (var j = 0; j < map.size; ++j) {
 				var ij = [i, j];
 				var cellEl = jQuery('<div class="fl-monitor-cell"></div>');
+				this.cells.setCell(ij, cellEl);
 				cellEl.attr("fl-i", "n" + i);
 				cellEl.attr("fl-j", "n" + j);
 				this._updateCell(cellEl, ij)
@@ -134,7 +136,15 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this.orderRangeSqr = rangeSqr;
 		this.orderCallback = callback;
 		this.orderScope = scope;
-		this.updateMap(true);
+		this.getElement("map").addClass("fl-order-active");
+		for (var i = 0; i < this.data.map.size; ++i) {
+			for (var j = 0; j < this.data.map.size; ++j) {
+				var ij = [i, j];
+				if (!this.data.isDroppable(this.orderIj, ij, this.orderRangeSqr, 0)) {
+					this._getCell(ij).append('<div class="fl-order-overlay"></div>')
+				}
+			}
+		}
 		this.panel.set(new FL.Panel.Order());
 	},
 
@@ -146,11 +156,12 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this.orderRangeSqr = null;
 		this.orderCallback = null;
 		this.orderScope = null;
-		this.updateMap(true);
+		this.getElement("map").removeClass("fl-order-active");
+		this.getElement("map").find(".fl-order-overlay").remove();
 	},
 
 	_getCell: function(ij) {
-		return this.getElement("map").find(".fl-monitor-cell[fl-i=n" + ij[0] + "][fl-j=n" + ij[1] + "]");
+		return this.cells.getCell(ij);
 	},
 
 	_updateCell: function(el, ij) {
@@ -178,24 +189,6 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 				(dCell.miningBase ? (cell.miningBase._iid > dCell.miningBase._iid) : true));
 		}
 		el.append(borderEl);
-		/*var borderCls = "";
-		if ((cell.unit != null) && cell.unit.hold && (cell.unit.player === 0)) {
-			borderCls += " fl-hold";
-		}
-		for (var d = 0; d < 4; ++d) {
-			var dij = FL.Vector.add(cell.ij, FL.dir4[d]);
-			var dCell = this.data.map.getCell(dij);
-			if (dCell && !dCell.rock && !cell.rock &&
-				cell.miningBase && (dCell.miningBase !== cell.miningBase) &&
-				(dCell.miningBase ? (cell.miningBase._iid > dCell.miningBase._iid) : true))
-				borderCls += " fl-border-" + d;
-			}
-		}
-		if (borderCls) {
-			var borderEl = jQuery('<div class="fl-border"></div>');
-			borderEl.addClass(borderCls);
-			el.append(borderEl);
-		}*/
 		if (cell.resource) {
 			var resourceEl = jQuery('<div class="fl-resource"></div>');
 			resourceEl.attr("fl-type", cell.resource.id);
@@ -213,15 +206,8 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			unitEl.toggleClass("fl-moved", cell.unit.movement === 0);
 			el.append(unitEl);
 		}
-		if (cell.scouted) {
-			if (this.orderIj) {
-				var rangeSqr = FL.Vector.lengthSqr(FL.Vector.diff(this.orderIj, ij));
-				if (rangeSqr > this.orderRangeSqr) {
-					el.append('<div class="fl-fog"></div>')
-				}
-			} else if (!cell.visible) {
-				el.append('<div class="fl-fog"></div>')
-			}
+		if (cell.scouted && !cell.visible) {
+			el.append('<div class="fl-fog"></div>')
 		}
 	},
 
@@ -250,11 +236,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 
 	_onRightMouseDown: function(cellEl, ij) {
 		if (this.orderIj) {
-			if (FL.Vector.lengthSqr(FL.Vector.diff(this.orderIj, ij)) >= this.orderRangeSqr) {
-				return;
-			}
-			var cell = this.data.map.getCell(ij);
-			if (!cell.scouted || !this.data.isPassable(ij) || cell.unit || cell.base) {
+			if (!this.data.isDroppable(this.orderIj, ij, this.orderRangeSqr, 0)) {
 				return;
 			}
 			this.orderCallback.call(this.orderScope, ij);
