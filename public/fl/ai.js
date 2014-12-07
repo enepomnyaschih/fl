@@ -18,7 +18,7 @@ FL.AI = {
 	unitHoldRangeSqr: 4,
 	patrolPerBase: 3,
 	initialProductionCoef: 1,
-	productionCoefPerWin: .1,
+	productionCoefPerWin: .2,
 	productionCoefPerLoss: .05,
 
 	process: function(data, player) {
