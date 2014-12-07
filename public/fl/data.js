@@ -385,6 +385,27 @@ JW.extend(FL.Data, JW.Class, {
 		this._generateResources();
 		this._generateBases();
 		this.resetMining();
+		this.bases.each(function(base) {
+			var resourceId;
+			if (base.mining < 20) {
+				resourceId = "aluminum";
+			} else if (base.mining < 24) {
+				resourceId = "oil";
+			} else if (base.mining < 26) {
+				resourceId = "iron";
+			} else if (base.mining < 30) {
+				resourceId = "copper";
+			} else {
+				return;
+			}
+			this.map.eachWithin(base.ij, 2, function(cell) {
+				if (resourceId && !cell.resource) {
+					cell.resource = FL.Resource.types[resourceId];
+					resourceId = null;
+				}
+			}, this);
+		}, this);
+		this.resetMining();
 	},
 
 	_generateRocks: function() {
