@@ -19,7 +19,7 @@ FL.Unit.typeArray = [
 		defense: 1,
 		movement: 1,
 		sightRangeSqr: 2,
-		cost: 10
+		cost: 200
 	},
 	{
 		id: "militia",
@@ -28,7 +28,7 @@ FL.Unit.typeArray = [
 		defense: 2,
 		movement: 1,
 		sightRangeSqr: 8,
-		cost: 2
+		cost: 40
 	}
 ];
 

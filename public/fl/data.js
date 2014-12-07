@@ -201,6 +201,7 @@ JW.extend(FL.Data, JW.Class, {
 	resetMining: function() {
 		var m = new FL.Matrix(this.map.size);
 		this.bases.each(function(base) {
+			base.mining = 0;
 			this.map.eachWithin(base.ij, FL.baseMiningRangeSqr, function(cell, ij) {
 				var miningBase = m.getCell(ij);
 				if (!miningBase) {
@@ -217,7 +218,19 @@ JW.extend(FL.Data, JW.Class, {
 		for (var i = 0; i < this.map.size; ++i) {
 			for (var j = 0; j < this.map.size; ++j) {
 				var ij = [i, j];
-				this.map.getCell(ij).setMiningBase(m.getCell(ij));
+				var base = m.getCell(ij);
+				this.map.getCell(ij).setMiningBase(base);
+				if (!base) {
+					continue;
+				}
+				var cell = this.map.getCell(ij);
+				if (cell.rock) {
+					continue;
+				}
+				base.mining++;
+				if (cell.resource && cell.resource.bonus) {
+					base.mining += cell.resource.bonus;
+				}
 			}
 		}
 	},
@@ -447,7 +460,7 @@ JW.extend(FL.Data, JW.Class, {
 			if (!type) {
 				return;
 			}
-			var production = base.production[type.id] + base.overflow + 1;
+			var production = base.production[type.id] + base.overflow + base.mining;
 			var cell = this.map.getCell(base.ij);
 			if ((production >= type.cost) && !cell.unit) {
 				this.createUnit(base.ij, base.player, type);

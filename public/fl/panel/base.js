@@ -8,6 +8,10 @@ JW.extend(FL.Panel.Base, JW.UI.Component, {
 		el.text(FL.baseDefense);
 	},
 
+	renderMining: function(el) {
+		el.text(this.base.mining);
+	},
+
 	renderUnits: function() {
 		return JW.Array.$map(FL.Unit.typeArray, function(type) {
 			return this.own(new FL.Panel.UnitButton(this.base, type));

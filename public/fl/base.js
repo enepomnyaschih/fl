@@ -4,6 +4,7 @@ FL.Base = function(ij, player) {
 	this.player = player;
 	this.unitType = this.own(new JW.Property(null));
 	this.production = JW.Map.map(FL.Unit.types, function() { return 0; });
+	this.mining = 0;
 	this.overflow = 0;
 };
 
