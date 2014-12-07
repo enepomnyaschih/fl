@@ -6,6 +6,7 @@ FL.AI = {
 		"rush",
 		"attack",
 		"attacking",
+		"assaulting",
 		"support",
 		"bombard",
 		"fly"
@@ -16,7 +17,7 @@ FL.AI = {
 	baseHoldRangeSqr: 10,
 	unitHoldRangeSqr: 4,
 	patrolPerBase: 3,
-	productionCoef: 2,
+	productionCoef: 1.5,
 
 	process: function(data, player) {
 		var bases = data.bases.$toArray().filter(JW.byValue("player", player));
@@ -112,9 +113,11 @@ FL.AI = {
 			behaviourUnits["patrol"] = behaviourUnits["patrol"].concat(behaviourUnits["attack"]);
 		} else {
 			FL.AI.attack++;
-			behaviourUnits["attacking"] = behaviourUnits["attacking"].concat(behaviourUnits["attack"]);
+			var newBehaviour = FL.random(2) ? "assaulting" : "attacking";
+			console.log(newBehaviour);
+			behaviourUnits[newBehaviour] = behaviourUnits[newBehaviour].concat(behaviourUnits["attack"]);
 			JW.Array.each(behaviourUnits["attack"], function(unit) {
-				unit.behaviour = "attacking";
+				unit.behaviour = newBehaviour;
 			});
 		}
 		JW.Array.each(behaviourUnits["patrol"], function(unit) {
@@ -136,35 +139,8 @@ FL.AI = {
 		});
 
 		// attack
-		var ijTargets = [];
-		data.bases.each(function(base) {
-			if (base.player !== player) {
-				ijTargets.push(base.ij);
-			}
-		});
-		data.units.each(function(unit) {
-			if (unit.player !== player) {
-				ijTargets.push(unit.ij);
-			}
-		});
-		JW.Array.each(behaviourUnits["attacking"], function(unit) {
-			var nearestTarget, nearestTargetDistanceSqr = Number.POSITIVE_INFINITY;
-			JW.Array.each(ijTargets, function(ij) {
-				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij, ij));
-				if (distanceSqr < nearestTargetDistanceSqr) {
-					nearestTarget = ij;
-					nearestTargetDistanceSqr = distanceSqr;
-				}
-			});
-			if (!nearestTarget) {
-				return; // just in case
-			}
-			if (data.getPath(unit.ij, nearestTarget, player)) {
-				unit.ijTarget = nearestTarget;
-			} else {
-				unit.ijTarget = ijTargets[FL.random(ijTargets.length)];
-			}
-		});
+		FL.AI.issueAttack(data, player, behaviourUnits["attacking"], true, true);
+		FL.AI.issueAttack(data, player, behaviourUnits["assaulting"], false, true);
 
 		// hold
 		var holdMap = new FL.Matrix(data.map.size);
@@ -181,6 +157,14 @@ FL.AI = {
 				holdMap.setCell(ij, true);
 			});
 		});
+		for (var i = 0; i < data.map.size; ++i) {
+			for (var j = 0; j < data.map.size; ++j) {
+				var ij = [i, j];
+				if (!data.isPassable(ij) || data.isChoke(ij)) {
+					holdMap.setCell(ij, true);
+				}
+			}
+		}
 		JW.Array.each(behaviourUnits["hold"], function(unit) {
 			if (!holdMap.getCell(unit.ij)) {
 				unit.hold = true;
@@ -196,9 +180,6 @@ FL.AI = {
 				for (var j = 0; j < data.map.size; ++j) {
 					var ij = [i, j];
 					if (holdMap.getCell(ij)) {
-						continue;
-					}
-					if (!data.isPassable(ij)) {
 						continue;
 					}
 					var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij, ij)) +
@@ -263,5 +244,44 @@ FL.AI = {
 			}
 		});
 		return profit;
+	},
+
+	issueAttack: function(data, player, units, includeUnits, includeBases) {
+		var ijTargets = [];
+		if (includeBases) {
+			data.bases.each(function(base) {
+				if (base.player !== player) {
+					ijTargets.push(base.ij);
+				}
+			});
+		}
+		if (includeUnits) {
+			data.units.each(function(unit) {
+				if (unit.player !== player) {
+					ijTargets.push(unit.ij);
+				}
+			});
+		}
+		JW.Array.each(units, function(unit) {
+			var nearestTarget, nearestTargetDistanceSqr = Number.POSITIVE_INFINITY;
+			JW.Array.each(ijTargets, function(ij) {
+				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij, ij));
+				if (distanceSqr < nearestTargetDistanceSqr) {
+					nearestTarget = ij;
+					nearestTargetDistanceSqr = distanceSqr;
+				}
+			});
+			if (!nearestTarget) {
+				return; // just in case
+			}
+			if (data.getPath(unit.ij, nearestTarget, player)) {
+				unit.ijTarget = nearestTarget;
+			} else {
+				unit.ijTarget = FL.Vector.add(unit.ij, FL.dir8[FL.random(8)]);
+				if (!data.map.inMatrix(unit.ijTarget)) {
+					unit.ijTarget = null;
+				}
+			}
+		});
 	}
 };

@@ -477,7 +477,7 @@ JW.extend(FL.Data, JW.Class, {
 				return;
 			}
 			var coef = (player === 0) ? 1 : FL.AI.productionCoef;
-			var production = base.production[type.id] + base.overflow + coef * base.mining;
+			var production = base.production[type.id] + base.overflow + Math.round(coef * base.mining);
 			var cell = this.map.getCell(base.ij);
 			if ((production >= type.cost) && !cell.unit) {
 				this.createUnit(base.ij, base.player, type);
