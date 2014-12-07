@@ -24,40 +24,40 @@ FL.Resource.typeArray = [
 		name: "Copper",
 		bonus: 4,
 		count: 20,
-		aiProfit: 4
+		aiProfit: 2
 	}, {
 		id: "iron",
 		name: "Iron",
 		bonus: 6,
 		count: 15,
-		aiProfit: 6
+		aiProfit: 4
 	}, {
 		id: "oil",
 		name: "Oil",
 		bonus: 10,
 		count: 10,
-		aiProfit: 10
+		aiProfit: 6
 	}, {
 		id: "aluminum",
 		name: "Aluminum",
 		bonus: 15,
 		count: 5,
-		aiProfit: 15
+		aiProfit: 8
 	}, {
 		id: "yard",
 		name: "Advanced training yard",
 		count: 10,
-		aiProfit: 5
+		aiProfit: 3
 	}, {
 		id: "light",
 		name: "Light vehicle factory",
 		count: 10,
-		aiProfit: 8
+		aiProfit: 4
 	}, {
 		id: "heavy",
 		name: "Heavy vehicle factory",
 		count: 6,
-		aiProfit: 10
+		aiProfit: 5
 	}/*, {
 		id: "airport",
 		name: "Airport",

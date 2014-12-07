@@ -16,6 +16,7 @@ FL.AI = {
 	baseHoldRangeSqr: 10,
 	unitHoldRangeSqr: 4,
 	patrolPerBase: 3,
+	productionCoef: 2,
 
 	process: function(data, player) {
 		var bases = data.bases.$toArray().filter(JW.byValue("player", player));

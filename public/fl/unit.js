@@ -20,7 +20,7 @@ FL.Unit.typeArray = [
 		defense: 1,
 		movement: 1,
 		sightRangeSqr: 2,
-		cost: 200,
+		cost: 300,
 		ai: ["build"]
 	},
 	{
@@ -30,7 +30,7 @@ FL.Unit.typeArray = [
 		defense: 2,
 		movement: 1,
 		sightRangeSqr: 8,
-		cost: 40,
+		cost: 60,
 		ai: ["patrol", "hold"]
 	},
 	{
@@ -40,7 +40,7 @@ FL.Unit.typeArray = [
 		defense: 2,
 		movement: 1,
 		sightRangeSqr: 8,
-		cost: 60,
+		cost: 90,
 		ai: ["patrol", "attack"]
 	},
 	/*{
@@ -52,7 +52,7 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 8,
 		samRangeSqr: 2,
 		samAttack: 1,
-		cost: 80,
+		cost: 120,
 		ai: ["support"]
 	},*/
 	{
@@ -62,7 +62,7 @@ FL.Unit.typeArray = [
 		defense: 6,
 		movement: 1,
 		sightRangeSqr: 8,
-		cost: 80,
+		cost: 120,
 		resources: ["yard"],
 		ai: ["patrol", "hold"]
 	},
@@ -73,7 +73,7 @@ FL.Unit.typeArray = [
 		defense: 3,
 		movement: 1,
 		sightRangeSqr: 8,
-		cost: 100,
+		cost: 150,
 		resources: ["yard"],
 		landing: true,
 		ai: ["patrol", "attack", "rush"]
@@ -87,7 +87,7 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 12,
 		bombRangeSqr: 5,
 		bombAttack: 1,
-		cost: 100,
+		cost: 150,
 		resources: ["yard"],
 		ai: ["bombard"]
 	},*/
@@ -98,7 +98,7 @@ FL.Unit.typeArray = [
 		defense: 3,
 		movement: 4,
 		sightRangeSqr: 8,
-		cost: 100,
+		cost: 150,
 		resources: ["light"],
 		ai: ["patrol", "attack"]
 	},
@@ -111,7 +111,7 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 8,
 		samRangeSqr: 8,
 		samAttack: 2,
-		cost: 160,
+		cost: 240,
 		resources: ["light"],
 		ai: ["support"]
 	},
@@ -124,7 +124,7 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 20,
 		bombRangeSqr: 12,
 		bombAttack: 2,
-		cost: 160,
+		cost: 240,
 		resources: ["light"],
 		ai: ["bombard"]
 	},*/
@@ -135,7 +135,7 @@ FL.Unit.typeArray = [
 		defense: 8,
 		movement: 2,
 		sightRangeSqr: 8,
-		cost: 240,
+		cost: 360,
 		resources: ["heavy"],
 		ai: ["attack"]
 	},
@@ -146,7 +146,7 @@ FL.Unit.typeArray = [
 		defense: 16,
 		movement: 2,
 		sightRangeSqr: 8,
-		cost: 240,
+		cost: 360,
 		resources: ["heavy"],
 		ai: ["attack"]
 	}/*,
@@ -157,7 +157,7 @@ FL.Unit.typeArray = [
 		defense: 1,
 		flight: 6,
 		sightRangeSqr: 12,
-		cost: 160,
+		cost: 240,
 		resources: ["airport"],
 		ai: ["fly"]
 	}*/
