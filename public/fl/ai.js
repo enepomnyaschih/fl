@@ -278,6 +278,7 @@ FL.AI = {
 			if (data.getPath(unit.ij, nearestTarget, player)) {
 				unit.ijTarget = nearestTarget;
 			} else {
+				unit.behaviour = "attacking";
 				unit.ijTarget = FL.Vector.add(unit.ij, FL.dir8[FL.random(8)]);
 				if (!data.map.inMatrix(unit.ijTarget)) {
 					unit.ijTarget = null;
