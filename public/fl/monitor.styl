@@ -39,63 +39,76 @@
 
 	&-cell
 		background black none scroll 0 0 no-repeat
-		border 1px solid transparent
 		float left
 		position relative
 		size 16px 16px
 
 		&.fl-scouted
-			background-color #77BB44
+			background-image url(../images/land.png)
 
 			&.fl-rock
-				background-color #7F3300!important
+				background-image url(../images/rock.png)
 
 			& > .fl-resource
 				display block
 				position absolute
-				xy -1px -1px
+				xy 0 0
 
 		& > .fl-unit, & > .fl-base, & > .fl-resource
 			display none
 			z-index 1
 
+		& > .fl-mining
+			opacity .4
+			position absolute
+			size 16px 16px
+			xy 0 0
+
+		& > .fl-border
+			position absolute
+			size 16px 16px
+			xy 0 0
+
 		&.fl-visible
 			&[fl-player=n0]
-				background-color #22DD22
-				&.fl-border-0
+				& > .fl-mining
+					background-color #22DD22
+				& > .fl-border-0
 					border-right 1px solid #44FF44
-				&.fl-border-1
+				& > .fl-border-1
 					border-top 1px solid #44FF44
-				&.fl-border-2
+				& > .fl-border-2
 					border-left 1px solid #44FF44
-				&.fl-border-3
+				& > .fl-border-3
 					border-bottom 1px solid #44FF44
 
 			&[fl-player=n1]
-				background-color #DD2222
-				&.fl-border-0
+				& > .fl-mining
+					background-color #DD2222
+				& > .fl-border-0
 					border-right 1px solid #FF4444
-				&.fl-border-1
+				& > .fl-border-1
 					border-top 1px solid #FF4444
-				&.fl-border-2
+				& > .fl-border-2
 					border-left 1px solid #FF4444
-				&.fl-border-3
+				& > .fl-border-3
 					border-bottom 1px solid #FF4444
 
 			& > .fl-base
 				display block
 				position absolute
-				xy -3px -3px
+				xy -2px -2px
 
 			& > .fl-unit
 				display block
 				position absolute
-				xy -1px -1px
+				xy 0 0
 
-		&.fl-hold
+		& > .fl-hold
 			border 1px dotted white
 
-		&.fl-selected
+		&.fl-selected > .fl-border
+			border 1px solid transparent
 			animation-name fl-monitor-selected-anim
 			-webkit-animation-name fl-monitor-selected-anim
 			animation-duration .5s
@@ -115,10 +128,10 @@
 
 @keyframes fl-monitor-selected-anim {
 	from {
-		border-color #808080
+		border-color #A0A0A0
 	}
 
 	to {
-		border-color #FFFF00
+		border-color #FFFF80
 	}
 }

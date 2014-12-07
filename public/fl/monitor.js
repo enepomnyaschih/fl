@@ -161,20 +161,41 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		el.toggleClass("fl-scouted", cell.scouted);
 		el.toggleClass("fl-visible", cell.visible);
 		el.toggleClass("fl-rock", cell.rock);
-		el.toggleClass("fl-hold", (cell.unit != null) && cell.unit.hold && (cell.unit.player === 0));
-		for (var d = 0; d < 4; ++d) {
-			var dij = FL.Vector.add(cell.ij, FL.dir4[d]);
-			var dCell = this.data.map.getCell(dij);
-			el.toggleClass("fl-border-" + d,
-				dCell && !dCell.rock && !cell.rock &&
-				cell.miningBase && (dCell.miningBase !== cell.miningBase) &&
-				(dCell.miningBase ? (cell.miningBase._iid > dCell.miningBase._iid) : true));
-		}
+
 		if (cell.miningBase) {
 			el.attr("fl-player", "n" + cell.miningBase.player);
+			el.append('<div class="fl-mining"></div>');
 		} else {
 			el.removeAttr("fl-player");
 		}
+		var borderEl = jQuery('<div class="fl-border"></div>');
+		borderEl.toggleClass("fl-hold", (cell.unit != null) && cell.unit.hold && (cell.unit.player === 0));
+		for (var d = 0; d < 4; ++d) {
+			var dij = FL.Vector.add(cell.ij, FL.dir4[d]);
+			var dCell = this.data.map.getCell(dij);
+			borderEl.toggleClass("fl-border-" + d, dCell && !dCell.rock && !cell.rock &&
+				cell.miningBase && (dCell.miningBase !== cell.miningBase) &&
+				(dCell.miningBase ? (cell.miningBase._iid > dCell.miningBase._iid) : true));
+		}
+		el.append(borderEl);
+		/*var borderCls = "";
+		if ((cell.unit != null) && cell.unit.hold && (cell.unit.player === 0)) {
+			borderCls += " fl-hold";
+		}
+		for (var d = 0; d < 4; ++d) {
+			var dij = FL.Vector.add(cell.ij, FL.dir4[d]);
+			var dCell = this.data.map.getCell(dij);
+			if (dCell && !dCell.rock && !cell.rock &&
+				cell.miningBase && (dCell.miningBase !== cell.miningBase) &&
+				(dCell.miningBase ? (cell.miningBase._iid > dCell.miningBase._iid) : true))
+				borderCls += " fl-border-" + d;
+			}
+		}
+		if (borderCls) {
+			var borderEl = jQuery('<div class="fl-border"></div>');
+			borderEl.addClass(borderCls);
+			el.append(borderEl);
+		}*/
 		if (cell.resource) {
 			var resourceEl = jQuery('<div class="fl-resource"></div>');
 			resourceEl.attr("fl-type", cell.resource.id);
