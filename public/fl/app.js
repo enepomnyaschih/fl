@@ -9,7 +9,7 @@ JW.extend(FL.App, JW.UI.Component, {
 	},
 
 	renderMonitor: function() {
-		return new FL.Monitor(this.data);
+		return this.monitor = new FL.Monitor(this.data);
 	},
 
 	afterRender: function() {

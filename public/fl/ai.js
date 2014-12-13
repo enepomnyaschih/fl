@@ -20,6 +20,10 @@ FL.AI = {
 	initialProductionCoef: 1,
 	productionCoefPerWin: .2,
 	productionCoefPerLoss: .05,
+	mcvLimit: 2,
+	baseFirstProductionProfit: 15,
+	baseExtraProductionProfit: -4,
+	baseDistanceProfit: -2,
 
 	process: function(data, player) {
 		var bases = data.bases.$toArray().filter(JW.byValue("player", player));
@@ -49,7 +53,7 @@ FL.AI = {
 				return;
 			}
 			var availableUnitTypes = base.getAvailableUnitTypes();
-			if (totalUnitCount["mcv"] !== 0) {
+			if (totalUnitCount["mcv"] >= FL.AI.mcvLimit) {
 				JW.Array.removeItem(availableUnitTypes, FL.Unit.types["mcv"]);
 			}
 			//var unitType = FL.Unit.types["militia"];
@@ -215,8 +219,8 @@ FL.AI = {
 				if (cell.unit && !FL.Vector.equal(ijUnit, ij)) {
 					continue;
 				}
-				var profit = FL.AI.getBaseProfit(data, ij, player) -
-					3 * FL.Vector.length(FL.Vector.diff(ijUnit, ij));
+				var profit = FL.AI.getBaseProfit(data, ij, player) +
+					FL.AI.baseDistanceProfit * FL.Vector.length(FL.Vector.diff(ijUnit, ij));
 				if (profit <= profitBest) {
 					continue;
 				}
@@ -232,6 +236,7 @@ FL.AI = {
 
 	getBaseProfit: function(data, ijBase, player) {
 		var profit = 0;
+		var hasProduction = false;
 		data.map.eachWithin(ijBase, FL.baseMiningRangeSqr, function(cell, ij) {
 			if (cell.rock || cell.miningBase) {
 				return;
@@ -241,7 +246,17 @@ FL.AI = {
 			}
 			++profit;
 			if (cell.resource) {
-				profit += cell.resource.aiProfit;
+				if (cell.resource.aiProfit) {
+					profit += cell.resource.aiProfit;
+				}
+				if (cell.resource.aiProduction) {
+					if (hasProduction) {
+						profit += FL.AI.baseExtraProductionProfit;
+					} else {
+						hasProduction = true;
+						profit += FL.AI.baseFirstProductionProfit;
+					}
+				}
 			}
 		});
 		return profit;

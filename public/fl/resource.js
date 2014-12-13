@@ -47,22 +47,22 @@ FL.Resource.typeArray = [
 		id: "yard",
 		name: "Advanced training yard",
 		count: 10,
-		aiProfit: 3
+		aiProduction: true
 	}, {
 		id: "light",
 		name: "Light vehicle factory",
 		count: 10,
-		aiProfit: 4
+		aiProduction: true
 	}, {
 		id: "heavy",
 		name: "Heavy vehicle factory",
 		count: 6,
-		aiProfit: 5
+		aiProduction: true
 	}/*, {
 		id: "airport",
 		name: "Airport",
 		count: 4,
-		aiProfit: 8
+		aiProduction: true
 	}*/
 ];
 
