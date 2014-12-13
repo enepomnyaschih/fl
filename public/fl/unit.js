@@ -31,7 +31,7 @@ FL.Unit.typeArray = [
 		defense: 3,
 		movement: 1,
 		sightRangeSqr: 2,
-		cost: 60,
+		cost: 70,
 		ai: ["patrol", "hold"]
 	},
 	{
@@ -41,7 +41,7 @@ FL.Unit.typeArray = [
 		defense: 2,
 		movement: 1,
 		sightRangeSqr: 2,
-		cost: 90,
+		cost: 100,
 		ai: ["patrol", "attack"]
 	},
 	/*{
@@ -76,7 +76,7 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 8,
 		cost: 150,
 		resources: ["yard"],
-		paradropRangeSqr: 20,
+		paradropRangeSqr: 27,
 		ai: ["attack"]
 	},
 	/*{
@@ -97,7 +97,7 @@ FL.Unit.typeArray = [
 		name: "Hum-Vee \"Us will not catch up\"",
 		attack: 5,
 		defense: 2,
-		movement: 4,
+		movement: 3,
 		sightRangeSqr: 8,
 		cost: 150,
 		resources: ["light"],
