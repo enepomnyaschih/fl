@@ -62,7 +62,7 @@ JW.extend(FL.Data, JW.Class, {
 			var sourceCell = this.map.getCell(unit.ij);
 			var targetCell = this.map.getCell(tij);
 			if (targetCell.unit) {
-				if ((targetCell.unit.player !== unit.player) &&
+				if ((targetCell.unit.player !== unit.player) && !unit.attacked &&
 						FL.Vector.equal(tij, unit.ijTarget) && (unit.type.attack !== 0)) {
 					--unit.movement;
 					sourceCell.invalid = true;
@@ -72,7 +72,7 @@ JW.extend(FL.Data, JW.Class, {
 				break;
 			}
 			if (targetCell.base && (targetCell.base.player !== unit.player)) {
-				if (FL.Vector.equal(tij, unit.ijTarget) && (unit.type.attack !== 0)) {
+				if (FL.Vector.equal(tij, unit.ijTarget) && !unit.attacked && (unit.type.attack !== 0)) {
 					--unit.movement;
 					sourceCell.invalid = true;
 					this.fightBase(unit, targetCell.base);
@@ -102,6 +102,7 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	fightUnit: function(attacker, defender) {
+		attacker.attacked = true;
 		var win = FL.fight(attacker.type.attack, defender.type.defense);
 		if (win) {
 			this.destroyUnit(defender);
@@ -137,6 +138,7 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	fightBase: function(attacker, base) {
+		attacker.attacked = true;
 		var win = FL.fight(attacker.type.attack, FL.baseDefense);
 		if (win) {
 			this.destroyBase(base);
@@ -185,6 +187,7 @@ JW.extend(FL.Data, JW.Class, {
 		this.moveUnits(player);
 		this.units.$filter(JW.byValue("player", player)).each(function(unit) {
 			unit.movement = unit.type.movement;
+			unit.attacked = false;
 		}, this);
 		this.resetVision();
 		this._produce(player);

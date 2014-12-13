@@ -6,6 +6,7 @@ FL.Unit = function(ij, player, type, behaviour) {
 	this.movement = this.type.movement;
 	this.ijTarget = null;
 	this.hold = false;
+	this.attacked = false;
 	this.behaviour = behaviour || type.ai[FL.random(type.ai.length)];
 };
 
