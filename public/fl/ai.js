@@ -31,35 +31,57 @@ FL.AI = {
 		var unitCount = JW.Map.map(FL.Unit.types, function() { return 0; });
 		var totalUnitCount = JW.Map.map(FL.Unit.types, function() { return 0; });
 		var behaviourUnits = JW.Array.$index(FL.AI.behaviours, JW.byField()).map(function() { return []; });
+		var totalBehaviourCount = JW.Map.map(behaviourUnits, function() { return 0; });
 		JW.Array.each(units, function(unit) {
 			++unitCount[unit.type.id];
 			++totalUnitCount[unit.type.id];
-			if ((unit.behaviour === "patrol") &&
-				(behaviourUnits["patrol"].length >= FL.AI.patrolPerBase * bases.length)) {
-				unit.behaviour = "attack";
-			}
 			behaviourUnits[unit.behaviour].push(unit);
+			++totalBehaviourCount[unit.behaviour];
 		});
 		JW.Array.each(bases, function(base) {
 			var type = base.unitType.get();
 			if (type) {
 				++totalUnitCount[type.id];
 			}
+			if (base.unitBehaviour) {
+				++totalBehaviourCount[base.unitBehaviour];
+			}
 		});
 
 		// produce units
+		var availableBehaviours = FL.AI.behaviours.concat();
 		JW.Array.each(bases, function(base) {
 			if (base.unitType.get()) {
 				return;
 			}
-			var availableUnitTypes = base.getAvailableUnitTypes();
-			if (totalUnitCount["mcv"] >= FL.AI.mcvLimit) {
-				JW.Array.removeItem(availableUnitTypes, FL.Unit.types["mcv"]);
+			var unitType;
+			if (totalBehaviourCount["build"] === 0) {
+				unitType = FL.Unit.types["mcv"];
+			} else {
+				if (totalBehaviourCount["build"] >= FL.AI.mcvLimit) {
+					JW.Array.removeItem(availableBehaviours, "build");
+				}
+				if (totalBehaviourCount["patrol"] >= FL.AI.patrolPerBase * bases.length) {
+					JW.Array.removeItem(availableBehaviours, "patrol");
+				}
+				var availableUnitTypes = base.getAvailableUnitTypes();
+				availableUnitTypes = JW.Array.filter(availableUnitTypes, function(unitType) {
+					return JW.Array.some(unitType.ai, function(behaviour) {
+						return JW.Array.containsItem(availableBehaviours, behaviour);
+					});
+				});
+				unitType = availableUnitTypes[FL.random(availableUnitTypes.length)];
 			}
-			//var unitType = FL.Unit.types["militia"];
-			var unitType = availableUnitTypes[FL.random(availableUnitTypes.length)];
 			base.unitType.set(unitType);
 			++totalUnitCount[unitType.id];
+			var unitAvailableBehaviours = JW.Array.filter(unitType.ai, function(behaviour) {
+				return JW.Array.containsItem(availableBehaviours, behaviour);
+			});
+			var behaviour = unitAvailableBehaviours.length ?
+				unitAvailableBehaviours[FL.random(unitAvailableBehaviours.length)] :
+				unitType.ai[FL.random(unitType.ai.length)];
+			base.unitBehaviour = behaviour;
+			++totalBehaviourCount[behaviour];
 		});
 
 		// build bases
@@ -152,6 +174,9 @@ FL.AI = {
 		JW.Array.each(bases, function(base) {
 			data.map.eachWithin(base.ij, FL.AI.baseHoldRangeSqr, function(cell, ij) {
 				holdMap.setCell(ij, true);
+				if (cell.unit && (cell.unit.player === player)) {
+					cell.hold = false;
+				}
 			});
 		});
 		JW.Array.each(behaviourUnits["hold"], function(unit) {

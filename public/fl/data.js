@@ -200,7 +200,7 @@ JW.extend(FL.Data, JW.Class, {
 	resetVision: function() {
 		for (var i = 0; i < this.map.size; ++i) {
 			for (var j = 0; j < this.map.size; ++j) {
-				this.map.getCell([i, j]).hide();
+				this.map.getCell([i, j]).reveal();
 			}
 		}
 		this.bases.each(function(base) {
@@ -529,10 +529,11 @@ JW.extend(FL.Data, JW.Class, {
 			var production = base.production[type.id] + base.overflow + Math.round(coef * base.mining);
 			var cell = this.map.getCell(base.ij);
 			if ((production >= type.cost) && !cell.unit) {
-				this.createUnit(base.ij, base.player, type);
+				this.createUnit(base.ij, base.player, type, base.unitBehaviour);
 				base.production[type.id] = 0;
 				base.overflow = production - type.cost;
 				base.unitType.set(null);
+				base.unitBehaviour = null;
 			} else {
 				base.production[type.id] = Math.min(production, type.cost);
 				base.overflow = 0;

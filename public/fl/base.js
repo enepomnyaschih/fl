@@ -3,6 +3,7 @@ FL.Base = function(ij, player) {
 	this.ij = ij;
 	this.player = player;
 	this.unitType = this.own(new JW.Property(null));
+	this.unitBehaviour = null; // for AI
 	this.production = JW.Map.map(FL.Unit.types, function() { return 0; });
 	this.mining = 0;
 	this.overflow = 0;
