@@ -200,7 +200,7 @@ JW.extend(FL.Data, JW.Class, {
 	resetVision: function() {
 		for (var i = 0; i < this.map.size; ++i) {
 			for (var j = 0; j < this.map.size; ++j) {
-				this.map.getCell([i, j]).reveal();
+				this.map.getCell([i, j]).hide();
 			}
 		}
 		this.bases.each(function(base) {

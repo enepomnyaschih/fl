@@ -174,18 +174,10 @@ FL.AI = {
 		JW.Array.each(bases, function(base) {
 			data.map.eachWithin(base.ij, FL.AI.baseHoldRangeSqr, function(cell, ij) {
 				holdMap.setCell(ij, true);
-				if (cell.unit && (cell.unit.player === player)) {
-					cell.hold = false;
-				}
 			});
 		});
 		JW.Array.each(behaviourUnits["hold"], function(unit) {
-			if (!unit.hold) {
-				return;
-			}
-			data.map.eachWithin(unit.ij, FL.AI.unitHoldRangeSqr, function(cell, ij) {
-				holdMap.setCell(ij, true);
-			});
+			unit.hold = false;
 		});
 		for (var i = 0; i < data.map.size; ++i) {
 			for (var j = 0; j < data.map.size; ++j) {
