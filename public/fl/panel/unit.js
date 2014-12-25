@@ -13,7 +13,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 	renderHold: function(el) {
 		el.click(JW.inScope(function() {
 			this.unit.hold = true;
-			this.monitor._updateCell(null, this.unit.ij);
+			this.monitor._updateCell(null, this.unit.ij.get());
 			this.monitor.selectNext();
 		}, this))
 	},
@@ -22,13 +22,13 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		if ((this.unit.type.id !== "mcv") || (this.unit.movement === 0)) {
 			return false;
 		}
-		if (!this.monitor.data.isBaseBuildable(this.unit.ij, FL.minBaseDistanceSqr)) {
+		if (!this.monitor.data.isBaseBuildable(this.unit.ij.get(), FL.minBaseDistanceSqr)) {
 			return false;
 		}
 		el.click(JW.inScope(function() {
 			this.monitor.data.buildBase(this.unit);
 			this.monitor.updateMap();
-			this.monitor.selectCell(this.unit.ij);
+			this.monitor.selectCell(this.unit.ij.get());
 		}, this));
 	},
 
@@ -36,17 +36,17 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		if (!this.unit.type.paradropRangeSqr || (this.unit.movement === 0)) {
 			return false;
 		}
-		if (!this.monitor.data.map.getCell(this.unit.ij).base) {
+		if (!this.unit.cell.base) {
 			return false;
 		}
 		el.click(JW.inScope(function() {
 			var unit = this.unit;
 			var monitor = this.monitor;
 			var data = this.monitor.data;
-			this.monitor.initOrder(unit.ij, unit.type.paradropRangeSqr, function(ij) {
+			this.monitor.initOrder(unit.ij.get(), unit.type.paradropRangeSqr, function(ij) {
 				unit.movement = 0;
 				unit.ijTarget = null;
-				data.transferUnit(unit, ij);
+				unit.ij.set(ij);
 				monitor.updateMap();
 			});
 		}, this));

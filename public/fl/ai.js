@@ -86,8 +86,8 @@ FL.AI = {
 
 		// build bases
 		JW.Array.each(behaviourUnits["build"], function(unit) {
-			var ijTarget = unit.ijTarget || FL.AI.findBaseSpot(data, unit.ij, player);
-			if (FL.Vector.equal(ijTarget, unit.ij)) {
+			var ijTarget = unit.ijTarget || FL.AI.findBaseSpot(data, unit.ij.get(), player);
+			if (FL.Vector.equal(ijTarget, unit.ij.get())) {
 				data.buildBase(unit);
 			} else {
 				unit.ijTarget = ijTarget;
@@ -102,7 +102,7 @@ FL.AI = {
 			}
 			var nearestBase, nearestBaseDistanceSqr = Number.POSITIVE_INFINITY;
 			JW.Array.each(bases, function(base) {
-				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(attackUnit.ij, base.ij));
+				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(attackUnit.ij.get(), base.ij));
 				if (distanceSqr < nearestBaseDistanceSqr) {
 					nearestBase = base;
 					nearestBaseDistanceSqr = distanceSqr;
@@ -116,7 +116,7 @@ FL.AI = {
 				if (orderedUnits.contains(patrolUnit)) {
 					return;
 				}
-				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(patrolUnit.ij, nearestBase.ij));
+				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(patrolUnit.ij.get(), nearestBase.ij));
 				if (distanceSqr < nearestUnitDistanceSqr) {
 					nearestUnit = patrolUnit;
 					nearestUnitDistanceSqr = distanceSqr;
@@ -127,12 +127,12 @@ FL.AI = {
 			}
 			orderedUnits.add(nearestUnit);
 			var ijTarget = FL.Vector.round(
-				FL.Vector.between(attackUnit.ij, nearestBase.ij, .45));
+				FL.Vector.between(attackUnit.ij.get(), nearestBase.ij, .45));
 			if (!nearestUnit.ijTarget || !FL.Vector.equal(ijTarget, nearestUnit.ijTarget)) {
 				nearestUnit.ijTarget = ijTarget;
 			} else if (attackUnit.type.attack * nearestUnit.type.attack >
 						attackUnit.type.defense * nearestUnit.type.defense) {
-				nearestUnit.ijTarget = attackUnit.ij;
+				nearestUnit.ijTarget = attackUnit.ij.get();
 			}
 		});
 
@@ -188,9 +188,9 @@ FL.AI = {
 			}
 		}
 		JW.Array.each(behaviourUnits["hold"], function(unit) {
-			if (!holdMap.getCell(unit.ij)) {
+			if (!holdMap.getCell(unit.ij.get())) {
 				unit.hold = true;
-				data.map.eachWithin(unit.ij, FL.AI.unitHoldRangeSqr, function(cell, ij) {
+				data.map.eachWithin(unit.ij.get(), FL.AI.unitHoldRangeSqr, function(cell, ij) {
 					holdMap.setCell(ij, true);
 				});
 			}
@@ -204,7 +204,7 @@ FL.AI = {
 					if (holdMap.getCell(ij)) {
 						continue;
 					}
-					var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij, ij)) +
+					var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij.get(), ij)) +
 						.2 * FL.Vector.lengthSqr(FL.Vector.diff(data.map.ijCenter(), ij));
 					if (distanceSqr < nearestTargetDistanceSqr) {
 						nearestTarget = ij;
@@ -215,7 +215,7 @@ FL.AI = {
 			if (nearestTarget) {
 				unit.ijTarget = nearestTarget;
 			} else {
-				unit.ijTarget = FL.Vector.add(unit.ij, FL.dir8[FL.random(8)]);
+				unit.ijTarget = FL.Vector.add(unit.ij.get(), FL.dir8[FL.random(8)]);
 				if (!data.map.inMatrix(unit.ijTarget)) {
 					unit.ijTarget = null;
 				}
@@ -291,14 +291,14 @@ FL.AI = {
 		if (includeUnits) {
 			data.units.each(function(unit) {
 				if (unit.player !== player) {
-					ijTargets.push(unit.ij);
+					ijTargets.push(unit.ij.get());
 				}
 			});
 		}
 		JW.Array.each(units, function(unit) {
 			var nearestTarget, nearestTargetDistanceSqr = Number.POSITIVE_INFINITY;
 			JW.Array.each(ijTargets, function(ij) {
-				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij, ij));
+				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij.get(), ij));
 				if (distanceSqr < nearestTargetDistanceSqr) {
 					nearestTarget = ij;
 					nearestTargetDistanceSqr = distanceSqr;
@@ -307,11 +307,11 @@ FL.AI = {
 			if (!nearestTarget) {
 				return; // just in case
 			}
-			if (data.getPath(unit.ij, nearestTarget, player)) {
+			if (data.getPath(unit.ij.get(), nearestTarget, player)) {
 				unit.ijTarget = nearestTarget;
 			} else {
 				unit.behaviour = "attacking";
-				unit.ijTarget = FL.Vector.add(unit.ij, FL.dir8[FL.random(8)]);
+				unit.ijTarget = FL.Vector.add(unit.ij.get(), FL.dir8[FL.random(8)]);
 				if (!data.map.inMatrix(unit.ijTarget)) {
 					unit.ijTarget = null;
 				}

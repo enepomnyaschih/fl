@@ -1,16 +1,37 @@
-FL.Unit = function(ij, player, type, behaviour) {
+FL.Unit = function(data, ij, player, type, behaviour) {
 	FL.Unit._super.call(this);
-	this.ij = ij;
-	this.player = player;
-	this.type = type;
-	this.movement = this.type.movement;
-	this.ijTarget = null;
+	this.data = data; // FL.Data
+	this.ij = this.own(new JW.Property(ij)); // <Vector>, mutable
+	this.player = player; // Integer
+	this.type = type; // Object
+	this.movement = this.type.movement; // Integer
+	this.cell = null; // FL.Cell
+	this.ijTarget = null; // Vector
 	this.hold = false;
 	this.attacked = false;
 	this.behaviour = behaviour || type.ai[FL.random(type.ai.length)];
+	this.visible = this.own(new JW.Property(false));
+
+	this.own(new JW.Switcher([this.ij], {
+		init: function(ij) {
+			this.cell = this.data.map.getCell(ij);
+			this.cell.setUnit(this);
+			if (this.player === 0) {
+				this.data.reveal(ij, this.type.sightRangeSqr);
+			}
+			this._updateVisible();
+		},
+		done: function(ij) {
+			this.cell.setUnit(null);
+		},
+		scope: this
+	}));
 };
 
 JW.extend(FL.Unit, JW.Class, {
+	_updateVisible: function() {
+		this.visible.set(this.cell.visible);
+	}
 });
 
 FL.Unit.typeArray = [

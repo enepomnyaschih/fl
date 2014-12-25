@@ -254,7 +254,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this.data.moveUnit(unit);
 		this.updateMap();
 		if (unit.movement) {
-			this.selectCell(unit.ij);
+			this.selectCell(unit.ij.get());
 		} else {
 			this.selectNext();
 		}
@@ -265,7 +265,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this.selectionTail = 0;
 		this.data.units.each(function(unit) {
 			if (this._isUnitAutoSelectable(unit)) {
-				this.selectionQueue.push(unit.ij);
+				this.selectionQueue.push(unit.ij.get());
 			}
 		}, this);
 		this.data.bases.each(function(base) {

@@ -2,7 +2,7 @@ FL.Data = function() {
 	FL.Data._super.call(this);
 	this.map = null;
 	this.bases = new JW.Set();
-	this.units = new JW.Set();
+	this.units = new JW.ObservableArray();
 	this.logEvent = new JW.Event();
 	this.lostEvent = new JW.Event();
 	this.turn = 1;
@@ -30,17 +30,15 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	createUnit: function(ij, player, type, behaviour) {
-		var unit = new FL.Unit(ij, player, type, behaviour);
+		var unit = new FL.Unit(this, ij, player, type, behaviour);
 		this.units.add(unit);
-		this.map.getCell(ij).setUnit(unit);
 		if (player == 0) {
 			this.reveal(ij, type.sightRangeSqr)
 		}
 	},
 
 	destroyUnit: function(unit) {
-		this.units.remove(unit);
-		this.map.getCell(unit.ij).setUnit(null);
+		this.units.removeItem(unit);
 		unit.destroy();
 	},
 
@@ -48,18 +46,18 @@ JW.extend(FL.Data, JW.Class, {
 		if (!unit.ijTarget) {
 			return;
 		}
-		var path = this.getPath(unit.ij, unit.ijTarget, unit.player);
+		var path = this.getPath(unit.ij.get(), unit.ijTarget, unit.player);
 		if (!path) {
 			unit.ijTarget = null;
 			return;
 		}
 		unit.hold = false;
 		for (var i = 0; (i < path.length) && unit.movement; ++i) {
-			var tij = FL.Vector.add(unit.ij, FL.dir8[path[i]]);
+			var tij = FL.Vector.add(unit.ij.get(), FL.dir8[path[i]]);
 			if (!this.isPassable(tij)) {
 				break;
 			}
-			var sourceCell = this.map.getCell(unit.ij);
+			var sourceCell = unit.cell;
 			var targetCell = this.map.getCell(tij);
 			if (targetCell.unit) {
 				if ((targetCell.unit.player !== unit.player) && !unit.attacked &&
@@ -81,19 +79,10 @@ JW.extend(FL.Data, JW.Class, {
 				break;
 			}
 			--unit.movement;
-			this.transferUnit(unit, tij);
+			unit.ij.set(tij);
 		}
-		if (unit.ijTarget && FL.Vector.equal(unit.ij, unit.ijTarget)) {
+		if (unit.ijTarget && FL.Vector.equal(unit.ij.get(), unit.ijTarget)) {
 			unit.ijTarget = null;
-		}
-	},
-
-	transferUnit: function(unit, tij) {
-		this.map.getCell(unit.ij).setUnit(null);
-		unit.ij = tij;
-		this.map.getCell(tij).setUnit(unit);
-		if (unit.player === 0) {
-			this.reveal(tij, unit.type.sightRangeSqr);
 		}
 	},
 
@@ -210,7 +199,7 @@ JW.extend(FL.Data, JW.Class, {
 		}, this);
 		this.units.each(function(unit) {
 			if (unit.player === 0) {
-				this.reveal(unit.ij, unit.type.sightRangeSqr);
+				this.reveal(unit.ij.get(), unit.type.sightRangeSqr);
 			}
 		}, this);
 	},
@@ -260,7 +249,7 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	buildBase: function(unit) {
-		this.createBase(unit.ij, unit.player);
+		this.createBase(unit.ij.get(), unit.player);
 		this.destroyUnit(unit);
 		this.resetMining();
 	},
