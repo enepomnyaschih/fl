@@ -11,6 +11,7 @@ FL.Monitor = function(data) {
 	this.orderCallback = null;
 	this.orderScope = null;
 	this.cells = new FL.Matrix(this.data.map.size);
+	this.own(this.data.nextPlayerEvent.bind(this._onNextPlayer, this));
 };
 
 JW.extend(FL.Monitor, JW.UI.Component, {
@@ -22,12 +23,14 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 
 	renderEndTurn: function(el) {
 		el.click(JW.inScope(function() {
+			if (!this.data.isControllable()) {
+				return;
+			}
 			this.selectionQueue = [];
 			el.removeClass("fl-active");
 			this.selectCell(null);
 			this.data.endTurn();
 			this.updateMap();
-			this.selectNext();
 		}, this));
 	},
 
@@ -43,7 +46,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}, this);
 	},
 
-	renderMap: function(el) {
+	renderCells: function(el) {
 		el.mousedown(JW.inScope(this._onMapMouseDown, this));
 		var map = this.data.map;
 		for (var i = 0; i < map.size; ++i) {
@@ -52,14 +55,24 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 				var ij = [i, j];
 				var cellEl = jQuery('<div class="fl-monitor-cell"></div>');
 				this.cells.setCell(ij, cellEl);
-				cellEl.attr("fl-i", "n" + i);
-				cellEl.attr("fl-j", "n" + j);
-				this._updateCell(cellEl, ij)
+				cellEl.attr("fl-i", i);
+				cellEl.attr("fl-j", j);
+				this._updateCell(cellEl, ij);
 				rowEl.append(cellEl);
 			}
 			rowEl.append('<div class="fl-clear"></div>');
 			el.append(rowEl);
 		}
+	},
+
+	renderUnits: function() {
+		return this.data.units.createMapper({
+			createItem: function(unit) {
+				return new FL.UnitView(unit);
+			},
+			destroyItem: JW.destroy,
+			scope: this
+		}).target;
 	},
 
 	renderPanel: function() {
@@ -72,6 +85,9 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	selectCell: function(ij) {
+		if (!this.data.isControllable()) {
+			ij = null;
+		}
 		this.resetOrder();
 		if (this.cellSelect) {
 			this._getCell(this.cellSelect.ij).removeClass("fl-selected");
@@ -91,6 +107,10 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	selectNext: function() {
+		if (!this.data.isControllable()) {
+			this.selectCell(null);
+			return;
+		}
 		while (this.selectionTail < this.selectionQueue.length) {
 			var cell = this.data.map.getCell(this.selectionQueue[this.selectionTail++]);
 			var isUnit = this._isUnitAutoSelectable(cell.unit);
@@ -135,7 +155,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this.orderRangeSqr = rangeSqr;
 		this.orderCallback = callback;
 		this.orderScope = scope;
-		this.getElement("map").addClass("fl-order-active");
+		this.getElement("cells").addClass("fl-order-active");
 		for (var i = 0; i < this.data.map.size; ++i) {
 			for (var j = 0; j < this.data.map.size; ++j) {
 				var ij = [i, j];
@@ -155,8 +175,8 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this.orderRangeSqr = null;
 		this.orderCallback = null;
 		this.orderScope = null;
-		this.getElement("map").removeClass("fl-order-active");
-		this.getElement("map").find(".fl-order-overlay").remove();
+		this.getElement("cells").removeClass("fl-order-active");
+		this.getElement("cells").find(".fl-order-overlay").remove();
 	},
 
 	_getCell: function(ij) {
@@ -173,7 +193,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		el.toggleClass("fl-rock", cell.rock);
 
 		if (cell.miningBase) {
-			el.attr("fl-player", "n" + cell.miningBase.player);
+			el.attr("fl-player", cell.miningBase.player);
 			el.append('<div class="fl-mining"></div>');
 		} else {
 			el.removeAttr("fl-player");
@@ -195,19 +215,17 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}
 		if (cell.base) {
 			var baseEl = jQuery('<div class="fl-base"></div>');
-			baseEl.attr("fl-player", "n" + cell.base.player);
+			baseEl.attr("fl-player", cell.base.player);
 			el.append(baseEl);
-		}
-		if (cell.unit) {
-			var unitEl = jQuery('<div class="fl-unit"></div>');
-			unitEl.attr("fl-type", cell.unit.type.id);
-			unitEl.attr("fl-player", "n" + cell.unit.player);
-			unitEl.toggleClass("fl-moved", cell.unit.movement === 0);
-			el.append(unitEl);
 		}
 		if (cell.scouted && !cell.visible) {
 			el.append('<div class="fl-fog"></div>')
 		}
+	},
+
+	_onNextPlayer: function() {
+		this.updateMap();
+		this.selectNext();
 	},
 
 	_onMapMouseDown: function(event) {
@@ -220,8 +238,8 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			return;
 		}
 		var ij = [
-			+cellEl.attr("fl-i").substr(1),
-			+cellEl.attr("fl-j").substr(1)
+			+cellEl.attr("fl-i"),
+			+cellEl.attr("fl-j")
 		];
 		switch (event.which) {
 			case 1: this._onLeftMouseDown(cellEl, ij); break;
@@ -234,6 +252,9 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	_onRightMouseDown: function(cellEl, ij) {
+		if (!this.data.isControllable()) {
+			return;
+		}
 		if (this.orderIj) {
 			if (!this.data.isDroppable(this.orderIj, ij, this.orderRangeSqr, 0)) {
 				return;
@@ -253,7 +274,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		unit.ijTarget = ij;
 		this.data.moveUnit(unit);
 		this.updateMap();
-		if (unit.movement) {
+		if (unit.movement.get()) {
 			this.selectCell(unit.ij.get());
 		} else {
 			this.selectNext();
@@ -279,7 +300,8 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	_isUnitAutoSelectable: function(unit) {
-		return unit && (unit.player === 0) && (unit.movement !== 0) && !unit.hold && !unit.ijTarget;
+		return unit && (unit.player === 0) && (unit.movement.get() !== 0) &&
+			!unit.hold && !unit.ijTarget;
 	},
 
 	_isBaseAutoSelectable: function(base) {

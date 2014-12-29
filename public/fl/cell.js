@@ -19,6 +19,10 @@ JW.extend(FL.Cell, JW.Class, {
 		this.scouted = true;
 		this.visible = true;
 		this.invalid = true;
+		if (this.unit) {
+			this.unit.visible = true;
+			this.unit.resetAnimation();
+		}
 	},
 
 	hide: function() {
@@ -27,6 +31,10 @@ JW.extend(FL.Cell, JW.Class, {
 		}
 		this.visible = false;
 		this.invalid = true;
+		if (this.unit) {
+			this.unit.visible = false;
+			this.unit.resetAnimation();
+		}
 	},
 
 	setBase: function(base) {

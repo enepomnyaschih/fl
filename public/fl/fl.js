@@ -11,6 +11,7 @@ var FL = {
 	baseSightRangeSqr: 12,
 	baseDefense: 6,
 	baseMiningRangeSqr: 5,
+	animationStepsPerSecond: 20,
 
 	dir4: [
 		[0, 1],
@@ -58,5 +59,9 @@ var FL = {
 
 	fight: function(attack, defense) {
 		return FL.random(attack + defense) < attack;
+	},
+
+	ijToXy: function(ij) {
+		return [FL.cellSize * ij[1], FL.cellSize * ij[0]];
 	}
 };

@@ -9,7 +9,7 @@ FL.UnitInfo = function(type, player, movement, showCost) {
 JW.extend(FL.UnitInfo, JW.UI.Component, {
 	renderIcon: function(el) {
 		el.attr("fl-type", this.type.id);
-		el.attr("fl-player", "n" + this.player);
+		el.attr("fl-player", this.player);
 	},
 
 	renderName: function(el) {

@@ -4,13 +4,17 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 	this.ij = this.own(new JW.Property(ij)); // <Vector>, mutable
 	this.player = player; // Integer
 	this.type = type; // Object
-	this.movement = this.type.movement; // Integer
+	this.movement = this.own(new JW.Property(this.type.movement)); // <Integer>
 	this.cell = null; // FL.Cell
 	this.ijTarget = null; // Vector
 	this.hold = false;
 	this.attacked = false;
 	this.behaviour = behaviour || type.ai[FL.random(type.ai.length)];
-	this.visible = this.own(new JW.Property(false));
+	this.visible = false;
+
+	this.xy = this.own(new JW.Property(FL.ijToXy(this.ij.get())));
+	this.opacity = this.own(new JW.Property(0));
+	this.animations = []; // <FL.Unit.Animation>
 
 	this.own(new JW.Switcher([this.ij], {
 		init: function(ij) {
@@ -19,7 +23,17 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 			if (this.player === 0) {
 				this.data.reveal(ij, this.type.sightRangeSqr);
 			}
-			this._updateVisible();
+			var animate = this.visible || this.cell.visible;
+			this.visible = this.cell.visible;
+			if (!animate && !this.animations.length) {
+				this.resetAnimation();
+			} else {
+				var animation = animate ?
+					new FL.Unit.MovementAnimation(this) :
+					new FL.Unit.JumpAnimation(this);
+				this.animations.push(animation);
+				this.data.animationManager.enqueue(this);
+			}
 		},
 		done: function(ij) {
 			this.cell.setUnit(null);
@@ -29,8 +43,10 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 };
 
 JW.extend(FL.Unit, JW.Class, {
-	_updateVisible: function() {
-		this.visible.set(this.cell.visible);
+	resetAnimation: function() {
+		this.animations = [];
+		this.xy.set(FL.ijToXy(this.ij.get()));
+		this.opacity.set(this.visible ? 1 : 0);
 	}
 });
 

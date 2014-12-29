@@ -10,7 +10,7 @@ JW.extend(FL.Panel.UnitButton, JW.UI.Component, {
 		el.attr("fl-type", this.type.id);
 		if (this.base.isUnitTypeAvailable(this.type)) {
 			el.attr("title", "Produce " + this.type.name + " (cost: " + this.type.cost + ")");
-			el.attr("fl-player", "n" + this.base.player);
+			el.attr("fl-player", this.base.player);
 			el.click(JW.inScope(function(event) {
 				this.base.unitType.set(this.type);
 			}, this));

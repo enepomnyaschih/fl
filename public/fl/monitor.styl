@@ -30,12 +30,26 @@
 	&-map
 		float left
 		margin-left 10px
+		position relative
 		size 512px 512px
+
+	&-cells
+	&-units
+		position absolute
+		size 512px 512px
+		xy 0 0
+
+	&-units
+		pointer-events none
 
 	&-panel
 		float left
 		margin-left 10px
 		size 300px 512px
+
+	&-unit
+		position absolute
+		z-index 1
 
 	&-cell
 		background black none scroll 0 0 no-repeat
@@ -54,7 +68,7 @@
 				position absolute
 				xy 0 0
 
-		& > .fl-unit, & > .fl-base, & > .fl-resource
+		& > .fl-base, & > .fl-resource
 			display none
 			z-index 1
 
@@ -70,7 +84,7 @@
 			xy 0 0
 
 		&.fl-visible
-			&[fl-player=n0]
+			&[fl-player="0"]
 				& > .fl-mining
 					background-color #22DD22
 				& > .fl-border-0
@@ -82,7 +96,7 @@
 				& > .fl-border-3
 					border-bottom 1px solid #44FF44
 
-			&[fl-player=n1]
+			&[fl-player="1"]
 				& > .fl-mining
 					background-color #DD2222
 				& > .fl-border-0
@@ -98,11 +112,6 @@
 				display block
 				position absolute
 				xy -2px -2px
-
-			& > .fl-unit
-				display block
-				position absolute
-				xy 0 0
 
 		& > .fl-hold
 			border 1px dotted white

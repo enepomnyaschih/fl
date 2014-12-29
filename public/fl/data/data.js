@@ -5,7 +5,10 @@ FL.Data = function() {
 	this.units = new JW.ObservableArray();
 	this.logEvent = new JW.Event();
 	this.lostEvent = new JW.Event();
+	this.nextPlayerEvent = new JW.Event();
 	this.turn = 1;
+	this.player = 0;
+	this.animationManager = this.own(new FL.Data.AnimationManager(this));
 	this._generateMap();
 };
 
@@ -52,7 +55,7 @@ JW.extend(FL.Data, JW.Class, {
 			return;
 		}
 		unit.hold = false;
-		for (var i = 0; (i < path.length) && unit.movement; ++i) {
+		for (var i = 0; (i < path.length) && unit.movement.get(); ++i) {
 			var tij = FL.Vector.add(unit.ij.get(), FL.dir8[path[i]]);
 			if (!this.isPassable(tij)) {
 				break;
@@ -62,7 +65,7 @@ JW.extend(FL.Data, JW.Class, {
 			if (targetCell.unit) {
 				if ((targetCell.unit.player !== unit.player) && !unit.attacked &&
 						FL.Vector.equal(tij, unit.ijTarget) && (unit.type.attack !== 0)) {
-					--unit.movement;
+					unit.movement.set(unit.movement.get() - 1);
 					sourceCell.invalid = true;
 					this.fightUnit(unit, targetCell.unit);
 				}
@@ -71,14 +74,14 @@ JW.extend(FL.Data, JW.Class, {
 			}
 			if (targetCell.base && (targetCell.base.player !== unit.player)) {
 				if (FL.Vector.equal(tij, unit.ijTarget) && !unit.attacked && (unit.type.attack !== 0)) {
-					--unit.movement;
+					unit.movement.set(unit.movement.get() - 1);
 					sourceCell.invalid = true;
 					this.fightBase(unit, targetCell.base);
 				}
 				unit.ijTarget = null;
 				break;
 			}
-			--unit.movement;
+			unit.movement.set(unit.movement.get() - 1);
 			unit.ij.set(tij);
 		}
 		if (unit.ijTarget && FL.Vector.equal(unit.ij.get(), unit.ijTarget)) {
@@ -164,18 +167,30 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	endTurn: function() {
-		this.log("End turn");
-		this._endTurnPlayer(0);
-		FL.AI.process(this, 1);
-		this._endTurnPlayer(1);
-		++this.turn;
-		this.log("Turn " + this.turn);
+		if (this.player === 0) {
+			this.log("End turn");
+		}
+		this.moveUnits(this.player);
+		this.animationManager.startSequentialAnimation();
+	},
+
+	nextPlayer: function() {
+		this._endTurnPlayer(this.player);
+		this.player = (this.player + 1) % 2;
+		if (this.player === 0) {
+			++this.turn;
+			this.log("Turn " + this.turn);
+		}
+		this.nextPlayerEvent.trigger();
+		if (this.player !== 0) {
+			FL.AI.process(this, this.player);
+			this.endTurn();
+		}
 	},
 
 	_endTurnPlayer: function(player) {
-		this.moveUnits(player);
 		this.units.$filter(JW.byValue("player", player)).each(function(unit) {
-			unit.movement = unit.type.movement;
+			unit.movement.set(unit.type.movement);
 			unit.attacked = false;
 		}, this);
 		this.resetVision();
@@ -379,6 +394,10 @@ JW.extend(FL.Data, JW.Class, {
 
 	log: function(message, cls) {
 		this.logEvent.trigger([message, cls]);
+	},
+
+	isControllable: function() {
+		return (this.player === 0) && !this.animationManager.sequential;
 	},
 
 	_generateMap: function() {
