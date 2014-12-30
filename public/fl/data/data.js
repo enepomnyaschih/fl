@@ -36,7 +36,7 @@ JW.extend(FL.Data, JW.Class, {
 		var unit = new FL.Unit(this, ij, player, type, behaviour);
 		this.units.add(unit);
 		if (player == 0) {
-			this.reveal(ij, type.sightRangeSqr)
+			this.reveal(ij, unit.getSightRangeSqr());
 		}
 	},
 
@@ -45,7 +45,7 @@ JW.extend(FL.Data, JW.Class, {
 		unit.destroy();
 	},
 
-	moveUnit: function(unit) {
+	moveUnit: function(unit, selection) {
 		if (!unit.ijTarget) {
 			return;
 		}
@@ -54,6 +54,10 @@ JW.extend(FL.Data, JW.Class, {
 			unit.ijTarget = null;
 			return;
 		}
+		if (!selection) {
+			selection = JW.Array.map(unit.health.get(), function() { return true; });
+		}
+		var selectionCount = JW.Array.count(selection, JW.byField());
 		unit.hold = false;
 		for (var i = 0; (i < path.length) && unit.movement.get(); ++i) {
 			var tij = FL.Vector.add(unit.ij.get(), FL.dir8[path[i]]);
@@ -63,17 +67,23 @@ JW.extend(FL.Data, JW.Class, {
 			var sourceCell = unit.cell;
 			var targetCell = this.map.getCell(tij);
 			if (targetCell.unit) {
-				if ((targetCell.unit.player !== unit.player) && !unit.attacked &&
+				if ((targetCell.unit.player !== unit.player) && (unit.attacked < unit.getCount()) &&
 						FL.Vector.equal(tij, unit.ijTarget) && (unit.type.attack !== 0)) {
 					unit.movement.set(unit.movement.get() - 1);
-					sourceCell.invalid = true;
 					this.fightUnit(unit, targetCell.unit);
+				} else if ((targetCell.unit.player === unit.player) &&
+						(targetCell.unit.type === unit.type) &&
+						(targetCell.unit.getCount() + selectionCount <= unit.type.capacity) &&
+						FL.Vector.equal(tij, unit.ijTarget)) {
+					targetCell.unit.movement.set(Math.min(unit.movement.get() - 1, targetCell.unit.movement.get()));
+					targetCell.unit.merge(unit.split(selection));
 				}
 				unit.ijTarget = null;
 				break;
 			}
 			if (targetCell.base && (targetCell.base.player !== unit.player)) {
-				if (FL.Vector.equal(tij, unit.ijTarget) && !unit.attacked && (unit.type.attack !== 0)) {
+				if (FL.Vector.equal(tij, unit.ijTarget) && (unit.attacked < unit.getCount()) &&
+						(unit.type.attack !== 0)) {
 					unit.movement.set(unit.movement.get() - 1);
 					sourceCell.invalid = true;
 					this.fightBase(unit, targetCell.base);
@@ -94,75 +104,44 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	fightUnit: function(attacker, defender) {
-		attacker.attacked = true;
-		var win = FL.fight(attacker.type.attack, defender.type.defense);
-		if (win) {
-			this.destroyUnit(defender);
-			if (attacker.player === 0) {
-				this.log("Your " + attacker.type.name +
-					" (attack: " + attacker.type.attack +
-					") has killed enemy " + defender.type.name +
-					" (defense: " + defender.type.defense +
-					") in successful attack", "fl-good");
-			} else {
-				this.log("Enemy " + attacker.type.name +
-					" (attack: " + attacker.type.attack +
-					") has killed your " + defender.type.name +
-					" (defense: " + defender.type.defense +
-					") in successful attack", "fl-bad");
-			}
-		} else {
-			this.destroyUnit(attacker);
-			if (attacker.player === 0) {
-				this.log("Your " + attacker.type.name +
-					" (attack: " + attacker.type.attack +
-					") has been killed by enemy " + defender.type.name +
-					" (defense: " + defender.type.defense +
-					") in failed attack", "fl-bad");
-			} else {
-				this.log("Enemy " + attacker.type.name +
-					" (attack: " + attacker.type.attack +
-					") has been killed by your " + defender.type.name +
-					" (defense: " + defender.type.defense +
-					") in failed attack", "fl-good");
-			}
+		var attackerHealth = attacker.health.get().concat();
+		var defenderHealth = defender.health.get().concat();
+		var attackerDamage = attacker.type.damage /
+			(defender.type.armor + defender.getDefenseDegree() * defender.type.defense);
+		var defenderDamage = defender.type.damage / attacker.type.armor;
+		while ((attacker.attacked < attacker.getCount()) && (defenderHealth.length !== 0)) {
+			++attacker.attacked;
+			FL.fight(attackerDamage, defenderHealth);
+		}
+		while ((defender.defended < defender.getCount()) && (attackerHealth.length !== 0)) {
+			++defender.defended;
+			FL.fight(defenderDamage, attackerHealth);
+		}
+		attacker.setHealth(attackerHealth);
+		defender.setHealth(defenderHealth);
+		if (attacker.type.blitz) {
+			attacker.attacked = 0;
+		}
+		if (defender.type.cover) {
+			defender.defended = 0;
 		}
 	},
 
 	fightBase: function(attacker, base) {
-		attacker.attacked = true;
-		var win = FL.fight(attacker.type.attack, FL.baseDefense);
-		if (win) {
+		var defenderHealth = [base.health.get()];
+		var attackerDamage = attacker.type.damage / FL.baseArmor;
+		while ((attacker.attacked < attacker.getCount()) && (defenderHealth.length !== 0)) {
+			++attacker.attacked;
+			FL.fight(attackerDamage, defenderHealth);
+		}
+		if (defenderHealth.length === 0) {
 			this.destroyBase(base);
 			this.resetMining();
-			if (attacker.player === 0) {
-				this.log("Your " + attacker.type.name +
-					" (attack: " + attacker.type.attack +
-					") has destroyed enemy base" +
-					" (defense: " + FL.baseDefense +
-					") in successful attack", "fl-good");
-			} else {
-				this.log("Enemy " + attacker.type.name +
-					" (attack: " + attacker.type.attack +
-					") has destroyed your base" +
-					" (defense: " + FL.baseDefense +
-					") in successful attack", "fl-bad");
-			}
 		} else {
-			this.destroyUnit(attacker);
-			if (attacker.player === 0) {
-				this.log("Your " + attacker.type.name +
-					" (attack: " + attacker.type.attack +
-					") has been killed by enemy base" +
-					" (defense: " + FL.baseDefense +
-					") in failed attack", "fl-bad");
-			} else {
-				this.log("Enemy " + attacker.type.name +
-					" (attack: " + attacker.type.attack +
-					") has been killed by your base" +
-					" (defense: " + FL.baseDefense +
-					") in failed attack", "fl-good");
-			}
+			base.health.set(defenderHealth[0]);
+		}
+		if (attacker.type.blitz) {
+			attacker.attacked = 0;
 		}
 	},
 
@@ -190,9 +169,15 @@ JW.extend(FL.Data, JW.Class, {
 
 	_endTurnPlayer: function(player) {
 		this.units.$filter(JW.byValue("player", player)).each(function(unit) {
+			unit.fortified = (unit.movement.get() === unit.type.movement);
+			if (unit.fortified) {
+				unit.heal();
+			}
 			unit.movement.set(unit.type.movement);
-			unit.attacked = false;
+			unit.attacked = 0;
+			unit.defended = 0;
 		}, this);
+		this.bases.$filter(JW.byValue("player", player)).each(JW.byMethod("heal"));
 		this.resetVision();
 		this._produce(player);
 	},
@@ -214,7 +199,7 @@ JW.extend(FL.Data, JW.Class, {
 		}, this);
 		this.units.each(function(unit) {
 			if (unit.player === 0) {
-				this.reveal(unit.ij.get(), unit.type.sightRangeSqr);
+				this.reveal(unit.ij.get(), unit.getSightRangeSqr());
 			}
 		}, this);
 	},
@@ -255,7 +240,7 @@ JW.extend(FL.Data, JW.Class, {
 				if (cell.rock) {
 					continue;
 				}
-				base.mining++;
+				base.mining += cell.hill ? 2 : 1;
 				if (cell.resource && cell.resource.bonus) {
 					base.mining += cell.resource.bonus;
 				}
@@ -369,10 +354,8 @@ JW.extend(FL.Data, JW.Class, {
 				}
 				if ((player !== 0) || cell.visible) {
 					var unit = cell.unit;
-					if (unit) {
-						if ((unit.player === player) || !FL.Vector.equal(dij, tij)) {
-							continue;
-						}
+					if (unit && !FL.Vector.equal(dij, tij)) {
+						continue;
 					}
 					if (!unit && this.isByEnemy(cij, player) && this.isByEnemy(dij, player)) {
 						continue;
@@ -451,6 +434,12 @@ JW.extend(FL.Data, JW.Class, {
 				}
 				currentRockCells.push(ij);
 				this.map.getCell(ij).rock = true;
+				for (var d = 0; d < 4; ++d) {
+					var hij = FL.Vector.add(ij, FL.dir4[d]);
+					if (this.map.inMatrix(hij) && (Math.random() < FL.rockHillChance)) {
+						this.map.getCell(hij).hill = true;
+					}
+				}
 			}, this);
 			addRock(ij);
 
@@ -504,7 +493,7 @@ JW.extend(FL.Data, JW.Class, {
 					}
 				}
 			}
-			this.createBase(ij, p);
+			this.createBase(ij, p).health.set(1);
 			for (var d = 0; d < 4; ++d) {
 				this.createUnit(FL.Vector.add(ij, FL.dir4[d]), p, FL.Unit.types["militia"], "patrol");
 			}
@@ -536,16 +525,24 @@ JW.extend(FL.Data, JW.Class, {
 			var coef = (player === 0) ? 1 : FL.AI.productionCoef;
 			var production = base.production[type.id] + base.overflow + Math.round(coef * base.mining);
 			var cell = this.map.getCell(base.ij);
-			if ((production >= type.cost) && !cell.unit) {
-				this.createUnit(base.ij, base.player, type, base.unitBehaviour);
-				base.production[type.id] = 0;
-				base.overflow = production - type.cost;
-				base.unitType.set(null);
-				base.unitBehaviour = null;
-			} else {
+			if (production < type.cost) {
 				base.production[type.id] = Math.min(production, type.cost);
 				base.overflow = 0;
+				return;
 			}
+			if (!cell.unit) {
+				this.createUnit(base.ij, base.player, type, base.unitBehaviour);
+			} else if ((cell.unit.type === base.unitType.get()) &&
+					(cell.unit.getCount() < cell.unit.type.capacity)) {
+				cell.unit.merge([1]);
+				cell.unit.hold = false;
+			} else {
+				return;
+			}
+			base.production[type.id] = 0;
+			base.overflow = production - type.cost;
+			base.unitType.set(null);
+			base.unitBehaviour = null;
 		}, this);
 	}
 });

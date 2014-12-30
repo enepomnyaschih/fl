@@ -2,6 +2,7 @@ FL.Cell = function(ij) {
 	FL.Cell._super.call(this);
 	this.ij = ij;
 	this.rock = false;
+	this.hill = (Math.random() < FL.plainHillChance);
 	this.base = null;
 	this.miningBase = null; // who makes money from this tile
 	this.unit = null;

@@ -16,7 +16,7 @@ FL.AI = {
 	aquisitionDistanceSqr: 50,
 	baseHoldRangeSqr: 10,
 	unitHoldRangeSqr: 4,
-	patrolPerBase: 3,
+	patrolPerBase: 1,
 	initialProductionCoef: 1,
 	productionCoefPerWin: .2,
 	productionCoefPerLoss: .05,
@@ -70,6 +70,10 @@ FL.AI = {
 						return JW.Array.containsItem(availableBehaviours, behaviour);
 					});
 				});
+				var preferredUnitTypes = JW.Array.filter(availableUnitTypes, JW.byField("aiPreferred"));
+				if (preferredUnitTypes.length) {
+					availableUnitTypes = preferredUnitTypes;
+				}
 				unitType = availableUnitTypes[FL.random(availableUnitTypes.length)];
 			}
 			base.unitType.set(unitType);
@@ -261,7 +265,7 @@ FL.AI = {
 			if (cell.unit && (cell.unit.player !== player)) {
 				profit -= 2 * (cell.unit.type.attack || 0);
 			}
-			++profit;
+			profit += cell.hill ? 2 : 1;
 			if (cell.resource) {
 				if (cell.resource.aiProfit) {
 					profit += cell.resource.aiProfit;

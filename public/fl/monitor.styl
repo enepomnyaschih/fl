@@ -17,12 +17,6 @@
 		margin-bottom 10px
 		overflow-y auto
 
-		& > .fl-good
-			color #00DD00
-
-		& > .fl-bad
-			color #FF0000
-
 	&-help
 		color #999999
 		font-style italic
@@ -51,6 +45,12 @@
 		position absolute
 		z-index 1
 
+		&-health
+			display inline-block
+			margin 1px 0 0 1px
+			size 2px 2px
+			vertical-align top
+
 	&-cell
 		background black none scroll 0 0 no-repeat
 		float left
@@ -59,6 +59,9 @@
 
 		&.fl-scouted
 			background-image url(../images/land.png)
+
+			&.fl-hill
+				background-image url(../images/hill.png)
 
 			&.fl-rock
 				background-image url(../images/rock.png)

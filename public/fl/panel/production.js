@@ -18,6 +18,6 @@ JW.extend(FL.Panel.Production, JW.UI.Component, {
 	},
 
 	renderUnit: function() {
-		return this.own(new FL.UnitInfo(this.type, this.base.player, this.type.movement, true));
+		return this.own(new FL.UnitInfo(this.type, this.base.player, null, this.type.movement, true));
 	}
 });

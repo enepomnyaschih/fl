@@ -7,7 +7,7 @@ FL.Panel.Unit = function(monitor, unit) {
 JW.extend(FL.Panel.Unit, JW.UI.Component, {
 	renderInfo: function() {
 		return this.own(new FL.UnitInfo(this.unit.type,
-			this.unit.player, this.unit.movement.get(), false));
+			this.unit.player, this.unit.health.get(), this.unit.movement.get(), false));
 	},
 
 	renderHold: function(el) {

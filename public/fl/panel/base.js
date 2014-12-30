@@ -5,7 +5,12 @@ FL.Panel.Base = function(base) {
 
 JW.extend(FL.Panel.Base, JW.UI.Component, {
 	renderDefense: function(el) {
-		el.text(FL.baseDefense);
+		var value = this.base.health.get();
+		el.html(
+			((value === 1) ?
+				('<span class="fl-good">' + FL.baseArmor + '</span>') :
+				('<span class="fl-bad">' + (FL.baseArmor * value).toFixed(1) + '</span>')) +
+			"/" + FL.baseArmor);
 	},
 
 	renderMining: function(el) {

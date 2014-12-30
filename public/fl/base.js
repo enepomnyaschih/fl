@@ -8,6 +8,7 @@ FL.Base = function(ij, player) {
 	this.mining = 0;
 	this.overflow = 0;
 	this.resources = [];
+	this.health = this.own(new JW.Property(.1));
 };
 
 JW.extend(FL.Base, JW.Class, {
@@ -22,5 +23,11 @@ JW.extend(FL.Base, JW.Class, {
 
 	getAvailableUnitTypes: function() {
 		return JW.Array.filter(FL.Unit.typeArray, this.isUnitTypeAvailable, this);
+	},
+
+	heal: function() {
+		var eps = 0.001;
+		var value = this.health.get() + FL.baseHealRate;
+		this.health.set((1 - value < eps) ? 1 : value);
 	}
 });

@@ -3,13 +3,17 @@ var FL = {
 	cellSize: 16,
 	rockCount: 20,
 	rockDensity: 20,
+	rockHillChance: .4,
+	plainHillChance: .04,
 	playerCount: 2,
 	minBaseDistanceSqr: 8,
 	minMainBaseDistanceSqr: 100,
 	minMainBaseSideDistance: 4,
 	minMainBaseCenterDistance: 5,
+	unitHealRate: .1,
+	baseHealRate: .1,
 	baseSightRangeSqr: 12,
-	baseDefense: 6,
+	baseArmor: 10,
 	baseMiningRangeSqr: 5,
 	animationStepsPerSecond: 20,
 
@@ -57,8 +61,14 @@ var FL = {
 		return dij;
 	},
 
-	fight: function(attack, defense) {
-		return FL.random(attack + defense) < attack;
+	fight: function(damage, health) {
+		var eps = 0.001;
+		var target = FL.random(health.length);
+		if (health[target] <= damage + eps) {
+			health.splice(target, 1);
+		} else {
+			health[target] -= damage;
+		}
 	},
 
 	ijToXy: function(ij) {

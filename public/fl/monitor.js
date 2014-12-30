@@ -191,6 +191,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		el.toggleClass("fl-scouted", cell.scouted);
 		el.toggleClass("fl-visible", cell.visible);
 		el.toggleClass("fl-rock", cell.rock);
+		el.toggleClass("fl-hill", cell.hill);
 
 		if (cell.miningBase) {
 			el.attr("fl-player", cell.miningBase.player);
@@ -274,7 +275,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		unit.ijTarget = ij;
 		this.data.moveUnit(unit);
 		this.updateMap();
-		if (unit.movement.get()) {
+		if (unit.alive && unit.movement.get()) {
 			this.selectCell(unit.ij.get());
 		} else {
 			this.selectNext();

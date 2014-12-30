@@ -11,6 +11,14 @@ JW.extend(FL.UnitView, JW.UI.Component, {
 		this.own(new FL.PositionUpdater(el, this.unit.xy));
 		this.own(new JW.UI.CssUpdater(el, "opacity", this.unit.opacity));
 
+		this.own(new JW.Updater([this.unit.health], function(health) {
+			el.html(JW.Array.map(health, function(value) {
+				var color = JW.Color.multiGradient([[0, "#800"], [.5, "#FF0"], [1, "#0B0"]], value);
+				return '<div class="fl-monitor-unit-health" ' +
+					'style="background-color: ' + JW.Color.str(color) + ';"></div>';
+			}, this).join(""));
+		}, this));
+
 		if (this.unit.player === 0) {
 			var moved = this.own(new JW.Functor([this.unit.movement], function(movement) {
 				return movement === 0;

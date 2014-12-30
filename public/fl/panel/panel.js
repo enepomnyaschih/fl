@@ -9,6 +9,8 @@ JW.extend(FL.Panel, JW.UI.Component, {
 		if (!this.cell.scouted) {
 		} else if (this.cell.rock) {
 			el.text("Mountain")
+		} else if (this.cell.hill) {
+			el.text("Hill")
 		} else {
 			el.text("Plain")
 		}
@@ -19,6 +21,8 @@ JW.extend(FL.Panel, JW.UI.Component, {
 			el.text("This area is not scouted yet.");
 		} else if (this.cell.rock) {
 			el.text("Doesn't make production. Units can not pass.")
+		} else if (this.cell.hill) {
+			el.text("Improves defense and sight. Production: 2.")
 		} else {
 			el.text("Increases production by 1.")
 		}

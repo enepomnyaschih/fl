@@ -15,6 +15,7 @@
 		"fl/app.styl",
 		"fl/base.js",
 		"fl/cell.js",
+		"fl/color.js",
 		"fl/data/data.js",
 		"fl/data/animationManager.js",
 		"fl/el.js",

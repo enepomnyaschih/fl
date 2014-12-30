@@ -8,9 +8,13 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 	this.cell = null; // FL.Cell
 	this.ijTarget = null; // Vector
 	this.hold = false;
-	this.attacked = false;
+	this.attacked = 0;
+	this.defended = 0;
+	this.fortified = 0;
 	this.behaviour = behaviour || type.ai[FL.random(type.ai.length)];
 	this.visible = false;
+	this.health = this.own(new JW.Property([1]));
+	this.alive = true;
 
 	this.xy = this.own(new JW.Property(FL.ijToXy(this.ij.get())));
 	this.opacity = this.own(new JW.Property(0));
@@ -21,7 +25,7 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 			this.cell = this.data.map.getCell(ij);
 			this.cell.setUnit(this);
 			if (this.player === 0) {
-				this.data.reveal(ij, this.type.sightRangeSqr);
+				this.data.reveal(ij, this.getSightRangeSqr());
 			}
 			var animate = this.visible || this.cell.visible;
 			this.visible = this.cell.visible;
@@ -43,10 +47,71 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 };
 
 JW.extend(FL.Unit, JW.Class, {
+	destroy: function() {
+		this.alive = false;
+		this._super();
+	},
+
 	resetAnimation: function() {
 		this.animations = [];
 		this.xy.set(FL.ijToXy(this.ij.get()));
 		this.opacity.set(this.visible ? 1 : 0);
+	},
+
+	getCount: function() {
+		return this.health.get().length;
+	},
+
+	getDefenseDegree: function() {
+		return 1 + (this.fortified ? 1 : 0) + (this.cell.hill ? 1 : 0); // plus river
+	},
+
+	getSightRangeSqr: function() {
+		return this.cell.hill ? this.type.sightRangeSqrHill : this.type.sightRangeSqr;
+	},
+
+	merge: function(units) {
+		this.setHealth(units.concat(this.health.get()));
+	},
+
+	split: function(selection) {
+		var splittedUnits = [];
+		var remainingUnits = [];
+		JW.Array.filter(this.health.get(), function(health, index) {
+			if (!selection || selection[index]) {
+				splittedUnits.push(health);
+			} else {
+				remainingUnits.push(health);
+			}
+		}, this);
+		this.setHealth(remainingUnits);
+		return splittedUnits;
+	},
+
+	setHealth: function(health) {
+		if (health.length === 0) {
+			this.data.destroyUnit(this);
+		} else {
+			this.health.set(health.concat().sort().reverse());
+		}
+	},
+
+	isHealed: function() {
+		return JW.Array.every(this.health.get(), JW.byValue("", 1));
+	},
+
+	heal: function() {
+		if (this.isHealed()) {
+			return;
+		}
+		this.health.set(JW.Array.map(this.health.get(), function(value) {
+			var eps = 0.001;
+			value += FL.unitHealRate;
+			return (1 - value < eps) ? 1 : value;
+		}, this));
+		if (this.isHealed()) {
+			this.hold = false;
+		}
 	}
 });
 
@@ -54,32 +119,44 @@ FL.Unit.typeArray = [
 	{
 		id: "mcv",
 		name: "Mobile Construction Vehicle",
-		attack: 0,
-		defense: 1,
+		damage: 0,
+		armor: 1,
+		defense: 0,
 		movement: 1,
 		sightRangeSqr: 2,
+		sightRangeSqrHill: 8,
 		cost: 300,
-		ai: ["build"]
+		ai: ["build"],
+		capacity: 10,
+		aiPreferred: true
 	},
 	{
 		id: "militia",
 		name: "Militia \"Meat shield\"",
-		attack: 1,
-		defense: 3,
+		damage: 1,
+		armor: 3,
+		defense: 1,
 		movement: 1,
 		sightRangeSqr: 2,
-		cost: 70,
-		ai: ["patrol", "hold"]
+		sightRangeSqrHill: 8,
+		cost: 30,
+		ai: ["patrol", "hold"],
+		capacity: 10,
+		aiPreferred: false
 	},
 	{
 		id: "infantry",
 		name: "Infantry \"Cannon fodder\"",
-		attack: 3,
-		defense: 2,
+		damage: 2,
+		armor: 3,
+		defense: 0,
 		movement: 1,
 		sightRangeSqr: 2,
-		cost: 100,
-		ai: ["patrol", "attack"]
+		sightRangeSqrHill: 8,
+		cost: 40,
+		ai: ["patrol", "attack"],
+		capacity: 10,
+		aiPreferred: false
 	},
 	/*{
 		id: "ack",
@@ -96,25 +173,33 @@ FL.Unit.typeArray = [
 	{
 		id: "marine",
 		name: "Marine \"Hotheads\"",
-		attack: 3,
-		defense: 6,
+		damage: 2,
+		armor: 4,
+		defense: 2,
 		movement: 1,
 		sightRangeSqr: 8,
-		cost: 120,
+		sightRangeSqrHill: 10,
+		cost: 50,
 		resources: ["yard"],
-		ai: ["patrol", "hold"]
+		ai: ["patrol", "hold"],
+		capacity: 10,
+		aiPreferred: true
 	},
 	{
 		id: "paratrooper",
 		name: "Paratrooper \"Zealot bomb\"",
-		attack: 6,
-		defense: 3,
+		damage: 3,
+		armor: 5,
+		defense: 0,
 		movement: 1,
 		sightRangeSqr: 8,
-		cost: 150,
+		sightRangeSqrHill: 10,
+		cost: 70,
 		resources: ["yard"],
 		paradropRangeSqr: 27,
-		ai: ["attack"]
+		ai: ["attack"],
+		capacity: 10,
+		aiPreferred: true
 	},
 	/*{
 		id: "artillery",
@@ -132,13 +217,17 @@ FL.Unit.typeArray = [
 	{
 		id: "humvee",
 		name: "Hum-Vee \"Us will not catch up\"",
-		attack: 5,
-		defense: 2,
+		damage: 2,
+		armor: 4,
+		defense: 0,
 		movement: 3,
 		sightRangeSqr: 8,
-		cost: 150,
+		sightRangeSqrHill: 10,
+		cost: 50,
 		resources: ["light"],
-		ai: ["patrol", "attack"]
+		ai: ["patrol", "attack"],
+		capacity: 5,
+		aiPreferred: true
 	},
 	/*{
 		id: "sam",
@@ -156,37 +245,51 @@ FL.Unit.typeArray = [
 	{
 		id: "radar",
 		name: "Radar vehicle \"I see you\"",
-		attack: 3,
-		defense: 8,
+		damage: 2,
+		armor: 5,
+		defense: 3,
 		movement: 2,
 		sightRangeSqr: 18,
+		sightRangeSqrHill: 27,
 		bombRangeSqr: 12,
 		bombAttack: 2,
-		cost: 200,
+		cost: 70,
 		resources: ["light"],
-		ai: ["patrol"]
+		ai: ["patrol"],
+		capacity: 5,
+		aiPreferred: true
 	},
 	{
 		id: "tank",
 		name: "Tank \"Shushpanzer\"",
-		attack: 14,
-		defense: 8,
+		damage: 4,
+		armor: 10,
+		defense: 0,
 		movement: 2,
 		sightRangeSqr: 8,
-		cost: 360,
+		sightRangeSqrHill: 10,
+		cost: 120,
 		resources: ["heavy"],
-		ai: ["attack"]
+		ai: ["attack"],
+		blitz: true,
+		capacity: 5,
+		aiPreferred: true
 	},
 	{
 		id: "mobile",
 		name: "\"Wunderwaffe\" mobile site",
-		attack: 8,
-		defense: 18,
+		damage: 3,
+		armor: 8,
+		defense: 4,
 		movement: 2,
 		sightRangeSqr: 8,
-		cost: 360,
+		sightRangeSqrHill: 10,
+		cost: 110,
 		resources: ["heavy"],
-		ai: ["attack"]
+		ai: ["attack"],
+		cover: true,
+		capacity: 5,
+		aiPreferred: true
 	}/*,
 	{
 		id: "helicopter",
