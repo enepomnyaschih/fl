@@ -397,6 +397,16 @@ JW.extend(FL.Data, JW.Class, {
 		this._generateBases();
 		this.resetMining();
 		this.bases.each(function(base) {
+			this.map.eachWithin(base.ij, FL.baseMiningRangeSqr, function(cell) {
+				if (cell.resource) {
+					if (cell.resource.aiProduction) {
+						cell.resource = null;
+					} else if (cell.resource.bonus && (base.mining - cell.resource.bonus >= 20)) {
+						base.mining -= cell.resource.bonus;
+						cell.resource = null;
+					}
+				}
+			}, this);
 			var resourceId;
 			if (base.mining < 20) {
 				resourceId = "aluminum";

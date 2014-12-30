@@ -13,6 +13,7 @@ FL.AI = {
 	],
 	attack: 2,
 	patrolDistance: 3,
+	healSafeDistance: 3,
 	aquisitionDistanceSqr: 50,
 	baseHoldRangeSqr: 10,
 	unitHoldRangeSqr: 4,
@@ -24,10 +25,13 @@ FL.AI = {
 	baseFirstProductionProfit: 15,
 	baseExtraProductionProfit: -4,
 	baseDistanceProfit: -2,
+	stackCostInitial: -30,
+	stackCostPerBase: 60,
 
 	process: function(data, player) {
 		var bases = data.bases.$toArray().filter(JW.byValue("player", player));
 		var units = data.units.$toArray().filter(JW.byValue("player", player));
+		var stackCost = FL.AI.stackCostInitial + FL.AI.stackCostPerBase * bases.length;
 		var unitCount = JW.Map.map(FL.Unit.types, function() { return 0; });
 		var totalUnitCount = JW.Map.map(FL.Unit.types, function() { return 0; });
 		var behaviourUnits = JW.Array.$index(FL.AI.behaviours, JW.byField()).map(function() { return []; });
@@ -35,7 +39,17 @@ FL.AI = {
 		JW.Array.each(units, function(unit) {
 			++unitCount[unit.type.id];
 			++totalUnitCount[unit.type.id];
-			behaviourUnits[unit.behaviour].push(unit);
+			if (unit.cell.base) {
+				if (unit.cell.base.unitType.get() && (unit.cell.base.unitType.get() !== unit.type)) {
+					behaviourUnits[unit.behaviour].push(unit);
+				} else if (FL.AI.isUnitReady(unit, stackCost)) {
+					behaviourUnits[unit.behaviour].push(unit);
+				}
+			} else {
+				if (unit.isHealed() || FL.AI.isEnemyWithin(data, player, unit.ij, FL.AI.healSafeDistance)) {
+					behaviourUnits[unit.behaviour].push(unit);
+				}
+			}
 			++totalBehaviourCount[unit.behaviour];
 		});
 		JW.Array.each(bases, function(base) {
@@ -52,6 +66,11 @@ FL.AI = {
 		var availableBehaviours = FL.AI.behaviours.concat();
 		JW.Array.each(bases, function(base) {
 			if (base.unitType.get()) {
+				return;
+			}
+			var cell = data.map.getCell(base.ij);
+			if (cell.unit && !FL.AI.isUnitReady(cell.unit, stackCost)) {
+				base.unitType.set(cell.unit.type);
 				return;
 			}
 			var unitType;
@@ -134,8 +153,7 @@ FL.AI = {
 				FL.Vector.between(attackUnit.ij.get(), nearestBase.ij, .45));
 			if (!nearestUnit.ijTarget || !FL.Vector.equal(ijTarget, nearestUnit.ijTarget)) {
 				nearestUnit.ijTarget = ijTarget;
-			} else if (attackUnit.type.attack * nearestUnit.type.attack >
-						attackUnit.type.defense * nearestUnit.type.defense) {
+			} else if (!attackUnit.type.defense && !nearestUnit.type.defense) {
 				nearestUnit.ijTarget = attackUnit.ij.get();
 			}
 		});
@@ -321,6 +339,27 @@ FL.AI = {
 				}
 			}
 		});
+	},
+
+	isUnitReady: function(unit, stackCost) {
+		return (unit.behaviour === "hold") ||
+			(unit.getCount() >= Math.min(unit.type.capacity, Math.round(stackCost / unit.type.cost)));
+	},
+
+	isEnemyWithin: function(data, player, ij, distance) {
+		var rect = data.map.getRect(ij, distance);
+		for (var i = rect.iMin; i <= rect.iMax; ++i) {
+			for (var j = rect.jMin; j <= rect.jMax; ++j) {
+				var cell = data.map.getCell([i, j]);
+				if (cell.unit && (cell.unit.player !== player)) {
+					return true;
+				}
+				if (cell.base && (cell.base.player !== player)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 };
 

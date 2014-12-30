@@ -134,16 +134,21 @@ button
 	background-color #303030
 	border-color #303030
 	color white
+	cursor pointer
 
-button.fl-active
-	animation-name fl-monitor-end-turn-anim
-	-webkit-animation-name fl-monitor-end-turn-anim
-	animation-duration .7s
-	-webkit-animation-duration .7s
-	animation-direction alternate
-	-webkit-animation-direction alternate
-	animation-iteration-count infinite
-	-webkit-animation-iteration-count infinite
+	&:hover
+		background-color #606060
+		border-color #606060
+
+	&.fl-active
+		animation-name fl-monitor-end-turn-anim
+		-webkit-animation-name fl-monitor-end-turn-anim
+		animation-duration .7s
+		-webkit-animation-duration .7s
+		animation-direction alternate
+		-webkit-animation-direction alternate
+		animation-iteration-count infinite
+		-webkit-animation-iteration-count infinite
 
 .fl-screen-win
 	text-align center
