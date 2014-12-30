@@ -68,7 +68,7 @@ JW.extend(FL.Data, JW.Class, {
 			var targetCell = this.map.getCell(tij);
 			if (targetCell.unit) {
 				if ((targetCell.unit.player !== unit.player) && (unit.attacked < unit.getCount()) &&
-						FL.Vector.equal(tij, unit.ijTarget) && (unit.type.attack !== 0)) {
+						FL.Vector.equal(tij, unit.ijTarget) && (unit.type.damage !== 0)) {
 					unit.movement.set(unit.movement.get() - 1);
 					this.fightUnit(unit, targetCell.unit);
 				} else if ((targetCell.unit.player === unit.player) &&
@@ -83,7 +83,7 @@ JW.extend(FL.Data, JW.Class, {
 			}
 			if (targetCell.base && (targetCell.base.player !== unit.player)) {
 				if (FL.Vector.equal(tij, unit.ijTarget) && (unit.attacked < unit.getCount()) &&
-						(unit.type.attack !== 0)) {
+						(unit.type.damage !== 0)) {
 					unit.movement.set(unit.movement.get() - 1);
 					sourceCell.invalid = true;
 					this.fightBase(unit, targetCell.base);

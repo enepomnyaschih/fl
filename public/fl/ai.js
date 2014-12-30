@@ -11,7 +11,6 @@ FL.AI = {
 		"bombard",
 		"fly"
 	],
-	attack: 2,
 	patrolDistance: 3,
 	healSafeDistance: 3,
 	aquisitionDistanceSqr: 50,
@@ -46,7 +45,7 @@ FL.AI = {
 					behaviourUnits[unit.behaviour].push(unit);
 				}
 			} else {
-				if (unit.isHealed() || FL.AI.isEnemyWithin(data, player, unit.ij, FL.AI.healSafeDistance)) {
+				if (unit.isHealed() || FL.AI.isEnemyWithin(data, player, unit.ij.get(), FL.AI.healSafeDistance)) {
 					behaviourUnits[unit.behaviour].push(unit);
 				}
 			}
@@ -159,16 +158,6 @@ FL.AI = {
 		});
 
 		// patrol
-		if (behaviourUnits["attack"].length < FL.AI.attack) {
-			behaviourUnits["patrol"] = behaviourUnits["patrol"].concat(behaviourUnits["attack"]);
-		} else {
-			FL.AI.attack++;
-			var newBehaviour = FL.random(2) ? "assaulting" : "attacking";
-			behaviourUnits[newBehaviour] = behaviourUnits[newBehaviour].concat(behaviourUnits["attack"]);
-			JW.Array.each(behaviourUnits["attack"], function(unit) {
-				unit.behaviour = newBehaviour;
-			});
-		}
 		JW.Array.each(behaviourUnits["patrol"], function(unit) {
 			if (orderedUnits.contains(unit)) {
 				return;
@@ -188,6 +177,12 @@ FL.AI = {
 		});
 
 		// attack
+		var newBehaviour = FL.random(2) ? "assaulting" : "attacking";
+		behaviourUnits[newBehaviour] = behaviourUnits[newBehaviour].concat(behaviourUnits["attack"]);
+		JW.Array.each(behaviourUnits["attack"], function(unit) {
+			unit.behaviour = newBehaviour;
+		});
+
 		FL.AI.issueAttack(data, player, behaviourUnits["attacking"], true, true);
 		FL.AI.issueAttack(data, player, behaviourUnits["assaulting"], false, true);
 
@@ -281,7 +276,7 @@ FL.AI = {
 				return;
 			}
 			if (cell.unit && (cell.unit.player !== player)) {
-				profit -= 2 * (cell.unit.type.attack || 0);
+				profit -= 3 * (cell.unit.type.damage || 0);
 			}
 			profit += cell.hill ? 2 : 1;
 			if (cell.resource) {
