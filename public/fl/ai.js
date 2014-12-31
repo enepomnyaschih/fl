@@ -18,7 +18,7 @@ FL.AI = {
 	unitHoldRangeSqr: 4,
 	patrolPerBase: 1,
 	initialProductionCoef: 1,
-	productionCoefPerWin: .2,
+	productionCoefPerWin: .1,
 	productionCoefPerLoss: .05,
 	mcvLimit: 2,
 	baseFirstProductionProfit: 15,

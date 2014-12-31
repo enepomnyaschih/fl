@@ -545,7 +545,6 @@ JW.extend(FL.Data, JW.Class, {
 			} else if ((cell.unit.type === base.unitType.get()) &&
 					(cell.unit.getCount() < cell.unit.type.capacity)) {
 				cell.unit.merge([1]);
-				cell.unit.hold = false;
 			} else {
 				return;
 			}
