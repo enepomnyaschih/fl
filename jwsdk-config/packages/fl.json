@@ -43,6 +43,7 @@
 		"fl/unit/animation.js",
 		"fl/unit/jumpAnimation.js",
 		"fl/unit/movementAnimation.js",
+		"fl/unit/person.js",
 		"fl/unitInfo.js",
 		"fl/unitInfo.jw.html : FL.UnitInfo",
 		"fl/unitView.js",

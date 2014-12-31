@@ -7,7 +7,7 @@ FL.Panel.Unit = function(monitor, unit) {
 JW.extend(FL.Panel.Unit, JW.UI.Component, {
 	renderInfo: function() {
 		return this.own(new FL.UnitInfo(this.unit.type,
-			this.unit.player, this.unit.health.get(), this.unit.movement.get(), false));
+			this.unit.player, this.unit.movement.get(), false));
 	},
 
 	renderHold: function(el) {
@@ -44,7 +44,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 			var monitor = this.monitor;
 			var data = this.monitor.data;
 			this.monitor.initOrder(unit.ij.get(), unit.type.paradropRangeSqr, function(ij) {
-				unit.movement.set(0);
+				unit.decreaseMovement();
 				unit.ijTarget = null;
 				unit.ij.set(ij);
 				monitor.updateMap();

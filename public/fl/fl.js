@@ -61,14 +61,25 @@ var FL = {
 		return dij;
 	},
 
-	fight: function(damage, health) {
+	fight: function(damage, defense, survivors) {
 		var eps = 0.001;
-		var target = FL.random(health.length);
-		if (health[target] <= damage + eps) {
-			health.splice(target, 1);
-		} else {
-			health[target] -= damage;
+		var target = FL.random(survivors.length);
+		var survivor = survivors[target];
+		if (defense && survivor.fortified) {
+			++defense;
 		}
+		damage /= survivor.type.armor + defense * survivor.type.defense;
+		if (survivor.health <= damage + eps) {
+			survivors.splice(target, 1);
+		} else {
+			survivor.health -= damage;
+		}
+	},
+
+	heal: function(value, rate) {
+		var eps = 0.001;
+		value += rate;
+		return (1 - value < eps) ? 1 : value;
 	},
 
 	ijToXy: function(ij) {

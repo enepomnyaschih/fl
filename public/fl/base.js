@@ -26,8 +26,12 @@ JW.extend(FL.Base, JW.Class, {
 	},
 
 	heal: function() {
-		var eps = 0.001;
-		var value = this.health.get() + FL.baseHealRate;
-		this.health.set((1 - value < eps) ? 1 : value);
+		this.health.set(FL.heal(this.health.get(), FL.baseHealRate));
+	},
+
+	toPerson: function() {
+		var person = new FL.Unit.Person(FL.Unit.baseType);
+		person.health = this.health.get();
+		return person;
 	}
 });

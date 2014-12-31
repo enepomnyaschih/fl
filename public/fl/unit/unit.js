@@ -8,12 +8,9 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 	this.cell = null; // FL.Cell
 	this.ijTarget = null; // Vector
 	this.hold = false;
-	this.attacked = 0;
-	this.defended = 0;
-	this.fortified = 0;
 	this.behaviour = behaviour || type.ai[FL.random(type.ai.length)];
 	this.visible = false;
-	this.health = this.own(new JW.Property([1]));
+	this.persons = this.own(new JW.Property([new FL.Unit.Person(type)]));
 	this.alive = true;
 
 	this.xy = this.own(new JW.Property(FL.ijToXy(this.ij.get())));
@@ -49,6 +46,7 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 JW.extend(FL.Unit, JW.Class, {
 	destroy: function() {
 		this.alive = false;
+		this.movement.set(0);
 		this._super();
 	},
 
@@ -59,57 +57,83 @@ JW.extend(FL.Unit, JW.Class, {
 	},
 
 	getCount: function() {
-		return this.health.get().length;
-	},
-
-	getDefenseDegree: function() {
-		return 1 + (this.fortified ? 1 : 0) + (this.cell.hill ? 1 : 0); // plus river
+		return this.persons.get().length;
 	},
 
 	getSightRangeSqr: function() {
 		return this.cell.hill ? this.type.sightRangeSqrHill : this.type.sightRangeSqr;
 	},
 
-	merge: function(units) {
-		this.setHealth(units.concat(this.health.get()));
+	merge: function(persons) {
+		this.setPersons(persons.concat(this.persons.get()));
 	},
 
 	split: function(selection) {
-		var splittedUnits = [];
-		var remainingUnits = [];
-		JW.Array.filter(this.health.get(), function(health, index) {
+		var splittedPersons = [];
+		var remainingPersons = [];
+		JW.Array.filter(this.persons.get(), function(person, index) {
 			if (!selection || selection[index]) {
-				splittedUnits.push(health);
+				splittedPersons.push(person);
 			} else {
-				remainingUnits.push(health);
+				remainingPersons.push(person);
 			}
 		}, this);
-		this.setHealth(remainingUnits);
-		return splittedUnits;
+		this.setPersons(remainingPersons);
+		return splittedPersons;
 	},
 
-	setHealth: function(health) {
-		if (health.length === 0) {
+	setPersons: function(persons) {
+		if (persons.length === 0) {
 			this.data.destroyUnit(this);
 		} else {
-			this.health.set(health.concat().sort().reverse());
+			this.persons.set(JW.Array.toSorted(persons, JW.byField("health"), this, -1));
+			this.movement.set(Math.min.apply(Math, JW.Array.map(persons, JW.byField("movement"))));
 		}
+	},
+
+	retainAttacks: function(value) {
+		this.setPersons(JW.Array.map(this.persons.get(), function(person) {
+			if (person.attack) {
+				if (value) {
+					--value;
+				} else {
+					if (!this.type.blitz) {
+						person.attack = false;
+					}
+					--person.movement;
+				}
+			}
+			return person;
+		}, this));
+	},
+
+	retainDefends: function(value) {
+		if (this.type.cover) {
+			return;
+		}
+		this.setPersons(JW.Array.map(this.persons.get(), function(person) {
+			if (person.defend) {
+				person.defend = (--value >= 0);
+			}
+			return person;
+		}, this));
+	},
+
+	decreaseMovement: function() {
+		this.setPersons(JW.Array.map(this.persons.get(), function(person) {
+			person.decreaseMovement();
+			return person;
+		}, this));
 	},
 
 	isHealed: function() {
-		return JW.Array.every(this.health.get(), JW.byValue("", 1));
+		return JW.Array.every(this.persons.get(), JW.byValue("health", 1));
 	},
 
-	heal: function() {
-		if (this.isHealed()) {
-			return;
-		}
-		this.health.set(JW.Array.map(this.health.get(), function(value) {
-			var eps = 0.001;
-			value += FL.unitHealRate;
-			return (1 - value < eps) ? 1 : value;
-		}, this));
-		if (this.isHealed()) {
+	refresh: function() {
+		var healed = this.isHealed();
+		this.setPersons(JW.Array.map(this.persons.get(), JW.byMethod("refresh")));
+		if (!healed && this.isHealed()) {
 			this.hold = false;
 		}
 	}
@@ -303,5 +327,14 @@ FL.Unit.typeArray = [
 		ai: ["fly"]
 	}*/
 ];
+
+FL.Unit.baseType = {
+	id: "base",
+	name: "Base",
+	damage: 0,
+	armor: 10,
+	defense: 0,
+	movement: 0
+};
 
 FL.Unit.types = JW.Array.index(FL.Unit.typeArray, JW.byField("id"));

@@ -1,8 +1,7 @@
-FL.UnitInfo = function(type, player, health, movement, showCost) {
+FL.UnitInfo = function(type, player, movement, showCost) {
 	FL.UnitInfo._super.call(this);
 	this.type = type;
 	this.player = player || 0;
-	this.health = health || null;
 	this.movement = JW.defn(movement, type.movement);
 	this.showCost = showCost || false;
 };
@@ -30,15 +29,7 @@ JW.extend(FL.UnitInfo, JW.UI.Component, {
 	},
 
 	renderArmor: function(el) {
-		if (this.health) {
-			el.html(JW.Array.map(this.health, function(value) {
-				return (value === 1) ?
-					('<span class="fl-good">' + this.type.armor + '</span>') :
-					('<span class="fl-bad">' + (this.type.armor * value).toFixed(1) + '</span>');
-			}, this).join("+") + "/" + this.type.armor);
-		} else {
-			el.text(this.type.armor);
-		}
+		el.text(this.type.armor);
 	},
 
 	renderDefenseBox: function() {

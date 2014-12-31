@@ -55,7 +55,7 @@ JW.extend(FL.Data, JW.Class, {
 			return;
 		}
 		if (!selection) {
-			selection = JW.Array.map(unit.health.get(), function() { return true; });
+			selection = JW.Array.map(unit.persons.get(), function() { return true; });
 		}
 		var selectionCount = JW.Array.count(selection, JW.byField());
 		unit.hold = false;
@@ -67,31 +67,28 @@ JW.extend(FL.Data, JW.Class, {
 			var sourceCell = unit.cell;
 			var targetCell = this.map.getCell(tij);
 			if (targetCell.unit) {
-				if ((targetCell.unit.player !== unit.player) && (unit.attacked < unit.getCount()) &&
+				if ((targetCell.unit.player !== unit.player) &&
 						FL.Vector.equal(tij, unit.ijTarget) && (unit.type.damage !== 0)) {
-					unit.movement.set(unit.movement.get() - 1);
 					this.fightUnit(unit, targetCell.unit);
 				} else if ((targetCell.unit.player === unit.player) &&
 						(targetCell.unit.type === unit.type) &&
 						(targetCell.unit.getCount() + selectionCount <= unit.type.capacity) &&
 						FL.Vector.equal(tij, unit.ijTarget)) {
-					targetCell.unit.movement.set(Math.min(unit.movement.get() - 1, targetCell.unit.movement.get()));
-					targetCell.unit.merge(unit.split(selection));
+					var persons = unit.split(selection);
+					JW.Array.each(persons, JW.byMethod("decreaseMovement"));
+					targetCell.unit.merge(persons);
 				}
 				unit.ijTarget = null;
 				break;
 			}
 			if (targetCell.base && (targetCell.base.player !== unit.player)) {
-				if (FL.Vector.equal(tij, unit.ijTarget) && (unit.attacked < unit.getCount()) &&
-						(unit.type.damage !== 0)) {
-					unit.movement.set(unit.movement.get() - 1);
-					sourceCell.invalid = true;
+				if (FL.Vector.equal(tij, unit.ijTarget) && (unit.type.damage !== 0)) {
 					this.fightBase(unit, targetCell.base);
 				}
 				unit.ijTarget = null;
 				break;
 			}
-			unit.movement.set(unit.movement.get() - 1);
+			unit.decreaseMovement();
 			unit.ij.set(tij);
 		}
 		if (unit.ijTarget && FL.Vector.equal(unit.ij.get(), unit.ijTarget)) {
@@ -104,45 +101,39 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	fightUnit: function(attacker, defender) {
-		var attackerHealth = attacker.health.get().concat();
-		var defenderHealth = defender.health.get().concat();
-		var attackerDamage = attacker.type.damage /
-			(defender.type.armor + defender.getDefenseDegree() * defender.type.defense);
-		var defenderDamage = defender.type.damage / attacker.type.armor;
-		while ((attacker.attacked < attacker.getCount()) && (defenderHealth.length !== 0)) {
-			++attacker.attacked;
-			FL.fight(attackerDamage, defenderHealth);
+		var attackerSurvivors = JW.Array.map(attacker.persons.get(), JW.byMethod("clone"));
+		var defenderSurvivors = JW.Array.map(defender.persons.get(), JW.byMethod("clone"));
+		var defense = 1 + (defender.cell.hill ? 1 : 0);
+		var attackerHits = JW.Array.count(attackerSurvivors, JW.byField("attack"));
+		var defenderHits = JW.Array.count(defenderSurvivors, JW.byField("defend"));
+		while ((attackerHits !== 0) && (defenderSurvivors.length !== 0)) {
+			--attackerHits;
+			FL.fight(attacker.type.damage, defense, defenderSurvivors);
 		}
-		while ((defender.defended < defender.getCount()) && (attackerHealth.length !== 0)) {
-			++defender.defended;
-			FL.fight(defenderDamage, attackerHealth);
+		while ((defenderHits !== 0) && (attackerSurvivors.length !== 0)) {
+			--defenderHits;
+			FL.fight(defender.type.damage, 0, attackerSurvivors);
 		}
-		attacker.setHealth(attackerHealth);
-		defender.setHealth(defenderHealth);
-		if (attacker.type.blitz) {
-			attacker.attacked = 0;
-		}
-		if (defender.type.cover) {
-			defender.defended = 0;
-		}
+		attacker.setPersons(attackerSurvivors);
+		defender.setPersons(defenderSurvivors);
+		attacker.retainAttacks(attackerHits);
+		defender.retainDefends(defenderHits);
 	},
 
 	fightBase: function(attacker, base) {
-		var defenderHealth = [base.health.get()];
-		var attackerDamage = attacker.type.damage / FL.baseArmor;
-		while ((attacker.attacked < attacker.getCount()) && (defenderHealth.length !== 0)) {
-			++attacker.attacked;
-			FL.fight(attackerDamage, defenderHealth);
+		var defenderSurvivors = [base.toPerson()];
+		var attackerHits = JW.Array.count(attacker.persons.get(), JW.byField("attack"));
+		while ((attackerHits !== 0) && (defenderSurvivors.length !== 0)) {
+			--attackerHits;
+			FL.fight(attacker.type.damage, 0, defenderSurvivors);
 		}
-		if (defenderHealth.length === 0) {
+		if (defenderSurvivors.length === 0) {
 			this.destroyBase(base);
 			this.resetMining();
 		} else {
-			base.health.set(defenderHealth[0]);
+			base.health.set(defenderSurvivors[0].health);
 		}
-		if (attacker.type.blitz) {
-			attacker.attacked = 0;
-		}
+		attacker.retainAttacks(attackerHits);
 	},
 
 	endTurn: function() {
@@ -168,15 +159,7 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	_endTurnPlayer: function(player) {
-		this.units.$filter(JW.byValue("player", player)).each(function(unit) {
-			unit.fortified = (unit.movement.get() === unit.type.movement);
-			if (unit.fortified) {
-				unit.heal();
-			}
-			unit.movement.set(unit.type.movement);
-			unit.attacked = 0;
-			unit.defended = 0;
-		}, this);
+		this.units.$filter(JW.byValue("player", player)).each(JW.byMethod("refresh"));
 		this.bases.$filter(JW.byValue("player", player)).each(JW.byMethod("heal"));
 		this.resetVision();
 		this._produce(player);
@@ -544,7 +527,7 @@ JW.extend(FL.Data, JW.Class, {
 				this.createUnit(base.ij, base.player, type, base.unitBehaviour);
 			} else if ((cell.unit.type === base.unitType.get()) &&
 					(cell.unit.getCount() < cell.unit.type.capacity)) {
-				cell.unit.merge([1]);
+				cell.unit.merge([new FL.Unit.Person(cell.unit.type)]);
 			} else {
 				return;
 			}
