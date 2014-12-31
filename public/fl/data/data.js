@@ -38,6 +38,7 @@ JW.extend(FL.Data, JW.Class, {
 		if (player == 0) {
 			this.reveal(ij, unit.getSightRangeSqr());
 		}
+		return unit;
 	},
 
 	destroyUnit: function(unit) {
@@ -49,16 +50,26 @@ JW.extend(FL.Data, JW.Class, {
 		if (!unit.ijTarget) {
 			return;
 		}
+		if (FL.Vector.equal(unit.ij.get(), unit.ijTarget)) {
+			unit.ijTarget = null;
+			return;
+		}
 		var path = this.getPath(unit.ij.get(), unit.ijTarget, unit.player);
 		if (!path) {
 			unit.ijTarget = null;
 			return;
 		}
+		unit.hold = false;
 		if (!selection) {
 			selection = JW.Array.map(unit.persons.get(), function() { return true; });
 		}
+		if (!JW.Array.some(selection, JW.byField())) {
+			return;
+		}
+		if (!JW.Array.every(selection, JW.byField())) {
+			unit = unit.split(selection);
+		}
 		var selectionCount = JW.Array.count(selection, JW.byField());
-		unit.hold = false;
 		for (var i = 0; (i < path.length) && unit.movement.get(); ++i) {
 			var tij = FL.Vector.add(unit.ij.get(), FL.dir8[path[i]]);
 			if (!this.isPassable(tij)) {
@@ -74,9 +85,9 @@ JW.extend(FL.Data, JW.Class, {
 						(targetCell.unit.type === unit.type) &&
 						(targetCell.unit.getCount() + selectionCount <= unit.type.capacity) &&
 						FL.Vector.equal(tij, unit.ijTarget)) {
-					var persons = unit.split(selection);
-					JW.Array.each(persons, JW.byMethod("decreaseMovement"));
-					targetCell.unit.merge(persons);
+					unit.decreaseMovement();
+					unit.ij.set(tij);
+					break;
 				}
 				unit.ijTarget = null;
 				break;
@@ -94,10 +105,16 @@ JW.extend(FL.Data, JW.Class, {
 		if (unit.ijTarget && FL.Vector.equal(unit.ij.get(), unit.ijTarget)) {
 			unit.ijTarget = null;
 		}
+		if ((unit.cell.unit != null) && (unit.cell.unit !== unit) && unit.alive) {
+			unit.cell.unit.merge(unit.persons.get());
+			this.destroyUnit(unit);
+		}
 	},
 
 	moveUnits: function(player) {
-		this.units.$filter(JW.byValue("player", player)).each(this.moveUnit, this);
+		this.units.$filter(JW.byValue("player", player)).each(function(unit) {
+			this.moveUnit(unit);
+		}, this);
 	},
 
 	fightUnit: function(attacker, defender) {

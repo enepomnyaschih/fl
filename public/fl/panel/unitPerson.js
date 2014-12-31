@@ -1,19 +1,30 @@
-FL.Panel.UnitPerson = function(unit, person) {
+FL.Panel.UnitPerson = function(unit, selection, index) {
 	FL.Panel.UnitPerson._super.call(this);
 	this.unit = unit;
-	this.person = person;
+	this.selection = selection;
+	this.index = index;
+	this.person = unit.persons.get()[index];
 };
 
 JW.extend(FL.Panel.UnitPerson, JW.UI.Component, {
 	healthWidth: 60,
 
+	renderRoot: function(el) {
+		if (this.unit.player !== 0) {
+			return;
+		}
+		el.toggleClass("fl-selected", this.selection[this.index]);
+		el.mousedown(JW.UI.preventDefault);
+		el.click(JW.inScope(function() {
+			this.selection[this.index] = !this.selection[this.index];
+			el.toggleClass("fl-selected", this.selection[this.index]);
+		}, this));
+	},
+
 	renderHealthValue: function(el) {
 		var value = this.person.health;
-		if (value === 1) {
-			el.addClass("fl-good").text(this.unit.type.armor);
-		} else {
-			el.addClass("fl-bad").text((this.unit.type.armor * value).toFixed(1));
-		}
+		el.text((this.unit.type.armor * value).toFixed(1));
+		el.addClass((value === 1) ? "fl-good" : "fl-bad");
 	},
 
 	renderHealth: function(el) {

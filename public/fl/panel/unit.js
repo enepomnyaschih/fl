@@ -10,9 +10,13 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 	},
 
 	renderPersons: function() {
-		return JW.Array.$map(this.unit.persons.get(), function(person) {
-			return this.own(new FL.Panel.UnitPerson(this.unit, person));
+		return JW.Array.$map(this.unit.persons.get(), function(person, index) {
+			return this.own(new FL.Panel.UnitPerson(this.unit, this.monitor.unitSelection, index));
 		}, this);
+	},
+
+	renderButtons: function(el) {
+		return this.unit.player === 0;
 	},
 
 	renderHold: function(el) {

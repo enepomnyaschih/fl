@@ -87,6 +87,6 @@ var FL = {
 	},
 
 	getHealthColor: function(value) {
-		return JW.Color.multiGradient([[0, "#800"], [.5, "#FF0"], [1, "#0B0"]], value);
+		return JW.Color.str(JW.Color.multiGradient([[0, "#600"], [.2, "#B00"], [.6, "#FF0"], [1, "#0B0"]], value));
 	}
 };

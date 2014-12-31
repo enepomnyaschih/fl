@@ -11,6 +11,7 @@ FL.Monitor = function(data) {
 	this.orderCallback = null;
 	this.orderScope = null;
 	this.cells = new FL.Matrix(this.data.map.size);
+	this.unitSelection = [];
 	this.own(this.data.nextPlayerEvent.bind(this._onNextPlayer, this));
 };
 
@@ -93,12 +94,16 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			this._getCell(this.cellSelect.ij).removeClass("fl-selected");
 		}
 		this.baseExitAttachment.set(null);
+		this.unitSelection = [];
 		this.cellSelect = ij ? this.data.map.getCell(ij) : null;
 		if (this.cellSelect) {
 			this._getCell(ij).addClass("fl-selected");
 			var base = this.cellSelect.base;
 			if (this._isBaseAutoSelectable(base)) {
 				this.baseExitAttachment.set(base.unitType.changeEvent.bind(this.selectNext, this));
+			}
+			if (this.cellSelect.unit && (this.cellSelect.unit.player === 0)) {
+				this.unitSelection = JW.Array.map(this.cellSelect.unit.persons.get(), function() { return true; });
 			}
 			this.panel.set(new FL.Panel(this, this.cellSelect));
 		} else {
@@ -273,7 +278,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			return;
 		}
 		unit.ijTarget = ij;
-		this.data.moveUnit(unit);
+		this.data.moveUnit(unit, this.unitSelection);
 		this.updateMap();
 		if (unit.alive && unit.movement.get()) {
 			this.selectCell(unit.ij.get());

@@ -20,7 +20,9 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 	this.own(new JW.Switcher([this.ij], {
 		init: function(ij) {
 			this.cell = this.data.map.getCell(ij);
-			this.cell.setUnit(this);
+			if (!this.cell.unit) {
+				this.cell.setUnit(this);
+			}
 			if (this.player === 0) {
 				this.data.reveal(ij, this.getSightRangeSqr());
 			}
@@ -37,7 +39,9 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 			}
 		},
 		done: function(ij) {
-			this.cell.setUnit(null);
+			if (this.cell.unit === this) {
+				this.cell.setUnit(null);
+			}
 		},
 		scope: this
 	}));
@@ -66,6 +70,7 @@ JW.extend(FL.Unit, JW.Class, {
 
 	merge: function(persons) {
 		this.setPersons(persons.concat(this.persons.get()));
+		this.ijTarget = null;
 	},
 
 	split: function(selection) {
@@ -79,7 +84,12 @@ JW.extend(FL.Unit, JW.Class, {
 			}
 		}, this);
 		this.setPersons(remainingPersons);
-		return splittedPersons;
+
+		var unit = this.data.createUnit(this.ij.get(), this.player, this.type, this.behaviour);
+		unit.ijTarget = this.ijTarget;
+		this.ijTarget = null;
+		unit.setPersons(splittedPersons);
+		return unit;
 	},
 
 	setPersons: function(persons) {
@@ -144,14 +154,14 @@ FL.Unit.typeArray = [
 		id: "mcv",
 		name: "Mobile Construction Vehicle",
 		damage: 0,
-		armor: 1,
+		armor: 5,
 		defense: 0,
 		movement: 1,
 		sightRangeSqr: 2,
 		sightRangeSqrHill: 8,
 		cost: 300,
 		ai: ["build"],
-		capacity: 10,
+		capacity: 1,
 		aiPreferred: true
 	},
 	{

@@ -17,7 +17,7 @@ JW.extend(FL.UnitView, JW.UI.Component, {
 				return (
 					'<div class="fl-monitor-unit-health">' +
 						'<div class="fl-monitor-unit-health-point" ' +
-							'style="background-color: ' + JW.Color.str(color) + ';"></div>' +
+							'style="background-color: ' + color + ';"></div>' +
 					'</div>');
 			}, this).join(""));
 		}, this));
