@@ -84,5 +84,9 @@ var FL = {
 
 	ijToXy: function(ij) {
 		return [FL.cellSize * ij[1], FL.cellSize * ij[0]];
+	},
+
+	getHealthColor: function(value) {
+		return JW.Color.multiGradient([[0, "#800"], [.5, "#FF0"], [1, "#0B0"]], value);
 	}
 };

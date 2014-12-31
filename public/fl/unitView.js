@@ -13,9 +13,12 @@ JW.extend(FL.UnitView, JW.UI.Component, {
 
 		this.own(new JW.Updater([this.unit.persons], function(persons) {
 			el.html(JW.Array.map(persons, function(person) {
-				var color = JW.Color.multiGradient([[0, "#800"], [.5, "#FF0"], [1, "#0B0"]], person.health);
-				return '<div class="fl-monitor-unit-health" ' +
-					'style="background-color: ' + JW.Color.str(color) + ';"></div>';
+				var color = FL.getHealthColor(person.health);
+				return (
+					'<div class="fl-monitor-unit-health">' +
+						'<div class="fl-monitor-unit-health-point" ' +
+							'style="background-color: ' + JW.Color.str(color) + ';"></div>' +
+					'</div>');
 			}, this).join(""));
 		}, this));
 

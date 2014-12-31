@@ -11,7 +11,10 @@
 		height 80px
 
 	&-unit
-		height 150px
+		height 192px
+
+		&-buttons
+			margin 5px 0
 
 	&-base
 		height 200px
@@ -28,3 +31,55 @@
 			&-fill
 				background #00CC00
 				height 5px
+
+	&-unitperson
+		display inline-block
+
+		&-health-value
+			float left
+			font-weight bold
+			margin-right 5px
+			text-align right
+			width 20px
+
+		&-right
+			float left
+			width 63px
+
+		&-health
+			background black
+			height 5px
+			margin-bottom 1px
+
+			&-fill
+				background #00CC00
+				height 5px
+
+		&-movement-point
+			background scroll transparent none no-repeat 0 0
+			float left
+			margin-right 1px
+			size 7px 7px
+
+			&.fl-remaining
+				background-image url(../../images/movement-green.png)
+
+			&.fl-spent
+				background-image url(../../images/movement-black.png)
+
+		&-attack,
+		&-defend,
+		&-fortified
+			background scroll transparent none no-repeat 0 0
+			float right
+			margin-right 3px
+			size 7px 7px
+
+		&-attack
+			background-image url(../../images/status-attack.png)
+
+		&-defend
+			background-image url(../../images/status-defend.png)
+
+		&-fortified
+			background-image url(../../images/status-fortified.png)

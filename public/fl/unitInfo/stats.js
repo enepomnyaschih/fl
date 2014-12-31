@@ -1,21 +1,10 @@
-FL.UnitInfo = function(type, player, movement, showCost) {
-	FL.UnitInfo._super.call(this);
+FL.UnitInfo.Stats = function(type, showCost) {
+	FL.UnitInfo.Stats._super.call(this);
 	this.type = type;
-	this.player = player || 0;
-	this.movement = JW.defn(movement, type.movement);
 	this.showCost = showCost || false;
 };
 
-JW.extend(FL.UnitInfo, JW.UI.Component, {
-	renderIcon: function(el) {
-		el.attr("fl-type", this.type.id);
-		el.attr("fl-player", this.player);
-	},
-
-	renderName: function(el) {
-		el.text(this.type.name);
-	},
-
+JW.extend(FL.UnitInfo.Stats, JW.UI.Component, {
 	renderDamageBox: function() {
 		return this.type.damage !== 0;
 	},
@@ -41,11 +30,7 @@ JW.extend(FL.UnitInfo, JW.UI.Component, {
 	},
 
 	renderMovement: function(el) {
-		if ((this.movement === this.type.movement) || (this.player !== 0)) {
-			el.text(this.movement);
-		} else {
-			el.text(this.movement + "/" + this.type.movement);
-		}
+		el.text(this.type.movement);
 	},
 
 	renderCostBox: function(el) {

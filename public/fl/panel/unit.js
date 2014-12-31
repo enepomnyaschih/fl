@@ -5,9 +5,14 @@ FL.Panel.Unit = function(monitor, unit) {
 };
 
 JW.extend(FL.Panel.Unit, JW.UI.Component, {
-	renderInfo: function() {
-		return this.own(new FL.UnitInfo(this.unit.type,
-			this.unit.player, this.unit.movement.get(), false));
+	renderHeader: function() {
+		return this.own(new FL.UnitInfo.Header(this.unit.type, this.unit.player));
+	},
+
+	renderPersons: function() {
+		return JW.Array.$map(this.unit.persons.get(), function(person) {
+			return this.own(new FL.Panel.UnitPerson(this.unit, person));
+		}, this);
 	},
 
 	renderHold: function(el) {
@@ -50,5 +55,9 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 				monitor.updateMap();
 			});
 		}, this));
+	},
+
+	renderStats: function() {
+		return this.own(new FL.UnitInfo.Stats(this.unit.type, false));
 	}
 });
