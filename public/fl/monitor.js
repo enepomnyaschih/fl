@@ -6,10 +6,7 @@ FL.Monitor = function(data) {
 	this.selectionQueue = [];
 	this.selectionTail = 0;
 	this.baseExitAttachment = this.own(new JW.Property()).ownValue();
-	this.orderIj = null;
-	this.orderRangeSqr = null;
-	this.orderCallback = null;
-	this.orderScope = null;
+	this.order = null;
 	this.cells = new FL.Matrix(this.data.map.size);
 	this.unitSelection = [];
 	this.own(this.data.nextPlayerEvent.bind(this._onNextPlayer, this));
@@ -154,17 +151,14 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}
 	},
 
-	initOrder: function(cij, rangeSqr, callback, scope) {
+	initOrder: function(order) {
 		this.selectCell(null);
-		this.orderIj = cij;
-		this.orderRangeSqr = rangeSqr;
-		this.orderCallback = callback;
-		this.orderScope = scope;
+		this.order = order;
 		this.getElement("cells").addClass("fl-order-active");
 		for (var i = 0; i < this.data.map.size; ++i) {
 			for (var j = 0; j < this.data.map.size; ++j) {
 				var ij = [i, j];
-				if (!this.data.isDroppable(this.orderIj, ij, this.orderRangeSqr, 0)) {
+				if (!this.order.test.call(this.order.scope || this, ij)) {
 					this._getCell(ij).append('<div class="fl-order-overlay"></div>')
 				}
 			}
@@ -173,15 +167,16 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	resetOrder: function() {
-		if (!this.orderIj) {
+		if (!this.order) {
 			return;
 		}
-		this.orderIj = null;
-		this.orderRangeSqr = null;
-		this.orderCallback = null;
-		this.orderScope = null;
+		var order = this.order;
+		this.order = null;
 		this.getElement("cells").removeClass("fl-order-active");
 		this.getElement("cells").find(".fl-order-overlay").remove();
+		if (order.finish) {
+			order.finish.call(order.scope || this);
+		}
 	},
 
 	_getCell: function(ij) {
@@ -261,11 +256,11 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		if (!this.data.isControllable()) {
 			return;
 		}
-		if (this.orderIj) {
-			if (!this.data.isDroppable(this.orderIj, ij, this.orderRangeSqr, 0)) {
+		if (this.order) {
+			if (!this.order.test.call(this.order.scope || this, ij)) {
 				return;
 			}
-			this.orderCallback.call(this.orderScope, ij);
+			this.order.execute.call(this.order.scope || this, ij);
 			this.resetOrder();
 			this.selectNext();
 			return;

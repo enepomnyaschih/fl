@@ -270,15 +270,12 @@ JW.extend(FL.Data, JW.Class, {
 		return this.map.inMatrix(ij) && !this.map.getCell(ij).rock;
 	},
 
-	isDroppable: function(sij, tij, rangeSqr, player) {
-		if (FL.Vector.lengthSqr(FL.Vector.diff(sij, tij)) > rangeSqr) {
-			return false;
-		}
+	isDroppable: function(tij, player) {
 		var cell = this.map.getCell(tij);
-		if (!this.isPassable(tij) || cell.unit || cell.base) {
+		if (!this.isPassable(tij) || cell.unit || (cell.base && cell.base.player !== player)) {
 			return false;
 		}
-		if ((player === 0) && !cell.scouted) {
+		if ((player === 0) && !cell.visible) {
 			return false;
 		}
 		return true;
@@ -504,7 +501,7 @@ JW.extend(FL.Data, JW.Class, {
 			}
 			this.createBase(ij, p).health.set(1);
 			for (var d = 0; d < 4; ++d) {
-				this.createUnit(FL.Vector.add(ij, FL.dir4[d]), p, FL.Unit.types["militia"], "patrol");
+				this.createUnit(FL.Vector.add(ij, FL.dir4[d]), p, FL.Unit.types["paratrooper"], "patrol");
 			}
 		}
 	},

@@ -59,11 +59,23 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 			var unit = this.unit;
 			var monitor = this.monitor;
 			var data = this.monitor.data;
-			this.monitor.initOrder(unit.ij.get(), unit.type.paradropRangeSqr, function(ij) {
-				unit.decreaseMovement();
-				unit.ijTarget = null;
-				unit.ij.set(ij);
-				monitor.updateMap();
+			monitor.getElement("cells").addClass("fl-order-paradrop");
+			this.monitor.initOrder({
+				test: function(ij) {
+					return data.isDroppable(ij, 0);
+				},
+				execute: function(ij) {
+					unit.decreaseMovement();
+					unit.ijTarget = null;
+					unit.ij.set(ij);
+					monitor.updateMap();
+				},
+				finish: function() {
+					monitor.getElement("cells").removeClass("fl-order-paradrop");
+				},
+				scope: this
+				// actually, this will already die because the panel
+				// is replaced during order processing
 			});
 		}, this));
 	},
