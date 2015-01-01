@@ -168,6 +168,8 @@ JW.extend(FL.Data, JW.Class, {
 			++this.turn;
 			this.log("Turn " + this.turn);
 		}
+		this.units.$filter(JW.byValue("player", this.player)).each(JW.byMethod("heal"));
+		this.bases.$filter(JW.byValue("player", this.player)).each(JW.byMethod("heal"));
 		this.nextPlayerEvent.trigger();
 		if (this.player !== 0) {
 			FL.AI.process(this, this.player);
@@ -177,7 +179,6 @@ JW.extend(FL.Data, JW.Class, {
 
 	_endTurnPlayer: function(player) {
 		this.units.$filter(JW.byValue("player", player)).each(JW.byMethod("refresh"));
-		this.bases.$filter(JW.byValue("player", player)).each(JW.byMethod("heal"));
 		this.resetVision();
 		this._produce(player);
 	},

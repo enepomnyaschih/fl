@@ -26,10 +26,19 @@ JW.extend(FL.Unit.Person, JW.Class, {
 		this.fortified = false;
 	},
 
+	heal: function() {
+		if (!this.fortified) {
+			return this;
+		}
+		var person = this.clone();
+		person.health = FL.heal(this.health, this.type.healRate);
+		return person;
+	},
+
 	refresh: function() {
 		var person = new FL.Unit.Person(this.type);
+		person.health = this.health;
 		person.fortified = (this.movement === this.type.movement);
-		person.health = FL.heal(this.health, person.fortified ? this.type.healRate : 0);
 		person.movement = this.type ? this.type.movement : 0;
 		person.attack = true;
 		person.defend = true;

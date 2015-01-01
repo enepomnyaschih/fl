@@ -140,12 +140,16 @@ JW.extend(FL.Unit, JW.Class, {
 		return JW.Array.every(this.persons.get(), JW.byValue("health", 1));
 	},
 
-	refresh: function() {
-		var healed = this.isHealed();
-		this.setPersons(JW.Array.map(this.persons.get(), JW.byMethod("refresh")));
-		if (!healed && this.isHealed()) {
+	heal: function() {
+		var wasHealed = this.isHealed();
+		this.setPersons(JW.Array.map(this.persons.get(), JW.byMethod("heal")));
+		if (!wasHealed && this.isHealed()) {
 			this.hold = false;
 		}
+	},
+
+	refresh: function() {
+		this.setPersons(JW.Array.map(this.persons.get(), JW.byMethod("refresh")));
 	}
 });
 
