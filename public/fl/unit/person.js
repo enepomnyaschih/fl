@@ -29,7 +29,7 @@ JW.extend(FL.Unit.Person, JW.Class, {
 	refresh: function() {
 		var person = new FL.Unit.Person(this.type);
 		person.fortified = (this.movement === this.type.movement);
-		person.health = FL.heal(this.health, person.fortified ? FL.unitHealRate : 0);
+		person.health = FL.heal(this.health, person.fortified ? this.type.healRate : 0);
 		person.movement = this.type ? this.type.movement : 0;
 		person.attack = true;
 		person.defend = true;

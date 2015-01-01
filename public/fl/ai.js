@@ -16,6 +16,7 @@ FL.AI = {
 	aquisitionDistanceSqr: 50,
 	baseHoldRangeSqr: 10,
 	unitHoldRangeSqr: 4,
+	patrolInitial: 3,
 	patrolPerBase: 1,
 	initialProductionCoef: 1,
 	productionCoefPerWin: .1,
@@ -79,7 +80,7 @@ FL.AI = {
 				if (totalBehaviourCount["build"] >= FL.AI.mcvLimit) {
 					JW.Array.removeItem(availableBehaviours, "build");
 				}
-				if (totalBehaviourCount["patrol"] >= FL.AI.patrolPerBase * bases.length) {
+				if (totalBehaviourCount["patrol"] >= FL.AI.patrolInitial + FL.AI.patrolPerBase * bases.length) {
 					JW.Array.removeItem(availableBehaviours, "patrol");
 				}
 				var availableUnitTypes = base.getAvailableUnitTypes();

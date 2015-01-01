@@ -29,6 +29,10 @@ JW.extend(FL.UnitInfo.Stats, JW.UI.Component, {
 		el.text(Math.round(100 * this.type.defense / this.type.armor) + "%");
 	},
 
+	renderHealRate: function(el) {
+		el.text(Math.round(100 * this.type.healRate) + "%");
+	},
+
 	renderMovement: function(el) {
 		el.text(this.type.movement);
 	},
@@ -43,5 +47,9 @@ JW.extend(FL.UnitInfo.Stats, JW.UI.Component, {
 
 	renderCapacity: function(el) {
 		el.text(this.type.capacity);
+	},
+
+	renderDescription: function(el) {
+		el.text(this.type.description);
 	}
 });

@@ -10,7 +10,6 @@ var FL = {
 	minMainBaseDistanceSqr: 100,
 	minMainBaseSideDistance: 4,
 	minMainBaseCenterDistance: 5,
-	unitHealRate: .1,
 	baseHealRate: .1,
 	baseSightRangeSqr: 12,
 	baseArmor: 10,

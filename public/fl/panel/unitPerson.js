@@ -44,11 +44,11 @@ JW.extend(FL.Panel.UnitPerson, JW.UI.Component, {
 	},
 
 	renderAttack: function() {
-		return (this.unit.type.damage !== 0) && this.person.attack;
+		return (this.unit.player === 0) && (this.unit.type.damage !== 0) && this.person.attack;
 	},
 
 	renderDefend: function() {
-		return (this.unit.type.damage !== 0) && this.person.defend;
+		return (this.unit.player !== 0) && (this.unit.type.damage !== 0) && this.person.defend;
 	},
 
 	renderFortified: function() {
