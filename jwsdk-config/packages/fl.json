@@ -10,10 +10,12 @@
 		"fl/fl.js",
 
 		"fl/ai.js",
+		"fl/alternateAnimation.js",
 		"fl/app.js",
 		"fl/app.jw.html : FL.App",
 		"fl/app.styl",
 		"fl/base.js",
+		"fl/buttonAnimation.js",
 		"fl/cell.js",
 		"fl/color.js",
 		"fl/data/data.js",

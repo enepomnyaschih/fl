@@ -123,16 +123,6 @@
 		& > .fl-hold
 			border 1px dotted white
 
-		&.fl-selected > .fl-border
-			animation-name fl-monitor-selected-anim
-			-webkit-animation-name fl-monitor-selected-anim
-			animation-duration .5s
-			-webkit-animation-duration .5s
-			animation-direction alternate
-			-webkit-animation-direction alternate
-			animation-iteration-count infinite
-			-webkit-animation-iteration-count infinite
-
 		& > .fl-order-overlay
 		& > .fl-fog
 			background black
@@ -148,14 +138,3 @@
 
 		.fl-order-paradrop & > .fl-order-overlay
 			cursor url(../images/paradrop-error.png) 9 21, crosshair
-
-
-@keyframes fl-monitor-selected-anim {
-	from {
-		background rgba(255, 255, 255, 0)
-	}
-
-	to {
-		background rgba(255, 255, 255, 1)
-	}
-}

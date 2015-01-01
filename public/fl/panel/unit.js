@@ -21,7 +21,8 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 
 	renderHold: function(el) {
 		if (!this.unit.isHealed()) {
-			el.addClass("fl-active").text("Heal");
+			this.own(new FL.ButtonAnimation(el));
+			el.text("Heal");
 		}
 		el.click(JW.inScope(function() {
 			this.unit.hold = true;
@@ -46,6 +47,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		if (!this.monitor.data.isBaseBuildable(this.unit.ij.get(), FL.minBaseDistanceSqr)) {
 			return false;
 		}
+		this.own(new FL.ButtonAnimation(el));
 		el.click(JW.inScope(function() {
 			this.monitor.data.buildBase(this.unit);
 			this.monitor.updateMap();
@@ -63,6 +65,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		if (!this.unit.cell.resource || (this.unit.cell.resource.id !== "airport")) {
 			return false;
 		}
+		this.own(new FL.ButtonAnimation(el));
 		el.click(JW.inScope(function() {
 			var unit = this.unit;
 			var monitor = this.monitor;

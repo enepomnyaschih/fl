@@ -2,6 +2,8 @@ FL.Monitor = function(data) {
 	FL.Monitor._super.call(this);
 	this.data = data;
 	this.cellSelect = null;
+	this.cellAnimation = this.own(new JW.Property()).ownValue();
+	this.endTurnAnimation = this.own(new JW.Property()).ownValue();
 	this.panel = this.own(new JW.Property()).ownValue();
 	this.selectionQueue = [];
 	this.selectionTail = 0;
@@ -25,7 +27,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 				return;
 			}
 			this.selectionQueue = [];
-			el.removeClass("fl-active");
+			this.endTurnAnimation.set(null);
 			this.selectCell(null);
 			this.data.endTurn();
 			this.updateMap();
@@ -88,13 +90,22 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}
 		this.resetOrder();
 		if (this.cellSelect) {
-			this._getCell(this.cellSelect.ij).removeClass("fl-selected");
+			this.cellAnimation.set(null);
 		}
 		this.baseExitAttachment.set(null);
 		this.unitSelection = [];
 		this.cellSelect = ij ? this.data.map.getCell(ij) : null;
 		if (this.cellSelect) {
-			this._getCell(ij).addClass("fl-selected");
+			var borderEl = this._getCell(ij).children(".fl-border");
+			this.cellAnimation.set(new FL.AlternateAnimation({
+				updater: function(value) {
+					borderEl.css("background", "rgba(255, 255, 255, " + value.toFixed(2) + ")");
+				},
+				finish: function() {
+					borderEl.css("background", "");
+				},
+				scope: this
+			}));
 			var base = this.cellSelect.base;
 			if (this._isBaseAutoSelectable(base)) {
 				this.baseExitAttachment.set(base.unitType.changeEvent.bind(this.selectNext, this));
@@ -135,7 +146,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			return;
 		}
 		this.selectCell(null);
-		this.getElement("end-turn").addClass("fl-active");
+		this.endTurnAnimation.set(new FL.ButtonAnimation(this.getElement("end-turn")));
 	},
 
 	updateMap: function(force) {
