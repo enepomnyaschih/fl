@@ -395,7 +395,8 @@ JW.extend(FL.Data, JW.Class, {
 		this.bases.each(function(base) {
 			this.map.eachWithin(base.ij, FL.baseMiningRangeSqr, function(cell) {
 				if (cell.resource) {
-					if (cell.resource.aiProduction) {
+					if (cell.resource.deniedAtStart) {
+						this._generateResource(cell.resource);
 						cell.resource = null;
 					} else if (cell.resource.bonus && (base.mining - cell.resource.bonus >= 20)) {
 						base.mining -= cell.resource.bonus;
@@ -461,14 +462,30 @@ JW.extend(FL.Data, JW.Class, {
 	_generateResources: function() {
 		JW.Array.each(FL.Resource.typeArray, function(resource) {
 			for (var r = 0; r < resource.count; ++r) {
-				var ij;
-				do {
-					ij = this.map.ijRandom();
-					var cell = this.map.getCell(ij);
-				} while (cell.rock || cell.resource);
-				cell.resource = resource;
+				this._generateResource(resource);
 			}
 		}, this);
+	},
+
+	_generateResource: function(resource) {
+		var ij;
+		do {
+			ij = this.map.ijRandom();
+			var cell = this.map.getCell(ij);
+		} while (cell.rock || cell.resource || cell.miningBase ||
+				this._isResourceTooClose(resource, ij));
+		cell.resource = resource;
+	},
+
+	_isResourceTooClose: function(resource, cij) {
+		if (!resource.minDistanceSqr) {
+			return false;
+		}
+		var result = false;
+		this.map.eachWithin(cij, resource.minDistanceSqr, function(cell) {
+			result = result || (cell.resource === resource);
+		}, this);
+		return result;
 	},
 
 	_generateBases: function() {
