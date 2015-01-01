@@ -20,6 +20,9 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 	},
 
 	renderHold: function(el) {
+		if (!this.unit.isHealed()) {
+			el.addClass("fl-active").text("Heal");
+		}
 		el.click(JW.inScope(function() {
 			this.unit.hold = true;
 			this.monitor._updateCell(null, this.unit.ij.get());
@@ -49,10 +52,13 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 	},
 
 	renderDrop: function(el) {
-		if (!this.unit.type.paradropRangeSqr || (this.unit.movement.get() === 0)) {
+		if (!this.unit.type.paradroppable || (this.unit.movement.get() === 0)) {
 			return false;
 		}
-		if (!this.unit.cell.base) {
+		if (!this.unit.cell.miningBase || (this.unit.cell.miningBase.player !== this.unit.player)) {
+			return false;
+		}
+		if (!this.unit.cell.resource || (this.unit.cell.resource.id !== "airport")) {
 			return false;
 		}
 		el.click(JW.inScope(function() {

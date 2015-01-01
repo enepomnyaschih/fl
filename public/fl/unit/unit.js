@@ -167,7 +167,7 @@ FL.Unit.typeArray = [
 		movement: 1,
 		sightRangeSqr: 2,
 		sightRangeSqrHill: 8,
-		cost: 500,
+		cost: 300,
 		ai: ["build"],
 		capacity: 1,
 		aiPreferred: true
@@ -235,8 +235,8 @@ FL.Unit.typeArray = [
 	},
 	{
 		id: "paratrooper",
-		name: "Paratrooper \"Zealot bomb\"",
-		description: "Strong attacking unit. Has very slow movement speed but can be paradropped to any visible point of the map from an airport.",
+		name: "Paratrooper \"Here's Jonny!\"",
+		description: "Strong attacking unit. Has very slow movement speed but can be paradropped to any visible point of the map from a secured airport.",
 		damage: 3,
 		armor: 5,
 		defense: 0,
@@ -246,7 +246,7 @@ FL.Unit.typeArray = [
 		sightRangeSqrHill: 10,
 		cost: 110,
 		resources: ["yard"],
-		paradropRangeSqr: 27,
+		paradroppable: true,
 		ai: ["attack"],
 		capacity: 5,
 		aiPreferred: true
@@ -296,7 +296,7 @@ FL.Unit.typeArray = [
 	},*/
 	{
 		id: "radar",
-		name: "Radar vehicle \"I see you\"",
+		name: "Radar vehicle \"Eye of Sauron\"",
 		description: "Strong defensive unit. High sight range lets it see the enemy forces from the distance and provide nasty drop locations for paratroopers.",
 		damage: 2,
 		armor: 5,

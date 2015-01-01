@@ -2,6 +2,9 @@ FL.Resource = {
 	initDescription: function() {
 		JW.Array.each(FL.Resource.typeArray, function(resource) {
 			var html = "";
+			if (resource.description) {
+				html += resource.description + "<br>";
+			}
 			if (resource.bonus) {
 				html += "Increases production by " + resource.bonus + ".<br>";
 			}
@@ -67,6 +70,7 @@ FL.Resource.typeArray = [
 	}, {
 		id: "airport",
 		name: "Airport",
+		description: "Drops paratroopers to any visible tile.",
 		count: 4,
 		deniedAtStart: true,
 		minDistanceSqr: 100,
