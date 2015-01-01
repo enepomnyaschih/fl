@@ -311,19 +311,25 @@ JW.extend(FL.Data, JW.Class, {
 		return false;
 	},
 
-	isByEnemy: function(ij, player) {
-		for (var d = 0; d < FL.dir8.length; ++d) {
-			var dij = FL.Vector.add(ij, FL.dir8[d]);
-			var dCell = this.map.getCell(dij);
-			if (!dCell) {
-				continue;
-			}
-			var dUnit = dCell.unit;
-			if (dUnit && (dUnit.player !== player)) {
-				return true;
-			}
+	isByEnemy: function(cij, player) {
+		return this.map.someWithin8(cij, 1, function(cell) {
+			return cell.unit && (cell.unit.player !== player);
+		}, this);
+	},
+
+	revealEnemies: function(cij, player) {
+		var isVisibleEnemy = this.map.someWithin8(cij, 1, function(cell) {
+			return cell.unit && (cell.unit.player !== player) && cell.unit.visible;
+		}, this);
+		if (isVisibleEnemy) {
+			return false;
 		}
-		return false;
+		this.map.everyWithin8(cij, 1, function(cell) {
+			if (cell.unit) {
+				cell.reveal();
+			}
+		}, this);
+		return true;
 	},
 
 	getPath: function(sij, tij, player) {
@@ -518,7 +524,7 @@ JW.extend(FL.Data, JW.Class, {
 			}
 			this.createBase(ij, p).health.set(1);
 			for (var d = 0; d < 4; ++d) {
-				this.createUnit(FL.Vector.add(ij, FL.dir4[d]), p, FL.Unit.types["paratrooper"], "patrol");
+				this.createUnit(FL.Vector.add(ij, FL.dir4[d]), p, FL.Unit.types["militia"], "patrol");
 			}
 		}
 	},

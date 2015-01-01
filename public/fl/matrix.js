@@ -48,5 +48,24 @@ JW.extend(FL.Matrix, JW.Class, {
 				}
 			}
 		}
+	},
+
+	everyWithin8: function(cij, distance, callback, scope) {
+		var rect = this.getRect(cij, distance);
+		for (var i = rect.iMin; i <= rect.iMax; ++i) {
+			for (var j = rect.jMin; j <= rect.jMax; ++j) {
+				var ij = [i, j];
+				if (callback.call(scope || this, this.getCell(ij), ij) === false) {
+					return false;
+				}
+			}
+		}
+		return true;
+	},
+
+	someWithin8: function(cij, distance, callback, scope) {
+		return !this.everyWithin8(cij, distance, function() {
+			return !callback.apply(this, arguments);
+		}, scope);
 	}
 });

@@ -272,6 +272,20 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		if (!unit || (unit.player !== 0)) {
 			return;
 		}
+		var distance = FL.Vector.length8(FL.Vector.diff(ij, unit.ij.get()));
+		if (distance === 0) {
+			unit.ijTarget = null;
+			this.selectNext();
+			return;
+		}
+		if (distance === 1) {
+			if (this.data.isByEnemy(unit.ij.get(), 0) && this.data.isByEnemy(ij, 0)) {
+				if (this.data.revealEnemies(ij, 0)) {
+					this.updateMap();
+					return;
+				}
+			}
+		}
 		unit.ijTarget = ij;
 		this.data.moveUnit(unit, this.unitSelection);
 		this.updateMap();
