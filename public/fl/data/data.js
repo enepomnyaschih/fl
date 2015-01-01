@@ -61,11 +61,8 @@ JW.extend(FL.Data, JW.Class, {
 		}
 		unit.hold = false;
 		unit.skipped = false;
-		if (!selection) {
+		if (!selection || !JW.Array.some(selection, JW.byField())) {
 			selection = JW.Array.map(unit.persons.get(), function() { return true; });
-		}
-		if (!JW.Array.some(selection, JW.byField())) {
-			return;
 		}
 		if (!JW.Array.every(selection, JW.byField())) {
 			unit = unit.split(selection);

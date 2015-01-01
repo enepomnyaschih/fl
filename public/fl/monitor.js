@@ -103,7 +103,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 				this.baseExitAttachment.set(base.unitType.changeEvent.bind(this.selectNext, this));
 			}
 			if (this.cellSelect.unit && (this.cellSelect.unit.player === 0)) {
-				this.unitSelection = JW.Array.map(this.cellSelect.unit.persons.get(), function() { return true; });
+				this.unitSelection = JW.Array.map(this.cellSelect.unit.persons.get(), function() { return false; });
 			}
 			this.panel.set(new FL.Panel(this, this.cellSelect));
 		} else {
