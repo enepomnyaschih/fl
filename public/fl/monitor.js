@@ -307,7 +307,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 
 	_isUnitAutoSelectable: function(unit) {
 		return unit && (unit.player === 0) && (unit.movement.get() !== 0) &&
-			!unit.hold && !unit.ijTarget;
+			!unit.hold && !unit.skipped && !unit.ijTarget;
 	},
 
 	_isBaseAutoSelectable: function(base) {

@@ -8,6 +8,7 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 	this.cell = null; // FL.Cell
 	this.ijTarget = null; // Vector
 	this.hold = false;
+	this.skipped = false;
 	this.behaviour = behaviour || type.ai[FL.random(type.ai.length)];
 	this.visible = false;
 	this.persons = this.own(new JW.Property([new FL.Unit.Person(type)]));
@@ -150,6 +151,7 @@ JW.extend(FL.Unit, JW.Class, {
 
 	refresh: function() {
 		this.setPersons(JW.Array.map(this.persons.get(), JW.byMethod("refresh")));
+		this.skipped = false;
 	}
 });
 

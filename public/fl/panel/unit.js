@@ -27,6 +27,13 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		}, this))
 	},
 
+	renderSkip: function(el) {
+		el.click(JW.inScope(function() {
+			this.unit.skipped = true;
+			this.monitor.selectNext();
+		}, this))
+	},
+
 	renderBuild: function(el) {
 		if ((this.unit.type.id !== "mcv") || (this.unit.movement.get() === 0)) {
 			return false;

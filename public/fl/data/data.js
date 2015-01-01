@@ -60,6 +60,7 @@ JW.extend(FL.Data, JW.Class, {
 			return;
 		}
 		unit.hold = false;
+		unit.skipped = false;
 		if (!selection) {
 			selection = JW.Array.map(unit.persons.get(), function() { return true; });
 		}
