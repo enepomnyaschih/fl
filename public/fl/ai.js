@@ -277,7 +277,7 @@ FL.AI = {
 				return;
 			}
 			if (cell.unit && (cell.unit.player !== player)) {
-				profit -= 3 * (cell.unit.type.damage || 0);
+				profit -= 10000;
 			}
 			profit += cell.hill ? 2 : 1;
 			if (cell.resource) {

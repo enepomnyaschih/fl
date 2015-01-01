@@ -32,7 +32,9 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 
 	renderSkip: function(el) {
 		el.click(JW.inScope(function() {
+			this.unit.hold = false;
 			this.unit.skipped = true;
+			this.monitor._updateCell(null, this.unit.ij.get());
 			this.monitor.selectNext();
 		}, this))
 	},

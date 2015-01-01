@@ -111,6 +111,7 @@ JW.extend(FL.Unit, JW.Class, {
 					if (!this.type.blitz) {
 						person.attack = false;
 					}
+					person.fortified = false;
 					--person.movement;
 				}
 			}
@@ -166,7 +167,7 @@ FL.Unit.typeArray = [
 		healRate: .1,
 		movement: 1,
 		sightRangeSqr: 2,
-		sightRangeSqrHill: 8,
+		sightRangeSqrHill: 5,
 		cost: 300,
 		ai: ["build"],
 		capacity: 1,
