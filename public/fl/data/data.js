@@ -17,6 +17,9 @@ JW.extend(FL.Data, JW.Class, {
 		var base = new FL.Base(ij, player);
 		this.bases.add(base);
 		this.map.getCell(ij).base = base;
+		this.map.eachWithin(ij, FL.baseMiningRangeSqr, function(cell) {
+			cell.addNearBase(base);
+		}, this);
 		if (player == 0) {
 			this.reveal(ij, FL.baseSightRangeSqr);
 		}
@@ -24,6 +27,9 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	destroyBase: function(base) {
+		this.map.eachWithin(base.ij, FL.baseMiningRangeSqr, function(cell) {
+			cell.removeNearBase(base);
+		}, this);
 		this.bases.remove(base);
 		this.map.getCell(base.ij).setBase(null);
 		base.destroy();
@@ -144,7 +150,6 @@ JW.extend(FL.Data, JW.Class, {
 		}
 		if (defenderSurvivors.length === 0) {
 			this.destroyBase(base);
-			this.resetMining();
 		} else {
 			base.health.set(defenderSurvivors[0].health);
 		}
@@ -203,54 +208,9 @@ JW.extend(FL.Data, JW.Class, {
 		}, this);
 	},
 
-	resetMining: function() {
-		var m = new FL.Matrix(this.map.size);
-		this.bases.each(function(base) {
-			base.mining = 0;
-			base.resources = [];
-			this.map.eachWithin(base.ij, FL.baseMiningRangeSqr, function(cell, ij) {
-				if (cell.rock) {
-					return;
-				}
-				var miningBase = m.getCell(ij);
-				if (!miningBase) {
-					m.setCell(ij, base);
-					return;
-				}
-				if (FL.Vector.lengthSqr(FL.Vector.diff(ij, miningBase.ij)) >
-					FL.Vector.lengthSqr(FL.Vector.diff(ij, base.ij))) {
-					m.setCell(ij, base);
-					return;
-				}
-			}, this);
-		}, this);
-		for (var i = 0; i < this.map.size; ++i) {
-			for (var j = 0; j < this.map.size; ++j) {
-				var ij = [i, j];
-				var base = m.getCell(ij);
-				this.map.getCell(ij).setMiningBase(base);
-				if (!base) {
-					continue;
-				}
-				var cell = this.map.getCell(ij);
-				if (cell.resource) {
-					base.resources.push(cell.resource);
-				}
-				if (cell.rock) {
-					continue;
-				}
-				base.mining += cell.hill ? 2 : 1;
-				if (cell.resource && cell.resource.bonus) {
-					base.mining += cell.resource.bonus;
-				}
-			}
-		}
-	},
-
 	buildBase: function(unit) {
 		this.createBase(unit.ij.get(), unit.player);
 		this.destroyUnit(unit);
-		this.resetMining();
 	},
 
 	isBaseBuildable: function(ij, minDistance) {
@@ -391,23 +351,22 @@ JW.extend(FL.Data, JW.Class, {
 		for (var i = 0; i < FL.mapSize; ++i) {
 			for (var j = 0; j < FL.mapSize; ++j) {
 				var ij = [i, j];
-				var cell = new FL.Cell(ij);
+				var cell = new FL.Cell(this, ij);
 				this.map.setCell(ij, cell);
 			}
 		}
 		this._generateRocks();
 		this._generateResources();
 		this._generateBases();
-		this.resetMining();
 		this.bases.each(function(base) {
 			this.map.eachWithin(base.ij, FL.baseMiningRangeSqr, function(cell) {
 				if (cell.resource) {
 					if (cell.resource.deniedAtStart) {
 						this._generateResource(cell.resource);
-						cell.resource = null;
+						cell.setResource(null);
 					} else if (cell.resource.bonus && (base.mining - cell.resource.bonus >= 20)) {
 						base.mining -= cell.resource.bonus;
-						cell.resource = null;
+						cell.setResource(null);
 					}
 				}
 			}, this);
@@ -425,12 +384,11 @@ JW.extend(FL.Data, JW.Class, {
 			}
 			this.map.eachWithin(base.ij, 2, function(cell) {
 				if (resourceId && !cell.resource) {
-					cell.resource = FL.Resource.types[resourceId];
+					cell.setResource(FL.Resource.types[resourceId]);
 					resourceId = null;
 				}
 			}, this);
 		}, this);
-		this.resetMining();
 	},
 
 	_generateRocks: function() {
@@ -475,13 +433,13 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	_generateResource: function(resource) {
-		var ij;
+		var ij, cell;
 		do {
 			ij = this.map.ijRandom();
-			var cell = this.map.getCell(ij);
+			cell = this.map.getCell(ij);
 		} while (cell.rock || cell.resource || cell.miningBase ||
 				this._isResourceTooClose(resource, ij));
-		cell.resource = resource;
+		cell.setResource(resource);
 	},
 
 	_isResourceTooClose: function(resource, cij) {

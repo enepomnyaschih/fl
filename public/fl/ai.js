@@ -222,8 +222,8 @@ FL.AI = {
 					if (holdMap.getCell(ij)) {
 						continue;
 					}
-					var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij.get(), ij)) +
-						.2 * FL.Vector.lengthSqr(FL.Vector.diff(data.map.ijCenter(), ij));
+					var distanceSqr = FL.Vector.length(FL.Vector.diff(unit.ij.get(), ij)) +
+						.2 * FL.Vector.length(FL.Vector.diff(data.map.ijCenter(), ij));
 					if (distanceSqr < nearestTargetDistanceSqr) {
 						nearestTarget = ij;
 						nearestTargetDistanceSqr = distanceSqr;
@@ -279,7 +279,7 @@ FL.AI = {
 			if (cell.unit && (cell.unit.player !== player)) {
 				profit -= 10000;
 			}
-			profit += cell.hill ? 2 : 1;
+			profit += cell.mining;
 			if (cell.resource) {
 				if (cell.resource.aiProfit) {
 					profit += cell.resource.aiProfit;

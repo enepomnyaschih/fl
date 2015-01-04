@@ -26,26 +26,22 @@ FL.Resource.typeArray = [
 		id: "copper",
 		name: "Copper",
 		bonus: 4,
-		count: 20,
-		aiProfit: 4
+		count: 20
 	}, {
 		id: "iron",
 		name: "Iron",
 		bonus: 6,
-		count: 15,
-		aiProfit: 6
+		count: 15
 	}, {
 		id: "oil",
 		name: "Oil",
 		bonus: 10,
-		count: 10,
-		aiProfit: 10
+		count: 10
 	}, {
 		id: "aluminum",
 		name: "Aluminum",
 		bonus: 15,
-		count: 5,
-		aiProfit: 15
+		count: 5
 	}, {
 		id: "yard",
 		name: "Advanced training yard",

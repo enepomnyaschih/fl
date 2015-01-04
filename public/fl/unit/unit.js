@@ -179,7 +179,7 @@ FL.Unit.typeArray = [
 		description: "Weak defensive unit. Used for base defense in emergencies. Can be used for scouting in the early stages of the game. In the late game, can be used to slow down the enemy forces.",
 		damage: 1,
 		armor: 3,
-		defense: 1,
+		defense: 1.5,
 		healRate: .1,
 		movement: 1,
 		sightRangeSqr: 2,
