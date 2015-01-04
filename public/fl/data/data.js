@@ -293,7 +293,14 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	getPath: function(sij, tij, player) {
-		if (FL.Vector.equal(sij, tij)) {
+		var path = this.findTarget(sij, player, function(cell) {
+			return FL.Vector.equal(tij, cell.ij);
+		}, this);
+		return path ? JW.Array.map(path, JW.byField("0")) : null;
+	},
+
+	findTarget: function(sij, player, callback, scope) {
+		if (callback.call(scope || this, this.map.getCell(sij))) {
 			return [];
 		}
 		var queue = [sij];
@@ -314,9 +321,10 @@ JW.extend(FL.Data, JW.Class, {
 						continue;
 					}
 				}
+				var fits = callback.call(scope || this, cell);
 				if ((player !== 0) || cell.visible) {
 					var unit = cell.unit;
-					if (unit && !FL.Vector.equal(dij, tij)) {
+					if (unit && !fits) {
 						continue;
 					}
 					if ((!unit || unit.player === player) &&
@@ -324,14 +332,14 @@ JW.extend(FL.Data, JW.Class, {
 						continue;
 					}
 					var base = cell.base;
-					if (base && (base.player !== player) && !FL.Vector.equal(dij, tij)) {
+					if (base && (base.player !== player) && !fits) {
 						continue;
 					}
 				}
 				queue.push(dij);
 				dirs.setCell(dij, dir);
-				if (FL.Vector.equal(dij, tij)) {
-					return this._backtracePath(dirs, tij);
+				if (fits) {
+					return this._backtracePath(dirs, dij);
 				}
 			}
 		}
@@ -496,7 +504,7 @@ JW.extend(FL.Data, JW.Class, {
 				path.reverse();
 				return path;
 			}
-			path.push(d);
+			path.push([d, tij]);
 			tij = FL.Vector.diff(tij, FL.dir8[d]);
 		}
 	},

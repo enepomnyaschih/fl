@@ -78,12 +78,12 @@ JW.extend(FL.Cell, JW.Class, {
 		if (this.resource === resource) {
 			return;
 		}
-		if (this.miningBase && this.resource) {
-			JW.Array.removeItem(this.miningBase.resources, this.resource);
+		if (this.miningBase) {
+			this.miningBase.removeResource(this.resource);
 		}
 		this.resource = resource;
-		if (this.miningBase && this.resource) {
-			this.miningBase.resources.push(this.resource);
+		if (this.miningBase) {
+			this.miningBase.addResource(this.resource);
 		}
 		this._resetMining();
 	},
@@ -117,16 +117,12 @@ JW.extend(FL.Cell, JW.Class, {
 		}
 		if (this.miningBase) {
 			this.miningBase.mining -= this.mining;
-			if (this.resource) {
-				JW.Array.removeItem(this.miningBase.resources, this.resource);
-			}
+			this.miningBase.removeResource(this.resource);
 		}
 		this.miningBase = nearestBase;
 		if (this.miningBase) {
 			this.miningBase.mining += this.mining;
-			if (this.resource) {
-				this.miningBase.resources.push(this.resource);
-			}
+			this.miningBase.addResource(this.resource);
 		}
 		this.data.map.everyWithin8(this.ij, 1, function(cell) {
 			cell.invalid = true;

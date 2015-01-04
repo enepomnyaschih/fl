@@ -33,5 +33,23 @@ JW.extend(FL.Base, JW.Class, {
 		var person = new FL.Unit.Person(FL.Unit.baseType);
 		person.health = this.health.get();
 		return person;
+	},
+
+	addResource: function(resource) {
+		if (!resource) {
+			return;
+		}
+		this.resources.push(resource);
+	},
+
+	removeResource: function(resource) {
+		if (!resource) {
+			return;
+		}
+		JW.Array.removeItem(this.resources, resource);
+		var unitType = this.unitType.get();
+		if (unitType && !this.isUnitTypeAvailable(unitType)) {
+			this.unitType.set(null);
+		}
 	}
 });

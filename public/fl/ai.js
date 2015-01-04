@@ -239,6 +239,33 @@ FL.AI = {
 				}
 			}
 		});
+
+		// rush
+		var isAggressiveRush = !data.map.some(function(cell) {
+			return FL.AI.isRushable(cell, player) && !cell.unit;
+		}, this);
+		JW.Array.each(behaviourUnits["rush"], function(unit) {
+			if (FL.AI.isRushable(unit.cell, player)) {
+				unit.ijTarget = null;
+				return;
+			}
+			var path = data.findTarget(unit.ij.get(), unit.player, function(cell) {
+				if (!FL.AI.isRushable(cell, player)) {
+					return false;
+				}
+				if (!cell.unit) {
+					return true;
+				}
+				return isAggressiveRush && (cell.unit.player !== player);
+			});
+			if (!path) {
+				unit.behaviour = "attack";
+			} else if (path.length === 0) {
+				unit.ijTarget = null;
+			} else {
+				unit.ijTarget = JW.Array.getLast(path)[1];
+			}
+		});
 	},
 
 	findBaseSpot: function(data, ijUnit, player) {
@@ -356,6 +383,10 @@ FL.AI = {
 			}
 		}
 		return false;
+	},
+
+	isRushable: function(cell, player) {
+		return cell.resource && !cell.nearBases.every(JW.byValue("player", player));
 	}
 };
 

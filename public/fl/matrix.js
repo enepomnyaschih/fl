@@ -37,6 +37,24 @@ JW.extend(FL.Matrix, JW.Class, {
 		};
 	},
 
+	every: function(callback, scope) {
+		for (var i = 0; i < this.size; ++i) {
+			for (var j = 0; j < this.size; ++j) {
+				var ij = [i, j];
+				if (callback.call(scope || this, this.getCell(ij), ij) === false) {
+					return false;
+				}
+			}
+		}
+		return true;
+	},
+
+	some: function(callback, scope) {
+		return !this.every(function() {
+			return !callback.apply(this, arguments);
+		}, scope || this);
+	},
+
 	eachWithin: function(cij, distanceSqr, callback, scope) {
 		var distance = Math.ceil(Math.sqrt(distanceSqr));
 		var rect = this.getRect(cij, distance);
@@ -66,6 +84,6 @@ JW.extend(FL.Matrix, JW.Class, {
 	someWithin8: function(cij, distance, callback, scope) {
 		return !this.everyWithin8(cij, distance, function() {
 			return !callback.apply(this, arguments);
-		}, scope);
+		}, scope || this);
 	}
 });
