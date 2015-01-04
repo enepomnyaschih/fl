@@ -1,3 +1,5 @@
+FL.revealAll = false;
+
 FL.Cell = function(data, ij) {
 	FL.Cell._super.call(this);
 	this.data = data;
@@ -10,34 +12,37 @@ FL.Cell = function(data, ij) {
 	this.miningBase = null; // who makes money from this tile
 	this.unit = null;
 	this.resource = null;
-	this.scouted = false; // removes black mask
-	this.visible = false; // reveals units
+	this.scouted = [FL.revealAll, false]; // removes black mask
+	this.visible = [FL.revealAll, false]; // reveals units
 	this.invalid = false; // forces to redraw
 	this._resetMining();
 };
 
 JW.extend(FL.Cell, JW.Class, {
-	reveal: function() {
-		if (this.scouted && this.visible) {
+	reveal: function(player) {
+		if (this.scouted[player] && this.visible[player]) {
 			return;
 		}
-		this.scouted = true;
-		this.visible = true;
+		this.scouted[player] = true;
+		this.visible[player] = true;
 		this.invalid = true;
 		if (this.unit) {
-			this.unit.visible = true;
+			this.unit.visible[player] = true;
 			this.unit.resetAnimation();
 		}
 	},
 
-	hide: function() {
-		if (!this.scouted || !this.visible) {
+	hide: function(player) {
+		if ((player === 0) && FL.revealAll) {
 			return;
 		}
-		this.visible = false;
+		if (!this.scouted[player] || !this.visible[player]) {
+			return;
+		}
+		this.visible[player] = false;
 		this.invalid = true;
 		if (this.unit) {
-			this.unit.visible = false;
+			this.unit.visible[player] = false;
 			this.unit.resetAnimation();
 		}
 	},
@@ -86,6 +91,11 @@ JW.extend(FL.Cell, JW.Class, {
 			this.miningBase.addResource(this.resource);
 		}
 		this._resetMining();
+	},
+
+	isAirportBy: function(player) {
+		return this.miningBase && (this.miningBase.player === player) &&
+			this.resource && (this.resource.id === "airport");
 	},
 
 	_resetMining: function() {

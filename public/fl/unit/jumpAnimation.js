@@ -1,7 +1,7 @@
 FL.Unit.JumpAnimation = function(unit) {
 	FL.Unit.JumpAnimation._super.call(this, unit);
 	this.xyTo = FL.ijToXy(unit.ij.get());
-	this.opacityTo = unit.visible ? 1 : 0;
+	this.opacityTo = unit.visible[0] ? 1 : 0;
 };
 
 JW.extend(FL.Unit.JumpAnimation, FL.Unit.Animation, {

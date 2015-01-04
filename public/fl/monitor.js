@@ -199,8 +199,8 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		var cell = this.data.map.getCell(ij);
 		cell.invalid = false;
 		el.empty();
-		el.toggleClass("fl-scouted", cell.scouted);
-		el.toggleClass("fl-visible", cell.visible);
+		el.toggleClass("fl-scouted", cell.scouted[0]);
+		el.toggleClass("fl-visible", cell.visible[0]);
 		el.toggleClass("fl-rock", cell.rock);
 		el.toggleClass("fl-hill", cell.hill);
 
@@ -230,7 +230,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			baseEl.attr("fl-player", cell.base.player);
 			el.append(baseEl);
 		}
-		if (cell.scouted && !cell.visible) {
+		if (cell.scouted[0] && !cell.visible[0]) {
 			el.append('<div class="fl-fog"></div>')
 		}
 	},

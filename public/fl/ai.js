@@ -4,6 +4,7 @@ FL.AI = {
 		"patrol",
 		"hold",
 		"rush",
+		"drop",
 		"attack",
 		"attacking",
 		"assaulting",
@@ -109,8 +110,8 @@ FL.AI = {
 
 		// build bases
 		JW.Array.each(behaviourUnits["build"], function(unit) {
-			var ijTarget = unit.ijTarget || FL.AI.findBaseSpot(data, unit.ij.get(), player);
-			if (FL.Vector.equal(ijTarget, unit.ij.get())) {
+			var ijTarget = FL.AI.findBaseSpot(data, unit.ij.get(), player);
+			if (ijTarget && FL.Vector.equal(ijTarget, unit.ij.get())) {
 				data.buildBase(unit);
 			} else {
 				unit.ijTarget = ijTarget;
@@ -158,6 +159,23 @@ FL.AI = {
 			}
 		});
 
+		// rush
+		JW.Array.each(behaviourUnits["rush"], function(unit) {
+			if (FL.AI.isRushable(unit.cell, player)) {
+				unit.ijTarget = null;
+				return;
+			}
+			var path = data.findTarget(unit.ij.get(), unit.player, function(cell) {
+				return FL.AI.isRushable(cell, player) && !cell.unit;
+			});
+			if (!path || (path.length === 0)) {
+				behaviourUnits["patrol"].push(unit);
+				unit.ijTarget = null;
+			} else {
+				unit.ijTarget = JW.Array.getLast(path)[1];
+			}
+		});
+
 		// patrol
 		JW.Array.each(behaviourUnits["patrol"], function(unit) {
 			if (orderedUnits.contains(unit)) {
@@ -175,6 +193,23 @@ FL.AI = {
 				rect.iMin + FL.random(rect.iMax - rect.iMin + 1),
 				rect.jMin + FL.random(rect.jMax - rect.jMin + 1)
 			];
+		});
+
+		// drop
+		JW.Array.each(behaviourUnits["drop"], function(unit) {
+			if (unit.canDrop()) {
+				FL.AI.paradrop(unit);
+				return;
+			}
+			var path = data.findTarget(unit.ij.get(), unit.player, function(cell) {
+				return cell.isAirportBy(player);
+			});
+			if (!path || (path.length === 0)) {
+				unit.behaviour = "attack";
+				behaviourUnits["attack"].push(unit);
+			} else {
+				unit.ijTarget = JW.Array.getLast(path)[1];
+			}
 		});
 
 		// attack
@@ -237,33 +272,6 @@ FL.AI = {
 				if (!data.map.inMatrix(unit.ijTarget)) {
 					unit.ijTarget = null;
 				}
-			}
-		});
-
-		// rush
-		var isAggressiveRush = !data.map.some(function(cell) {
-			return FL.AI.isRushable(cell, player) && !cell.unit;
-		}, this);
-		JW.Array.each(behaviourUnits["rush"], function(unit) {
-			if (FL.AI.isRushable(unit.cell, player)) {
-				unit.ijTarget = null;
-				return;
-			}
-			var path = data.findTarget(unit.ij.get(), unit.player, function(cell) {
-				if (!FL.AI.isRushable(cell, player)) {
-					return false;
-				}
-				if (!cell.unit) {
-					return true;
-				}
-				return isAggressiveRush && (cell.unit.player !== player);
-			});
-			if (!path) {
-				unit.behaviour = "attack";
-			} else if (path.length === 0) {
-				unit.ijTarget = null;
-			} else {
-				unit.ijTarget = JW.Array.getLast(path)[1];
 			}
 		});
 	},
@@ -362,6 +370,31 @@ FL.AI = {
 				}
 			}
 		});
+	},
+
+	paradrop: function(unit) {
+		var dropTarget = null;
+		var dropTargetDistanceSqr = Number.POSITIVE_INFINITY;
+		unit.data.map.every(function(cell) {
+			if (!unit.data.isDroppable(cell.ij, unit.player)) {
+				return;
+			}
+			unit.data.bases.each(function(base) {
+				if (base.player === unit.player) {
+					return;
+				}
+				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(base.ij, cell.ij));
+				if (distanceSqr < dropTargetDistanceSqr) {
+					dropTarget = cell.ij;
+					dropTargetDistanceSqr = distanceSqr;
+				}
+			});
+		});
+		unit.ijTarget = null;
+		if (dropTarget) {
+			unit.drop(dropTarget);
+			unit.behaviour = (dropTargetDistanceSqr < 9) ? "assaulting" : "attacking";
+		}
 	},
 
 	isUnitReady: function(unit, stackCost) {

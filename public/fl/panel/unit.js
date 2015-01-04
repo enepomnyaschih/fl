@@ -56,13 +56,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 	},
 
 	renderDrop: function(el) {
-		if (!this.unit.type.paradroppable || (this.unit.movement.get() === 0)) {
-			return false;
-		}
-		if (!this.unit.cell.miningBase || (this.unit.cell.miningBase.player !== this.unit.player)) {
-			return false;
-		}
-		if (!this.unit.cell.resource || (this.unit.cell.resource.id !== "airport")) {
+		if (!this.unit.canDrop()) {
 			return false;
 		}
 		this.own(new FL.ButtonAnimation(el));
@@ -76,10 +70,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 					return data.isDroppable(ij, 0);
 				},
 				execute: function(ij) {
-					unit.decreaseMovement();
-					unit.ijTarget = null;
-					unit.hold = false;
-					unit.ij.set(ij);
+					unit.drop(ij);
 					monitor.updateMap();
 				},
 				finish: function() {

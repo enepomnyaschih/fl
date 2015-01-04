@@ -20,9 +20,7 @@ JW.extend(FL.Data, JW.Class, {
 		this.map.eachWithin(ij, FL.baseMiningRangeSqr, function(cell) {
 			cell.addNearBase(base);
 		}, this);
-		if (player == 0) {
-			this.reveal(ij, FL.baseSightRangeSqr);
-		}
+		this.reveal(ij, FL.baseSightRangeSqr, player);
 		return base;
 	},
 
@@ -41,9 +39,7 @@ JW.extend(FL.Data, JW.Class, {
 	createUnit: function(ij, player, type, behaviour) {
 		var unit = new FL.Unit(this, ij, player, type, behaviour);
 		this.units.add(unit);
-		if (player == 0) {
-			this.reveal(ij, unit.getSightRangeSqr());
-		}
+		this.reveal(ij, unit.getSightRangeSqr(), player);
 		return unit;
 	},
 
@@ -182,28 +178,28 @@ JW.extend(FL.Data, JW.Class, {
 
 	_endTurnPlayer: function(player) {
 		this.units.$filter(JW.byValue("player", player)).each(JW.byMethod("refresh"));
-		this.resetVision();
+		this.resetVision(player);
 		this._produce(player);
 	},
 
-	reveal: function(cij, distanceSqr) {
-		this.map.eachWithin(cij, distanceSqr, JW.byMethod("reveal"));
+	reveal: function(cij, distanceSqr, player) {
+		this.map.eachWithin(cij, distanceSqr, JW.byMethod("reveal", [player]));
 	},
 
-	resetVision: function() {
+	resetVision: function(player) {
 		for (var i = 0; i < this.map.size; ++i) {
 			for (var j = 0; j < this.map.size; ++j) {
-				this.map.getCell([i, j]).hide();
+				this.map.getCell([i, j]).hide(player);
 			}
 		}
 		this.bases.each(function(base) {
-			if (base.player === 0) {
-				this.reveal(base.ij, FL.baseSightRangeSqr);
+			if (base.player === player) {
+				this.reveal(base.ij, FL.baseSightRangeSqr, player);
 			}
 		}, this);
 		this.units.each(function(unit) {
-			if (unit.player === 0) {
-				this.reveal(unit.ij.get(), unit.getSightRangeSqr());
+			if (unit.player === player) {
+				this.reveal(unit.ij.get(), unit.getSightRangeSqr(), player);
 			}
 		}, this);
 	},
@@ -235,7 +231,7 @@ JW.extend(FL.Data, JW.Class, {
 		if (!this.isPassable(tij) || cell.unit || (cell.base && cell.base.player !== player)) {
 			return false;
 		}
-		if ((player === 0) && !cell.visible) {
+		if (!cell.visible[player]) {
 			return false;
 		}
 		return true;
@@ -279,14 +275,14 @@ JW.extend(FL.Data, JW.Class, {
 
 	revealEnemies: function(cij, player) {
 		var isVisibleEnemy = this.map.someWithin8(cij, 1, function(cell) {
-			return cell.unit && (cell.unit.player !== player) && cell.unit.visible;
+			return cell.unit && (cell.unit.player !== player) && cell.unit.visible[player];
 		}, this);
 		if (isVisibleEnemy) {
 			return false;
 		}
 		this.map.everyWithin8(cij, 1, function(cell) {
 			if (cell.unit) {
-				cell.reveal();
+				cell.reveal(player);
 			}
 		}, this);
 		return true;
@@ -316,13 +312,13 @@ JW.extend(FL.Data, JW.Class, {
 					continue;
 				}
 				var cell = this.map.getCell(dij);
-				if ((player !== 0) || cell.scouted) {
+				if (cell.scouted[player]) {
 					if (!this.isPassable(dij)) {
 						continue;
 					}
 				}
 				var fits = callback.call(scope || this, cell);
-				if ((player !== 0) || cell.visible) {
+				if (cell.visible[player]) {
 					var unit = cell.unit;
 					if (unit && !fits) {
 						continue;
@@ -396,6 +392,9 @@ JW.extend(FL.Data, JW.Class, {
 					resourceId = null;
 				}
 			}, this);
+			this.map.getCell(FL.Vector.add(base.ij, [1, 1])).setResource(FL.Resource.types["airport"]);
+			this.map.getCell(FL.Vector.add(base.ij, [0, 1])).setResource(FL.Resource.types["airport"]);
+			this.map.getCell(FL.Vector.add(base.ij, [1, 0])).setResource(FL.Resource.types["yard"]);
 		}, this);
 	},
 

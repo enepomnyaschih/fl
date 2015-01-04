@@ -10,7 +10,7 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 	this.hold = false;
 	this.skipped = false;
 	this.behaviour = behaviour || type.ai[FL.random(type.ai.length)];
-	this.visible = false;
+	this.visible = [false, false];
 	this.persons = this.own(new JW.Property([new FL.Unit.Person(type)]));
 	this.alive = true;
 
@@ -24,11 +24,10 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 			if (!this.cell.unit) {
 				this.cell.setUnit(this);
 			}
-			if (this.player === 0) {
-				this.data.reveal(ij, this.getSightRangeSqr());
-			}
-			var animate = this.visible || this.cell.visible;
-			this.visible = this.cell.visible;
+			this.data.reveal(ij, this.getSightRangeSqr(), this.player);
+			var animate = this.visible[0] || this.cell.visible[0];
+			this.visible[0] = this.cell.visible[0];
+			this.visible[1] = this.cell.visible[1];
 			if (!animate && !this.animations.length) {
 				this.resetAnimation();
 			} else {
@@ -58,7 +57,7 @@ JW.extend(FL.Unit, JW.Class, {
 	resetAnimation: function() {
 		this.animations = [];
 		this.xy.set(FL.ijToXy(this.ij.get()));
-		this.opacity.set(this.visible ? 1 : 0);
+		this.opacity.set(this.visible[0] ? 1 : 0);
 	},
 
 	getCount: function() {
@@ -153,6 +152,18 @@ JW.extend(FL.Unit, JW.Class, {
 	refresh: function() {
 		this.setPersons(JW.Array.map(this.persons.get(), JW.byMethod("refresh")));
 		this.skipped = false;
+	},
+
+	canDrop: function() {
+		return this.type.paradroppable && (this.movement.get() !== 0) &&
+			this.cell.isAirportBy(this.player);
+	},
+
+	drop: function(ij) {
+		this.decreaseMovement();
+		this.ijTarget = null;
+		this.hold = false;
+		this.ij.set(ij);
 	}
 });
 
@@ -248,7 +259,7 @@ FL.Unit.typeArray = [
 		cost: 110,
 		resources: ["yard"],
 		paradroppable: true,
-		ai: ["attack"],
+		ai: ["drop"],
 		capacity: 5,
 		aiPreferred: true
 	},
