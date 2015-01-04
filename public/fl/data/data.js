@@ -359,7 +359,7 @@ JW.extend(FL.Data, JW.Class, {
 					if (unit && !FL.Vector.equal(dij, tij)) {
 						continue;
 					}
-					if ((!unit || unit.player === 0) &&
+					if ((!unit || unit.player === player) &&
 							this.isByEnemy(cij, player) && this.isByEnemy(dij, player)) {
 						continue;
 					}
@@ -525,7 +525,7 @@ JW.extend(FL.Data, JW.Class, {
 			}
 			this.createBase(ij, p).health.set(1);
 			for (var d = 0; d < 4; ++d) {
-				this.createUnit(FL.Vector.add(ij, FL.dir4[d]), p, FL.Unit.types["militia"], "patrol");
+				this.createUnit(FL.Vector.add(ij, FL.dir4[d]), p, FL.Unit.types["militia"], "hold");
 			}
 		}
 	},
