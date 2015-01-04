@@ -16,6 +16,10 @@ FL.Monitor = function(data) {
 };
 
 JW.extend(FL.Monitor, JW.UI.Component, {
+	renderTurn: function(el) {
+		this.own(new JW.UI.TextUpdater(el, this.data.turn));
+	},
+
 	renderNext: function(el) {
 		el.click(JW.inScope(function() {
 			this.selectNext();

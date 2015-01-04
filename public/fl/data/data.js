@@ -5,7 +5,7 @@ FL.Data = function() {
 	this.units = new JW.ObservableArray();
 	this.lostEvent = new JW.Event();
 	this.nextPlayerEvent = new JW.Event();
-	this.turn = 1;
+	this.turn = new JW.Property(1);
 	this.player = 0;
 	this.animationManager = this.own(new FL.Data.AnimationManager(this));
 	this._generateMap();
@@ -160,7 +160,7 @@ JW.extend(FL.Data, JW.Class, {
 		this._endTurnPlayer(this.player);
 		this.player = (this.player + 1) % 2;
 		if (this.player === 0) {
-			++this.turn;
+			this.turn.set(this.turn.get() + 1);
 		}
 		this.units.$filter(JW.byValue("player", this.player)).each(JW.byMethod("heal"));
 		this.bases.$filter(JW.byValue("player", this.player)).each(JW.byMethod("heal"));
