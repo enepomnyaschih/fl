@@ -4,6 +4,7 @@ FL.Monitor = function(data) {
 	this.cellSelect = null;
 	this.cellAnimation = this.own(new JW.Property()).ownValue();
 	this.endTurnAnimation = this.own(new JW.Property()).ownValue();
+	this.army = this.own(new JW.Property()).ownValue();
 	this.panel = this.own(new JW.Property()).ownValue();
 	this.selectionQueue = [];
 	this.selectionTail = 0;
@@ -34,16 +35,8 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}, this));
 	},
 
-	renderLog: function(el) {
-		this.data.logEvent.bind(function(message) {
-			var messageEl = jQuery('<div class="fl-message"></div>');
-			messageEl.text(message[0]);
-			if (message[1]) {
-				messageEl.addClass(message[1]);
-			}
-			el.append(messageEl);
-			el.scrollTop(1000000);
-		}, this);
+	renderArmy: function(el) {
+		return this.army;
 	},
 
 	renderCells: function(el) {
@@ -108,13 +101,16 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			}));
 			var base = this.cellSelect.base;
 			if (this._isBaseAutoSelectable(base)) {
-				this.baseExitAttachment.set(base.unitType.changeEvent.bind(this.selectNext, this));
+				this.baseExitAttachment.set(base.unitType.changeEvent.bind(this.selectNextIfDone, this));
 			}
 			if (this.cellSelect.unit && (this.cellSelect.unit.player === 0)) {
 				this.unitSelection = JW.Array.map(this.cellSelect.unit.persons.get(), function() { return false; });
 			}
+			this.army.set((this.cellSelect.visible[0] && this.cellSelect.unit) ?
+				new FL.Panel.Unit(this, this.cellSelect.unit) : null);
 			this.panel.set(new FL.Panel(this, this.cellSelect));
 		} else {
+			this.army.set(null);
 			this.panel.set(null);
 		}
 	},
@@ -147,6 +143,16 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}
 		this.selectCell(null);
 		this.endTurnAnimation.set(new FL.ButtonAnimation(this.getElement("end-turn")));
+	},
+
+	selectNextIfDone: function() {
+		if (this.cellSelect && this._isBaseAutoSelectable(this.cellSelect.base)) {
+			this.selectCell(this.cellSelect.ij);
+		} else if (this.cellSelect && this._isUnitAutoSelectable(this.cellSelect.unit)) {
+			this.selectCell(this.cellSelect.ij);
+		} else {
+			this.selectNext();
+		}
 	},
 
 	updateMap: function(force) {
@@ -273,7 +279,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			}
 			this.order.execute.call(this.order.scope || this, ij);
 			this.resetOrder();
-			this.selectNext();
+			this.selectNextIfDone();
 			return;
 		}
 		if (!this.cellSelect) {
@@ -303,7 +309,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		if (unit.alive && unit.movement.get()) {
 			this.selectCell(unit.ij.get());
 		} else {
-			this.selectNext();
+			this.selectNextIfDone();
 		}
 	},
 

@@ -2,6 +2,7 @@ FL.Panel.Unit = function(monitor, unit) {
 	FL.Panel.Unit._super.call(this);
 	this.monitor = monitor;
 	this.unit = unit;
+	this.requireAction = monitor._isUnitAutoSelectable(unit);
 };
 
 JW.extend(FL.Panel.Unit, JW.UI.Component, {
@@ -21,13 +22,15 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 
 	renderHold: function(el) {
 		if (!this.unit.isHealed()) {
-			this.own(new FL.ButtonAnimation(el));
+			if (this.requireAction) {
+				this.own(new FL.ButtonAnimation(el));
+			}
 			el.text("Heal");
 		}
 		el.click(JW.inScope(function() {
 			this.unit.hold = true;
 			this.monitor._updateCell(null, this.unit.ij.get());
-			this.monitor.selectNext();
+			this.monitor.selectNextIfDone();
 		}, this))
 	},
 
@@ -36,7 +39,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 			this.unit.hold = false;
 			this.unit.skipped = true;
 			this.monitor._updateCell(null, this.unit.ij.get());
-			this.monitor.selectNext();
+			this.monitor.selectNextIfDone();
 		}, this))
 	},
 
@@ -47,7 +50,9 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		if (!this.monitor.data.isBaseBuildable(this.unit.ij.get(), FL.minBaseDistanceSqr)) {
 			return false;
 		}
-		this.own(new FL.ButtonAnimation(el));
+		if (this.requireAction) {
+			this.own(new FL.ButtonAnimation(el));
+		}
 		el.click(JW.inScope(function() {
 			this.monitor.data.buildBase(this.unit);
 			this.monitor.updateMap();
@@ -59,7 +64,9 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		if (!this.unit.canDrop()) {
 			return false;
 		}
-		this.own(new FL.ButtonAnimation(el));
+		if (this.requireAction) {
+			this.own(new FL.ButtonAnimation(el));
+		}
 		el.click(JW.inScope(function() {
 			var unit = this.unit;
 			var monitor = this.monitor;

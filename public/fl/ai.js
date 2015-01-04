@@ -154,7 +154,7 @@ FL.AI = {
 				FL.Vector.between(attackUnit.ij.get(), nearestBase.ij, .45));
 			if (!nearestUnit.ijTarget || !FL.Vector.equal(ijTarget, nearestUnit.ijTarget)) {
 				nearestUnit.ijTarget = ijTarget;
-			} else if (!attackUnit.type.defense && !nearestUnit.type.defense) {
+			} else if (!nearestUnit.type.defense) {
 				nearestUnit.ijTarget = attackUnit.ij.get();
 			}
 		});
@@ -204,9 +204,11 @@ FL.AI = {
 			var path = data.findTarget(unit.ij.get(), unit.player, function(cell) {
 				return cell.isAirportBy(player);
 			});
-			if (!path || (path.length === 0)) {
+			if (!path) {
 				unit.behaviour = "attack";
 				behaviourUnits["attack"].push(unit);
+			} else if (path.length === 0) {
+				unit.ijTarget = null;
 			} else {
 				unit.ijTarget = JW.Array.getLast(path)[1];
 			}

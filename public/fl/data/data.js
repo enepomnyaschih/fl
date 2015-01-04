@@ -3,7 +3,6 @@ FL.Data = function() {
 	this.map = null;
 	this.bases = new JW.Set();
 	this.units = new JW.ObservableArray();
-	this.logEvent = new JW.Event();
 	this.lostEvent = new JW.Event();
 	this.nextPlayerEvent = new JW.Event();
 	this.turn = 1;
@@ -153,9 +152,6 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	endTurn: function() {
-		if (this.player === 0) {
-			this.log("End turn");
-		}
 		this.moveUnits(this.player);
 		this.animationManager.startSequentialAnimation();
 	},
@@ -165,7 +161,6 @@ JW.extend(FL.Data, JW.Class, {
 		this.player = (this.player + 1) % 2;
 		if (this.player === 0) {
 			++this.turn;
-			this.log("Turn " + this.turn);
 		}
 		this.units.$filter(JW.byValue("player", this.player)).each(JW.byMethod("heal"));
 		this.bases.$filter(JW.byValue("player", this.player)).each(JW.byMethod("heal"));
@@ -340,10 +335,6 @@ JW.extend(FL.Data, JW.Class, {
 			}
 		}
 		return null;
-	},
-
-	log: function(message, cls) {
-		this.logEvent.trigger([message, cls]);
 	},
 
 	isControllable: function() {
