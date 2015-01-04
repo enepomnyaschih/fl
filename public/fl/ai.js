@@ -14,7 +14,7 @@ FL.AI = {
 	patrolDistance: 3,
 	healSafeDistance: 3,
 	aquisitionDistanceSqr: 50,
-	baseHoldRangeSqr: 10,
+	baseHoldRangeSqr: 5,
 	unitHoldRangeSqr: 4,
 	patrolInitial: 3,
 	patrolPerBase: 1,

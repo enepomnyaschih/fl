@@ -78,6 +78,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 				execute: function(ij) {
 					unit.decreaseMovement();
 					unit.ijTarget = null;
+					unit.hold = false;
 					unit.ij.set(ij);
 					monitor.updateMap();
 				},

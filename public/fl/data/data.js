@@ -359,7 +359,8 @@ JW.extend(FL.Data, JW.Class, {
 					if (unit && !FL.Vector.equal(dij, tij)) {
 						continue;
 					}
-					if (!unit && this.isByEnemy(cij, player) && this.isByEnemy(dij, player)) {
+					if ((!unit || unit.player === 0) &&
+							this.isByEnemy(cij, player) && this.isByEnemy(dij, player)) {
 						continue;
 					}
 					var base = cell.base;

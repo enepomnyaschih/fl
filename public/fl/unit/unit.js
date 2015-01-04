@@ -185,7 +185,7 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 2,
 		sightRangeSqrHill: 5,
 		cost: 50,
-		ai: ["patrol", "hold"],
+		ai: ["hold"],
 		capacity: 10,
 		aiPreferred: false
 	},
@@ -201,7 +201,7 @@ FL.Unit.typeArray = [
 		sightRangeSqr: 2,
 		sightRangeSqrHill: 5,
 		cost: 65,
-		ai: ["patrol", "attack"],
+		ai: ["attack"],
 		capacity: 10,
 		aiPreferred: false
 	},
@@ -230,7 +230,7 @@ FL.Unit.typeArray = [
 		sightRangeSqrHill: 10,
 		cost: 80,
 		resources: ["yard"],
-		ai: ["patrol", "hold"],
+		ai: ["hold"],
 		capacity: 5,
 		aiPreferred: true
 	},
