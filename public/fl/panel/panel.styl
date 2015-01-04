@@ -34,12 +34,23 @@
 	&-production
 		&-progress
 			background black
+			float left
 			height 5px
 			margin 5px 0
 
 			&-fill
-				background #00CC00
+				float left
 				height 5px
+
+				&:nth-child(odd)
+					background #666
+
+				&:first-child
+					background #00CC00
+
+		&-turns
+			float left
+			margin-left 5px
 
 	&-unitperson
 		cursor pointer
