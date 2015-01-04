@@ -392,9 +392,6 @@ JW.extend(FL.Data, JW.Class, {
 					resourceId = null;
 				}
 			}, this);
-			this.map.getCell(FL.Vector.add(base.ij, [1, 1])).setResource(FL.Resource.types["airport"]);
-			this.map.getCell(FL.Vector.add(base.ij, [0, 1])).setResource(FL.Resource.types["airport"]);
-			this.map.getCell(FL.Vector.add(base.ij, [1, 0])).setResource(FL.Resource.types["yard"]);
 		}, this);
 	},
 
