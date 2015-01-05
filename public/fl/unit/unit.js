@@ -164,6 +164,7 @@ JW.extend(FL.Unit, JW.Class, {
 		this.ijTarget = null;
 		this.hold = false;
 		this.ij.set(ij);
+		this.data.mapUpdateEvent.trigger();
 	}
 });
 

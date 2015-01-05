@@ -5,11 +5,13 @@ FL.Data = function() {
 	this.units = new JW.ObservableArray();
 	this.lostEvent = new JW.Event();
 	this.nextPlayerEvent = new JW.Event();
+	this.mapUpdateEvent = new JW.Event();
 	this.turn = new JW.Property(1);
 	this.player = 0;
 	this.animationManager = this.own(new FL.Data.AnimationManager(this));
 	this.baseNames = FL.baseNames.concat();
 	this.unitNames = [];
+	this.ai = null; // FL.AI
 	for (var i = 0; i < 2; ++i) {
 		this.unitNames.push({
 			worker   : this.own(new FL.UnitNameList(["Worker"])),
@@ -37,6 +39,7 @@ JW.extend(FL.Data, JW.Class, {
 			cell.addNearBase(base);
 		}, this);
 		this.reveal(ij, FL.baseSightRangeSqr, player);
+		this.mapUpdateEvent.trigger();
 		return base;
 	},
 
@@ -50,6 +53,7 @@ JW.extend(FL.Data, JW.Class, {
 		if (base.name !== "No more names") {
 			this.baseNames.push(base.name);
 		}
+		this.mapUpdateEvent.trigger();
 		if (this.bases.count(JW.byValue("player", base.player)) === 0) {
 			this.lostEvent.trigger(base.player);
 		}
@@ -61,26 +65,28 @@ JW.extend(FL.Data, JW.Class, {
 		unit.name = unitNameList.checkout(name);
 		this.units.add(unit);
 		this.reveal(ij, unit.getSightRangeSqr(), player);
+		this.mapUpdateEvent.trigger();
 		return unit;
 	},
 
 	destroyUnit: function(unit) {
 		this.units.removeItem(unit);
 		unit.destroy();
+		this.mapUpdateEvent.trigger();
 	},
 
 	moveUnit: function(unit, selection) {
 		if (!unit.ijTarget) {
-			return;
+			return false;
 		}
 		if (FL.Vector.equal(unit.ij.get(), unit.ijTarget)) {
 			unit.ijTarget = null;
-			return;
+			return false;
 		}
 		var path = this.getPath(unit.ij.get(), unit.ijTarget, unit.player);
 		if (!path) {
 			unit.ijTarget = null;
-			return;
+			return false;
 		}
 		unit.hold = false;
 		unit.skipped = false;
@@ -90,6 +96,7 @@ JW.extend(FL.Data, JW.Class, {
 		if (!JW.Array.every(selection, JW.byField())) {
 			unit = unit.split(selection);
 		}
+		var useful = false;
 		for (var i = 0; (i < path.length) && unit.movement.get(); ++i) {
 			var tij = FL.Vector.add(unit.ij.get(), FL.dir8[path[i]]);
 			var outcome = this.getMoveOutcome(unit, tij, FL.Vector.equal(tij, unit.ijTarget));
@@ -98,15 +105,16 @@ JW.extend(FL.Data, JW.Class, {
 			}
 			var targetCell = this.map.getCell(tij);
 			if (outcome === 2) {
-				this.fightUnit(unit, targetCell.unit);
+				useful = useful || this.fightUnit(unit, targetCell.unit);
 				unit.ijTarget = null;
 				break;
 			}
 			if (outcome === 3) {
-				this.fightBase(unit, targetCell.base);
+				useful = useful || this.fightBase(unit, targetCell.base);
 				unit.ijTarget = null;
 				break;
 			}
+			useful = true;
 			if (outcome === 5) {
 				this.map.everyWithin8(tij, 1, function(cell) {
 					if (cell.unit) {
@@ -130,6 +138,10 @@ JW.extend(FL.Data, JW.Class, {
 			unit.cell.unit.merge(unit.persons.get());
 			this.destroyUnit(unit);
 		}
+		if (useful) {
+			this.mapUpdateEvent.trigger();
+		}
+		return useful;
 	},
 
 	moveUnits: function(player) {
@@ -144,6 +156,9 @@ JW.extend(FL.Data, JW.Class, {
 		var defense = 1 + (defender.cell.hill ? 1 : 0);
 		var attackerHits = JW.Array.count(attackerSurvivors, JW.byField("attack"));
 		var defenderHits = JW.Array.count(defenderSurvivors, JW.byField("defend"));
+		if (attackerHits === 0) {
+			return false;
+		}
 		while ((attackerHits !== 0) && (defenderSurvivors.length !== 0)) {
 			--attackerHits;
 			FL.fight(attacker.type.damage, defense, defenderSurvivors);
@@ -156,11 +171,15 @@ JW.extend(FL.Data, JW.Class, {
 		defender.setPersons(defenderSurvivors);
 		attacker.retainAttacks(attackerHits);
 		defender.retainDefends(defenderHits);
+		return true;
 	},
 
 	fightBase: function(attacker, base) {
 		var defenderSurvivors = [base.toPerson()];
 		var attackerHits = JW.Array.count(attacker.persons.get(), JW.byField("attack"));
+		if (attackerHits === 0) {
+			return false;
+		}
 		while ((attackerHits !== 0) && (defenderSurvivors.length !== 0)) {
 			--attackerHits;
 			FL.fight(attacker.type.damage, 0, defenderSurvivors);
@@ -171,11 +190,12 @@ JW.extend(FL.Data, JW.Class, {
 			base.health.set(defenderSurvivors[0].health);
 		}
 		attacker.retainAttacks(attackerHits);
+		return true;
 	},
 
 	endTurn: function() {
 		this.moveUnits(this.player);
-		this.animationManager.startSequentialAnimation();
+		this.animationManager.changePlayerOnFinish = true;
 	},
 
 	nextPlayer: function() {
@@ -188,8 +208,10 @@ JW.extend(FL.Data, JW.Class, {
 		this.bases.$filter(JW.byValue("player", this.player)).each(JW.byMethod("heal"));
 		this.nextPlayerEvent.trigger();
 		if (this.player !== 0) {
-			FL.AI.process(this, this.player);
-			this.endTurn();
+			this.ai = new FL.AI(this, this.player);
+		} else {
+			this.ai.destroy();
+			this.ai = null;
 		}
 	},
 
@@ -197,6 +219,7 @@ JW.extend(FL.Data, JW.Class, {
 		this.units.$filter(JW.byValue("player", player)).each(JW.byMethod("refresh"));
 		this.resetVision(player);
 		this._produce(player);
+		this.mapUpdateEvent.trigger();
 	},
 
 	reveal: function(cij, distanceSqr, player) {
@@ -323,14 +346,14 @@ JW.extend(FL.Data, JW.Class, {
 		return 1;
 	},
 
-	getPath: function(sij, tij, player) {
+	getPath: function(sij, tij, player, everythingVisible) {
 		var path = this.findTarget(sij, player, function(cell) {
 			return FL.Vector.equal(tij, cell.ij);
-		}, this);
+		}, this, everythingVisible);
 		return path ? JW.Array.map(path, JW.byField("0")) : null;
 	},
 
-	findTarget: function(sij, player, callback, scope) {
+	findTarget: function(sij, player, callback, scope, everythingVisible) {
 		if (callback.call(scope || this, this.map.getCell(sij))) {
 			return [];
 		}
@@ -347,21 +370,23 @@ JW.extend(FL.Data, JW.Class, {
 					continue;
 				}
 				var cell = this.map.getCell(dij);
-				if (cell.scouted[player]) {
+				if (everythingVisible || cell.scouted[player]) {
 					if (!this.isPassable(dij)) {
 						continue;
 					}
 				}
 				var fits = callback.call(scope || this, cell);
 				var unit = cell.unit;
-				if (unit && unit.visible[player] && !fits) {
+				if (unit && (everythingVisible || unit.visible[player]) && !fits) {
 					continue;
 				}
 				if ((!unit || unit.player === player) &&
-						this.isByEnemy(cij, player, true) && this.isByEnemy(dij, player, true)) {
+						this.isByEnemy(cij, player, !everythingVisible) &&
+						this.isByEnemy(dij, player, !everythingVisible)) {
 					continue;
 				}
-				if (cell.visible[player] && cell.base && (cell.base.player !== player) && !fits) {
+				if ((everythingVisible || cell.visible[player]) && cell.base &&
+						(cell.base.player !== player) && !fits) {
 					continue;
 				}
 				queue.push(dij);

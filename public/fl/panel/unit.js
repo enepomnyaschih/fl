@@ -79,7 +79,6 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		}
 		el.click(JW.inScope(function() {
 			this.monitor.data.buildBase(this.unit);
-			this.monitor.updateMap();
 			this.monitor.selectCell(this.unit.ij.get());
 		}, this));
 	},
@@ -102,7 +101,6 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 				},
 				execute: function(ij) {
 					unit.drop(ij);
-					monitor.updateMap();
 				},
 				finish: function() {
 					monitor.getElement("cells").removeClass("fl-order-paradrop");

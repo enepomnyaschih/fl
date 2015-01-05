@@ -12,7 +12,8 @@ FL.Monitor = function(data) {
 	this.order = null;
 	this.cells = new FL.Matrix(this.data.map.size);
 	this.unitSelection = [];
-	this.own(this.data.nextPlayerEvent.bind(this._onNextPlayer, this));
+	this.own(this.data.nextPlayerEvent.bind(this.selectNext, this));
+	this.own(this.data.mapUpdateEvent.bind(this.updateMap, this));
 };
 
 JW.extend(FL.Monitor, JW.UI.Component, {
@@ -35,7 +36,6 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			this.endTurnAnimation.set(null);
 			this.selectCell(null);
 			this.data.endTurn();
-			this.updateMap();
 		}, this));
 	},
 
@@ -141,7 +141,6 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			return;
 		}
 		this.data.moveUnits(0);
-		this.updateMap();
 		this._refreshSelectionQueue();
 		if (this.selectionQueue.length) {
 			this.selectCell(this.selectionQueue[this.selectionTail++]);
@@ -251,11 +250,6 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}
 	},
 
-	_onNextPlayer: function() {
-		this.updateMap();
-		this.selectNext();
-	},
-
 	_onMapMouseDown: function(event) {
 		event.preventDefault();
 		var cellEl = jQuery(event.target);
@@ -307,7 +301,6 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}
 		unit.ijTarget = ij;
 		this.data.moveUnit(unit, this.unitSelection);
-		this.updateMap();
 		if (unit.alive && unit.movement.get()) {
 			this.selectCell(unit.ij.get());
 		} else {

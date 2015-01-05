@@ -1,4 +1,114 @@
-FL.AI = {
+FL.AI = function(data, player) {
+	FL.AI._super.call(this);
+	this.data = data;
+	this.player = player;
+
+	this.bases = data.bases.$toArray().filter(JW.byValue("player", player));
+	this.units = data.units.$toArray().filter(JW.byValue("player", player));
+	this.stackCost = this.stackCostInitial + this.stackCostPerBase * this.bases.length;
+	this.unitCount = JW.Map.map(FL.Unit.types, function() { return 0; });
+	this.totalUnitCount = JW.Map.map(FL.Unit.types, function() { return 0; });
+	this.behaviourUnits = JW.Array.$index(this.behaviours, JW.byField()).map(function() { return []; });
+	this.totalBehaviourCount = JW.Map.map(this.behaviourUnits, function() { return 0; });
+	this.unitBehaviours = {};
+	this.basePatrolCount = JW.Array.$index(this.bases, JW.byField("_iid")).map(function() { return 0; });
+
+	var enemyUnits = data.units.$toArray().filter(function(unit) { return unit.player !== this.player }, this);
+	this.threateningPairs = JW.Array.$map(enemyUnits, function(unit) {
+		var nearestBase, nearestBaseDistanceSqr = Number.POSITIVE_INFINITY;
+		JW.Array.each(this.bases, function(base) {
+			var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij.get(), base.ij));
+			if (distanceSqr < nearestBaseDistanceSqr) {
+				nearestBase = base;
+				nearestBaseDistanceSqr = distanceSqr;
+			}
+		}, this);
+		if (nearestBaseDistanceSqr > this.aquisitionDistanceSqr) {
+			return false;
+		}
+		return [unit, nearestBase];
+	}, this).filter(JW.byField());
+
+	JW.Array.each(this.units, function(unit) {
+		++this.unitCount[unit.type.id];
+		++this.totalUnitCount[unit.type.id];
+		if (unit.cell.base) {
+			if (unit.cell.base.unitType.get() && (unit.cell.base.unitType.get() !== unit.type)) {
+				this.makeUseful(unit);
+			} else if (this.isUnitReady(unit)) {
+				this.makeUseful(unit);
+			}
+		} else {
+			if (unit.isHealed() || this.isEnemyWithin(unit.ij.get(), this.healSafeDistance)) {
+				this.makeUseful(unit);
+			}
+		}
+		++this.totalBehaviourCount[unit.behaviour];
+	}, this);
+	console.log(JSON.stringify(this.totalBehaviourCount));
+
+	JW.Array.each(this.bases, function(base) {
+		var type = base.unitType.get();
+		if (type) {
+			++this.totalUnitCount[type.id];
+		}
+		if (base.unitBehaviour) {
+			++this.totalBehaviourCount[base.unitBehaviour];
+		}
+	}, this);
+
+	// produce units
+	this.availableBehaviours = this.behaviours.concat();
+	JW.Array.each(this.bases, function(base) {
+		if (base.unitType.get()) {
+			return;
+		}
+		var cell = this.data.map.getCell(base.ij);
+		if (cell.unit && !this.isUnitReady(cell.unit)) {
+			base.unitType.set(cell.unit.type);
+			return;
+		}
+		var unitType;
+		if (this.totalBehaviourCount["build"] === 0) {
+			unitType = FL.Unit.types["mcv"];
+		} else {
+			if (this.totalBehaviourCount["build"] >= this.mcvLimit) {
+				JW.Array.removeItem(this.availableBehaviours, "build");
+			}
+			if (this.totalBehaviourCount["patrol"] >= this.patrolInitial + this.patrolPerBase * this.bases.length) {
+				JW.Array.removeItem(this.availableBehaviours, "patrol");
+			}
+			var availableUnitTypes = base.getAvailableUnitTypes();
+			availableUnitTypes = JW.Array.filter(availableUnitTypes, function(unitType) {
+				return JW.Array.some(unitType.ai, function(behaviour) {
+					return JW.Array.containsItem(this.availableBehaviours, behaviour);
+				}, this);
+			}, this);
+			var preferredUnitTypes = JW.Array.filter(availableUnitTypes, JW.byField("aiPreferred"));
+			if (preferredUnitTypes.length) {
+				availableUnitTypes = preferredUnitTypes;
+			}
+			unitType = availableUnitTypes[FL.random(availableUnitTypes.length)];
+		}
+		base.unitType.set(unitType);
+		++this.totalUnitCount[unitType.id];
+		var unitAvailableBehaviours = JW.Array.filter(unitType.ai, function(behaviour) {
+			return JW.Array.containsItem(this.availableBehaviours, behaviour);
+		}, this);
+		var behaviour = unitAvailableBehaviours.length ?
+			unitAvailableBehaviours[FL.random(unitAvailableBehaviours.length)] :
+			unitType.ai[FL.random(unitType.ai.length)];
+		base.unitBehaviour = behaviour;
+		++this.totalBehaviourCount[behaviour];
+	}, this);
+
+	// reset hold matrix
+	JW.Array.each(this.behaviourUnits["hold"], function(unit) {
+		unit.hold = false;
+	}, this);
+};
+
+JW.extend(FL.AI, JW.Class, {
 	behaviours: [
 		"build",
 		"patrol",
@@ -19,301 +129,72 @@ FL.AI = {
 	unitHoldRangeSqr: 4,
 	patrolInitial: 3,
 	patrolPerBase: 1,
-	initialProductionCoef: 1,
-	productionCoefPerWin: .1,
-	productionCoefPerLoss: .05,
 	mcvLimit: 2,
 	baseFirstProductionProfit: 15,
 	baseExtraProductionProfit: -4,
 	baseDistanceProfit: -2,
-	stackCostInitial: -30,
-	stackCostPerBase: 60,
+	stackCostInitial: -50,
+	stackCostPerBase: 100,
 
-	process: function(data, player) {
-		var bases = data.bases.$toArray().filter(JW.byValue("player", player));
-		var units = data.units.$toArray().filter(JW.byValue("player", player));
-		var stackCost = FL.AI.stackCostInitial + FL.AI.stackCostPerBase * bases.length;
-		var unitCount = JW.Map.map(FL.Unit.types, function() { return 0; });
-		var totalUnitCount = JW.Map.map(FL.Unit.types, function() { return 0; });
-		var behaviourUnits = JW.Array.$index(FL.AI.behaviours, JW.byField()).map(function() { return []; });
-		var totalBehaviourCount = JW.Map.map(behaviourUnits, function() { return 0; });
-		JW.Array.each(units, function(unit) {
-			++unitCount[unit.type.id];
-			++totalUnitCount[unit.type.id];
-			if (unit.cell.base) {
-				if (unit.cell.base.unitType.get() && (unit.cell.base.unitType.get() !== unit.type)) {
-					behaviourUnits[unit.behaviour].push(unit);
-				} else if (FL.AI.isUnitReady(unit, stackCost)) {
-					behaviourUnits[unit.behaviour].push(unit);
-				}
-			} else {
-				if (unit.isHealed() || FL.AI.isEnemyWithin(data, player, unit.ij.get(), FL.AI.healSafeDistance)) {
-					behaviourUnits[unit.behaviour].push(unit);
-				}
-			}
-			++totalBehaviourCount[unit.behaviour];
-		});
-		JW.Array.each(bases, function(base) {
-			var type = base.unitType.get();
-			if (type) {
-				++totalUnitCount[type.id];
-			}
-			if (base.unitBehaviour) {
-				++totalBehaviourCount[base.unitBehaviour];
-			}
-		});
-
-		// produce units
-		var availableBehaviours = FL.AI.behaviours.concat();
-		JW.Array.each(bases, function(base) {
-			if (base.unitType.get()) {
-				return;
-			}
-			var cell = data.map.getCell(base.ij);
-			if (cell.unit && !FL.AI.isUnitReady(cell.unit, stackCost)) {
-				base.unitType.set(cell.unit.type);
-				return;
-			}
-			var unitType;
-			if (totalBehaviourCount["build"] === 0) {
-				unitType = FL.Unit.types["mcv"];
-			} else {
-				if (totalBehaviourCount["build"] >= FL.AI.mcvLimit) {
-					JW.Array.removeItem(availableBehaviours, "build");
-				}
-				if (totalBehaviourCount["patrol"] >= FL.AI.patrolInitial + FL.AI.patrolPerBase * bases.length) {
-					JW.Array.removeItem(availableBehaviours, "patrol");
-				}
-				var availableUnitTypes = base.getAvailableUnitTypes();
-				availableUnitTypes = JW.Array.filter(availableUnitTypes, function(unitType) {
-					return JW.Array.some(unitType.ai, function(behaviour) {
-						return JW.Array.containsItem(availableBehaviours, behaviour);
-					});
-				});
-				var preferredUnitTypes = JW.Array.filter(availableUnitTypes, JW.byField("aiPreferred"));
-				if (preferredUnitTypes.length) {
-					availableUnitTypes = preferredUnitTypes;
-				}
-				unitType = availableUnitTypes[FL.random(availableUnitTypes.length)];
-			}
-			base.unitType.set(unitType);
-			++totalUnitCount[unitType.id];
-			var unitAvailableBehaviours = JW.Array.filter(unitType.ai, function(behaviour) {
-				return JW.Array.containsItem(availableBehaviours, behaviour);
-			});
-			var behaviour = unitAvailableBehaviours.length ?
-				unitAvailableBehaviours[FL.random(unitAvailableBehaviours.length)] :
-				unitType.ai[FL.random(unitType.ai.length)];
-			base.unitBehaviour = behaviour;
-			++totalBehaviourCount[behaviour];
-		});
-
-		// build bases
-		JW.Array.each(behaviourUnits["build"], function(unit) {
-			var ijTarget = FL.AI.findBaseSpot(data, unit.ij.get(), player);
-			if (ijTarget && FL.Vector.equal(ijTarget, unit.ij.get())) {
-				data.buildBase(unit);
-			} else {
-				unit.ijTarget = ijTarget;
-			}
-		});
-
-		// defend
-		var orderedUnits = new JW.Set();
-		data.units.each(function(attackUnit) {
-			if (attackUnit.player === player) {
-				return;
-			}
-			var nearestBase, nearestBaseDistanceSqr = Number.POSITIVE_INFINITY;
-			JW.Array.each(bases, function(base) {
-				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(attackUnit.ij.get(), base.ij));
-				if (distanceSqr < nearestBaseDistanceSqr) {
-					nearestBase = base;
-					nearestBaseDistanceSqr = distanceSqr;
-				}
-			});
-			if (nearestBaseDistanceSqr > FL.AI.aquisitionDistanceSqr) {
-				return;
-			}
-			var nearestUnit, nearestUnitDistanceSqr = Number.POSITIVE_INFINITY;
-			JW.Array.each(behaviourUnits["patrol"], function(patrolUnit) {
-				if (orderedUnits.contains(patrolUnit)) {
-					return;
-				}
-				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(patrolUnit.ij.get(), nearestBase.ij));
-				if (distanceSqr < nearestUnitDistanceSqr) {
-					nearestUnit = patrolUnit;
-					nearestUnitDistanceSqr = distanceSqr;
-				}
-			});
-			if (!nearestUnit) {
-				return;
-			}
-			orderedUnits.add(nearestUnit);
-			var ijTarget = FL.Vector.round(
-				FL.Vector.between(attackUnit.ij.get(), nearestBase.ij, .45));
-			if (!nearestUnit.ijTarget || !FL.Vector.equal(ijTarget, nearestUnit.ijTarget)) {
-				nearestUnit.ijTarget = ijTarget;
-			} else if (!nearestUnit.type.defense) {
-				nearestUnit.ijTarget = attackUnit.ij.get();
-			}
-		});
-
-		// rush
-		JW.Array.each(behaviourUnits["rush"], function(unit) {
-			if (FL.AI.isRushable(unit.cell, player)) {
-				unit.ijTarget = null;
-				return;
-			}
-			var path = data.findTarget(unit.ij.get(), unit.player, function(cell) {
-				return FL.AI.isRushable(cell, player) && !cell.unit;
-			});
-			if (!path || (path.length === 0)) {
-				behaviourUnits["patrol"].push(unit);
-				unit.ijTarget = null;
-			} else {
-				unit.ijTarget = JW.Array.getLast(path)[1];
-			}
-		});
-
-		// patrol
-		JW.Array.each(behaviourUnits["patrol"], function(unit) {
-			if (orderedUnits.contains(unit)) {
-				return;
-			}
-			if (unit.ijTarget) {
-				return;
-			}
-			var base = bases[FL.random(bases.length)];
-			if (!base) {
-				return;
-			}
-			var rect = data.map.getRect(base.ij, FL.AI.patrolDistance);
-			unit.ijTarget = [
-				rect.iMin + FL.random(rect.iMax - rect.iMin + 1),
-				rect.jMin + FL.random(rect.jMax - rect.jMin + 1)
-			];
-		});
-
-		// drop
-		JW.Array.each(behaviourUnits["drop"], function(unit) {
-			if (unit.canDrop()) {
-				FL.AI.paradrop(unit);
-				return;
-			}
-			var path = data.findTarget(unit.ij.get(), unit.player, function(cell) {
-				return cell.isAirportBy(player);
-			});
-			if (!path) {
-				unit.behaviour = "attack";
-				behaviourUnits["attack"].push(unit);
-			} else if (path.length === 0) {
-				unit.ijTarget = null;
-			} else {
-				unit.ijTarget = JW.Array.getLast(path)[1];
-			}
-		});
-
-		// attack
-		var newBehaviour = FL.random(2) ? "assaulting" : "attacking";
-		behaviourUnits[newBehaviour] = behaviourUnits[newBehaviour].concat(behaviourUnits["attack"]);
-		JW.Array.each(behaviourUnits["attack"], function(unit) {
-			unit.behaviour = newBehaviour;
-		});
-
-		FL.AI.issueAttack(data, player, behaviourUnits["attacking"], true, true);
-		FL.AI.issueAttack(data, player, behaviourUnits["assaulting"], false, true);
-
-		// hold
-		var holdMap = new FL.Matrix(data.map.size);
-		JW.Array.each(bases, function(base) {
-			data.map.eachWithin(base.ij, FL.AI.baseHoldRangeSqr, function(cell, ij) {
-				holdMap.setCell(ij, true);
-			});
-		});
-		JW.Array.each(behaviourUnits["hold"], function(unit) {
-			unit.hold = false;
-		});
-		for (var i = 0; i < data.map.size; ++i) {
-			for (var j = 0; j < data.map.size; ++j) {
-				var ij = [i, j];
-				if (!data.isPassable(ij) || data.isChoke(ij)) {
-					holdMap.setCell(ij, true);
-				}
-			}
-		}
-		JW.Array.each(behaviourUnits["hold"], function(unit) {
-			if (!holdMap.getCell(unit.ij.get())) {
-				unit.hold = true;
-				data.map.eachWithin(unit.ij.get(), FL.AI.unitHoldRangeSqr, function(cell, ij) {
-					holdMap.setCell(ij, true);
-				});
-			}
-			if (unit.hold) {
-				return;
-			}
-			var nearestTarget, nearestTargetDistanceSqr = Number.POSITIVE_INFINITY;
-			for (var i = 0; i < data.map.size; ++i) {
-				for (var j = 0; j < data.map.size; ++j) {
-					var ij = [i, j];
-					if (holdMap.getCell(ij)) {
-						continue;
-					}
-					var distanceSqr = FL.Vector.length(FL.Vector.diff(unit.ij.get(), ij)) +
-						.2 * FL.Vector.length(FL.Vector.diff(data.map.ijCenter(), ij));
-					if (distanceSqr < nearestTargetDistanceSqr) {
-						nearestTarget = ij;
-						nearestTargetDistanceSqr = distanceSqr;
-					}
-				}
-			}
-			if (nearestTarget) {
-				unit.ijTarget = nearestTarget;
-			} else {
-				unit.ijTarget = FL.Vector.add(unit.ij.get(), FL.dir8[FL.random(8)]);
-				if (!data.map.inMatrix(unit.ijTarget)) {
-					unit.ijTarget = null;
-				}
-			}
-		});
+	doSomething: function() {
+		return this.build() ||
+			this.defend() ||
+			this.rush() ||
+			this.patrol() ||
+			this.drop() ||
+			this.attack() ||
+			this.hold();
 	},
 
-	findBaseSpot: function(data, ijUnit, player) {
+	build: function() {
+		return JW.Array.some(this.behaviourUnits["build"].concat(), function(unit) {
+			this.makeUseless(unit);
+			var ijTarget = this.findBaseSpot(unit.ij.get());
+			if (!ijTarget) {
+				unit.ijTarget = null;
+				return false;
+			}
+			if (ijTarget && FL.Vector.equal(ijTarget, unit.ij.get())) {
+				this.data.buildBase(unit);
+			} else {
+				this.moveUnit(unit, ijTarget);
+			}
+			return true;
+		}, this);
+	},
+
+	findBaseSpot: function(ijUnit) {
 		var ijBest = null;
 		var profitBest = Number.NEGATIVE_INFINITY;
-		for (var i = 0; i < data.map.size; ++i) {
-			for (var j = 0; j < data.map.size; ++j) {
-				var ij = [i, j];
-				var cell = data.map.getCell(ij);
-				if (cell.rock || cell.miningBase) {
-					continue;
-				}
-				if (cell.unit && !FL.Vector.equal(ijUnit, ij)) {
-					continue;
-				}
-				var profit = FL.AI.getBaseProfit(data, ij, player) +
-					FL.AI.baseDistanceProfit * FL.Vector.length(FL.Vector.diff(ijUnit, ij));
-				if (profit <= profitBest) {
-					continue;
-				}
-				if (!data.isBaseBuildable(ij)) {
-					continue;
-				}
-				ijBest = ij;
-				profitBest = profit;
-			}
-		}
-		return ijBest;
-	},
-
-	getBaseProfit: function(data, ijBase, player) {
-		var profit = 0;
-		var hasProduction = false;
-		data.map.eachWithin(ijBase, FL.baseMiningRangeSqr, function(cell, ij) {
+		this.data.map.every(function(cell, ij) {
 			if (cell.rock || cell.miningBase) {
 				return;
 			}
-			if (cell.unit && (cell.unit.player !== player)) {
+			if (cell.unit && !FL.Vector.equal(ijUnit, ij)) {
+				return;
+			}
+			var profit = this.getBaseProfit(ij) +
+				this.baseDistanceProfit * FL.Vector.length(FL.Vector.diff(ijUnit, ij));
+			if (profit <= profitBest) {
+				return;
+			}
+			if (!this.data.isBaseBuildable(ij)) {
+				return;
+			}
+			ijBest = ij;
+			profitBest = profit;
+		}, this);
+		return ijBest;
+	},
+
+	getBaseProfit: function(ijBase) {
+		var profit = 0;
+		var hasProduction = false;
+		this.data.map.eachWithin(ijBase, FL.baseMiningRangeSqr, function(cell, ij) {
+			if (cell.rock || cell.miningBase) {
+				return;
+			}
+			if (cell.unit && (cell.unit.player !== this.player)) {
 				profit -= 10000;
 			}
 			profit += cell.mining;
@@ -323,65 +204,178 @@ FL.AI = {
 				}
 				if (cell.resource.aiProduction) {
 					if (hasProduction) {
-						profit += FL.AI.baseExtraProductionProfit;
+						profit += this.baseExtraProductionProfit;
 					} else {
 						hasProduction = true;
-						profit += FL.AI.baseFirstProductionProfit;
+						profit += this.baseFirstProductionProfit;
 					}
 				}
 			}
-		});
+		}, this);
 		return profit;
 	},
 
-	issueAttack: function(data, player, units, includeUnits, includeBases) {
-		var ijTargets = [];
-		if (includeBases) {
-			data.bases.each(function(base) {
-				if (base.player !== player) {
-					ijTargets.push(base.ij);
+	defend: function() {
+		var beatenPairIndex = JW.Array.find(this.threateningPairs, function(pair) {
+			var attackUnit = pair[0];
+			var nearestBase = pair[1];
+			var nearestUnit, nearestUnitDistanceSqr = Number.POSITIVE_INFINITY;
+			JW.Array.each(this.behaviourUnits["patrol"], function(patrolUnit) {
+				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(patrolUnit.ij.get(), nearestBase.ij));
+				if (distanceSqr < nearestUnitDistanceSqr) {
+					nearestUnit = patrolUnit;
+					nearestUnitDistanceSqr = distanceSqr;
 				}
-			});
-		}
-		if (includeUnits) {
-			data.units.each(function(unit) {
-				if (unit.player !== player) {
-					ijTargets.push(unit.ij.get());
+			}, this);
+			if (!nearestUnit) {
+				return false;
+			}
+			this.makeUseless(nearestUnit);
+			if (!nearestUnit.type.defense) {
+				this.moveUnit(nearestUnit, attackUnit.ij.get());
+				return true;
+			}
+			var nearestTarget,
+				nearestAttackDistanceSqr = Number.POSITIVE_INFINITY,
+				nearestDefendDistance = Number.POSITIVE_INFINITY;
+			this.data.map.everyWithin8(nearestBase.ij, 1, function(cell, ij) {
+				if (cell.base || (cell.unit && cell.unit !== nearestUnit)) {
+					return;
 				}
-			});
-		}
-		JW.Array.each(units, function(unit) {
-			var nearestTarget, nearestTargetDistanceSqr = Number.POSITIVE_INFINITY;
-			JW.Array.each(ijTargets, function(ij) {
-				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij.get(), ij));
-				if (distanceSqr < nearestTargetDistanceSqr) {
+				var attackDistanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(ij, attackUnit.ij.get()));
+				var defendDistance = FL.Vector.length8(FL.Vector.diff(ij, nearestUnit.ij.get()));
+				if ((attackDistanceSqr < nearestAttackDistanceSqr) ||
+						(attackDistanceSqr === nearestAttackDistanceSqr &&
+							defendDistance < nearestDefendDistance)) {
 					nearestTarget = ij;
-					nearestTargetDistanceSqr = distanceSqr;
+					nearestAttackDistanceSqr = attackDistanceSqr;
+					nearestDefendDistance = defendDistance;
 				}
-			});
+			}, this);
 			if (!nearestTarget) {
-				return; // just in case
+				this.moveUnit(nearestUnit, null);
+				return false;
 			}
-			if (data.getPath(unit.ij.get(), nearestTarget, player)) {
-				unit.ijTarget = nearestTarget;
-			} else {
-				unit.behaviour = "attacking";
-				unit.ijTarget = FL.Vector.add(unit.ij.get(), FL.dir8[FL.random(8)]);
-				if (!data.map.inMatrix(unit.ijTarget)) {
-					unit.ijTarget = null;
+			this.moveUnit(nearestUnit, nearestTarget);
+			return true;
+		}, this);
+		if (beatenPairIndex) {
+			this.threateningPairs.splice(beatenPairIndex, 1);
+			return true;
+		}
+		return false;
+	},
+
+	rush: function() {
+		return JW.Array.some(this.behaviourUnits["rush"].concat(), function(unit) {
+			if (this.isRushable(unit.cell)) {
+				this.moveUnit(unit, null);
+				return false;
+			}
+			var path = this.data.findTarget(unit.ij.get(), unit.player, function(cell) {
+				return this.isRushable(cell) && !cell.unit;
+			}, this);
+			if (!path || (path.length === 0)) {
+				this.changeBehaviour(unit, "patrol");
+				return false;
+			}
+			this.moveUnit(unit, JW.Array.getLast(path)[1]);
+			return true;
+		}, this);
+	},
+
+	isRushable: function(cell) {
+		return cell.resource && !cell.nearBases.every(JW.byValue("player", this.player));
+	},
+
+	patrol: function() {
+		if (this.behaviourUnits["patrol"].length === 0) {
+			return false;
+		}
+		// looking for a base with the least defender count and the farthest nearest patroller
+		var vulnerableBase,
+			vulnerableBasePatrolCount = Number.POSITIVE_INFINITY,
+			vulnerableBaseNearestUnit,
+			vulnerableBaseNearestUnitDistanceSqr = 0;
+		JW.Array.each(this.bases, function(base) {
+			var patrolCount = this.basePatrolCount[base._iid];
+			if (patrolCount > vulnerableBasePatrolCount) {
+				return;
+			}
+			if (patrolCount > 10) {
+				return;
+			}
+			var nearestUnit,
+				nearestUnitDistanceSqr = Number.POSITIVE_INFINITY;
+			JW.Array.each(this.behaviourUnits["patrol"], function(unit) {
+				var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(unit.ij.get(), base.ij));
+				if (distanceSqr < nearestUnitDistanceSqr) {
+					nearestUnit = unit;
+					nearestUnitDistanceSqr = distanceSqr;
 				}
+			}, this);
+			if ((patrolCount === vulnerableBasePatrolCount) &&
+					(nearestUnitDistanceSqr < vulnerableBaseNearestUnitDistanceSqr)) {
+				return;
 			}
-		});
+			vulnerableBase = base;
+			vulnerableBasePatrolCount = patrolCount;
+			vulnerableBaseNearestUnit = nearestUnit;
+			vulnerableBaseNearestUnitDistanceSqr = nearestUnitDistanceSqr;
+		}, this);
+		var nearestTarget,
+			nearestTargetDistanceSqr = Number.POSITIVE_INFINITY;
+		var placementFactor = FL.random(2);
+		this.data.map.everyWithin8(vulnerableBase.ij, 1, function(cell, ij) {
+			if (cell.base || cell.unit) {
+				return;
+			}
+			var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(ij, vulnerableBaseNearestUnit.ij.get()));
+			if (distanceSqr < nearestTargetDistanceSqr) {
+				nearestTarget = ij;
+				nearestTargetDistanceSqr = distanceSqr + placementFactor;
+			}
+		}, this);
+		if (!nearestTarget) {
+			// ignore this base next time
+			this.basePatrolCount[vulnerableBase._iid] = Number.POSITIVE_INFINITY;
+			return true;
+		}
+		this.basePatrolCount[vulnerableBase._iid]++;
+		this.moveUnit(vulnerableBaseNearestUnit, nearestTarget);
+		this.makeUseless(vulnerableBaseNearestUnit);
+		return true;
+	},
+
+	drop: function() {
+		return JW.Array.some(this.behaviourUnits["drop"].concat(), function(unit) {
+			if (unit.canDrop()) {
+				return this.paradrop(unit);
+			}
+			var path = this.data.findTarget(unit.ij.get(), unit.player, function(cell) {
+				return cell.isAirportBy(this.player);
+			});
+			if (!path) {
+				this.changeBehaviour(unit, "attack", true);
+				return false;
+			}
+			if (path.length === 0) {
+				this.moveUnit(unit, null);
+				return false;
+			}
+			this.moveUnit(unit, JW.Array.getLast(path)[1]);
+			return true;
+		}, this);
 	},
 
 	paradrop: function(unit) {
 		var dropTarget = null;
 		var dropTargetDistanceSqr = Number.POSITIVE_INFINITY;
-		unit.data.map.every(function(cell) {
-			if (!unit.data.isDroppable(cell.ij, unit.player)) {
+		this.data.map.every(function(cell) {
+			if (!this.data.isDroppable(cell.ij, unit.player)) {
 				return;
 			}
-			unit.data.bases.each(function(base) {
+			this.data.bases.each(function(base) {
 				if (base.player === unit.player) {
 					return;
 				}
@@ -390,40 +384,151 @@ FL.AI = {
 					dropTarget = cell.ij;
 					dropTargetDistanceSqr = distanceSqr;
 				}
-			});
-		});
+			}, this);
+		}, this);
 		unit.ijTarget = null;
-		if (dropTarget) {
-			unit.drop(dropTarget);
-			unit.behaviour = (dropTargetDistanceSqr < 9) ? "assaulting" : "attacking";
+		if (!dropTarget) {
+			this.moveUnit(unit, null);
+			return false;
 		}
+		unit.drop(dropTarget);
+		if (unit.movement.get() === 0) {
+			this.makeUseless(unit);
+		}
+		unit.behaviour = (dropTargetDistanceSqr < 9) ? "assaulting" : "attacking";
+		return true;
 	},
 
-	isUnitReady: function(unit, stackCost) {
-		return (unit.behaviour === "hold") ||
-			(unit.getCount() >= Math.min(unit.type.capacity, Math.round(stackCost / unit.type.cost)));
+	attack: function() {
+		JW.Array.each(this.behaviourUnits["attack"].concat(), function(unit) {
+			var behaviour = (this.isEnemyWithin(unit.ij.get(), 3) || FL.random(2)) ? "attacking" : "assaulting";
+			this.changeBehaviour(unit, behaviour, true);
+		}, this);
+		return this.issueAttack(this.behaviourUnits["assaulting"], false, true) ||
+			this.issueAttack(this.behaviourUnits["attacking"], true, true);
 	},
 
-	isEnemyWithin: function(data, player, ij, distance) {
-		var rect = data.map.getRect(ij, distance);
-		for (var i = rect.iMin; i <= rect.iMax; ++i) {
-			for (var j = rect.jMin; j <= rect.jMax; ++j) {
-				var cell = data.map.getCell([i, j]);
-				if (cell.unit && (cell.unit.player !== player)) {
-					return true;
+	issueAttack: function(units, includeUnits, includeBases) {
+		var ijTargets = {};
+		if (includeBases) {
+			this.data.bases.each(function(base) {
+				if (base.player !== this.player) {
+					ijTargets[base.ij] = true;
 				}
-				if (cell.base && (cell.base.player !== player)) {
-					return true;
+			}, this);
+		}
+		if (includeUnits) {
+			this.data.units.each(function(unit) {
+				if (unit.player !== this.player) {
+					ijTargets[unit.ij.get()] = true;
 				}
+			}, this);
+		}
+		return JW.Array.some(units.concat(), function(unit) {
+			var path = this.data.findTarget(unit.ij.get(), this.player, function(cell) {
+				return ijTargets[cell.ij];
+			}, this);
+			if (path && (path.length !== 0)) {
+				this.moveUnit(unit, JW.Array.getLast(path)[1]);
+				return true;
 			}
-		}
-		return false;
+			if (unit.behaviour === "assaulting") {
+				this.changeBehaviour(unit, "attacking");
+			} else {
+				this.moveUnit(unit, null);
+			}
+			return false;
+		}, this);
 	},
 
-	isRushable: function(cell, player) {
-		return cell.resource && !cell.nearBases.every(JW.byValue("player", player));
+	hold: function() {
+		var holdMap = new FL.Matrix(this.data.map.size);
+		JW.Array.each(this.bases, function(base) {
+			this.data.map.eachWithin(base.ij, this.baseHoldRangeSqr, function(cell, ij) {
+				holdMap.setCell(ij, true);
+			}, this);
+		}, this);
+		this.data.map.every(function(cell, ij) {
+			if (!this.data.isPassable(ij) || this.data.isChoke(ij)) {
+				holdMap.setCell(ij, true);
+			}
+		}, this);
+		return JW.Array.some(this.behaviourUnits["hold"].concat(), function(unit) {
+			if (!holdMap.getCell(unit.ij.get())) {
+				unit.hold = true;
+			}
+			if (unit.hold) {
+				this.data.map.eachWithin(unit.ij.get(), this.unitHoldRangeSqr, function(cell, ij) {
+					holdMap.setCell(ij, true);
+				}, this);
+				this.makeUseless(unit);
+				return false;
+			}
+			var nearestTarget,
+				nearestTargetDistanceSqr = Number.POSITIVE_INFINITY;
+			holdMap.every(function(held, ij) {
+				if (held) {
+					return;
+				}
+				var distanceSqr = FL.Vector.length(FL.Vector.diff(unit.ij.get(), ij)) +
+					.2 * FL.Vector.length(FL.Vector.diff(this.data.map.ijCenter(), ij));
+				if (distanceSqr < nearestTargetDistanceSqr) {
+					nearestTarget = ij;
+					nearestTargetDistanceSqr = distanceSqr;
+				}
+			}, this);
+			this.moveUnit(unit, nearestTarget);
+			return (nearestTarget !== null);
+		}, this);
+	},
+
+	isUnitReady: function(unit) {
+		return (unit.behaviour === "hold") ||
+			(unit.getCount() >= Math.min(unit.type.capacity, Math.round(this.stackCost / unit.type.cost)));
+	},
+
+	isEnemyWithin: function(ij, distance) {
+		return this.data.map.someWithin8(ij, distance, function(cell, ij) {
+			return (cell.unit && (cell.unit.player !== this.player)) ||
+				(cell.base && (cell.base.player !== this.player));
+		}, this);
+	},
+
+	moveUnit: function(unit, ij) {
+		unit.ijTarget = ij;
+		var moved = this.data.moveUnit(unit);
+		if (!moved || !unit.alive || !unit.movement.get()) {
+			this.makeUseless(unit);
+		}
+	},
+
+	makeUseful: function(unit, behaviour) {
+		if (unit.alive && (unit.movement.get() !== 0)) {
+			behaviour = behaviour || unit.behaviour;
+			this.behaviourUnits[behaviour].push(unit);
+			this.unitBehaviours[unit._iid] = behaviour;
+		}
+	},
+
+	makeUseless: function(unit) {
+		var behaviour = this.unitBehaviours[unit._iid];
+		JW.Array.removeItem(this.behaviourUnits[behaviour], unit);
+	},
+
+	changeBehaviour: function(unit, behaviour, permanent) {
+		this.makeUseless(unit);
+		this.makeUseful(unit, behaviour);
+		if (permanent) {
+			unit.behaviour = behaviour;
+		}
 	}
-};
+});
+
+JW.apply(FL.AI, {
+	initialProductionCoef: 1,
+	productionCoefPerWin: .1,
+	productionCoefPerLoss: .05
+});
 
 FL.AI.productionCoef = FL.AI.initialProductionCoef +
 	(localStorage["wins"] || 0) * FL.AI.productionCoefPerWin -

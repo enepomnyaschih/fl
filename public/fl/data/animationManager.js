@@ -2,8 +2,8 @@ FL.Data.AnimationManager = function(data) {
 	FL.Data.AnimationManager._super.call(this);
 	this.data = data; // FL.Data
 	this.animationQueue = []; // <FL.Unit>
-	this.sequential = false;
 	this.lastHit = new Date().getTime();
+	this.changePlayerOnFinish = false;
 	this.timer = this.own(new JW.Property(
 		new JW.Interval(this._onInterval, this, 17))).ownValue();
 	this.success = true;
@@ -16,26 +16,19 @@ JW.extend(FL.Data.AnimationManager, JW.Class, {
 		}
 	},
 
-	startSequentialAnimation: function() {
-		this.sequential = true;
-	},
-
 	animate: function() {
 		if (!this.success) {
 			this.timer.set(null);
 			return;
 		}
 		this.success = false;
-		if (!this.sequential) {
-			this.animateAll();
-		} else {
-			if (this.data.player === 0) {
-				this.animateAll();
-			} else {
-				this.animateSingle();
+		this.animateAll();
+		if (this.animationQueue.length === 0) {
+			if (this.data.ai && !this.data.ai.doSomething()) {
+				this.changePlayerOnFinish = true;
 			}
-			if (this.animationQueue.length === 0) {
-				this.sequential = false;
+			if (this.changePlayerOnFinish) {
+				this.changePlayerOnFinish = false;
 				this.data.nextPlayer();
 			}
 		}
