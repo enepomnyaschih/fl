@@ -313,11 +313,11 @@ JW.extend(FL.Data, JW.Class, {
 					}
 				}
 				var fits = callback.call(scope || this, cell);
+				var unit = cell.unit;
+				if (unit && unit.visible && !fits) {
+					continue;
+				}
 				if (cell.visible[player]) {
-					var unit = cell.unit;
-					if (unit && !fits) {
-						continue;
-					}
 					if ((!unit || unit.player === player) &&
 							this.isByEnemy(cij, player) && this.isByEnemy(dij, player)) {
 						continue;

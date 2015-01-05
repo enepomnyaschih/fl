@@ -41,7 +41,7 @@ JW.extend(FL.Cell, JW.Class, {
 		}
 		this.visible[player] = false;
 		this.invalid = true;
-		if (this.unit) {
+		if (this.unit && (player === 0)) {
 			this.unit.visible[player] = false;
 			this.unit.resetAnimation();
 		}

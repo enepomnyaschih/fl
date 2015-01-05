@@ -10,7 +10,7 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 	this.hold = false;
 	this.skipped = false;
 	this.behaviour = behaviour || type.ai[FL.random(type.ai.length)];
-	this.visible = [false, false];
+	this.visible = [false, true];
 	this.persons = this.own(new JW.Property([new FL.Unit.Person(type)]));
 	this.alive = true;
 
@@ -27,7 +27,6 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 			this.data.reveal(ij, this.getSightRangeSqr(), this.player);
 			var animate = this.visible[0] || this.cell.visible[0];
 			this.visible[0] = this.cell.visible[0];
-			this.visible[1] = this.cell.visible[1];
 			if (!animate && !this.animations.length) {
 				this.resetAnimation();
 			} else {
@@ -334,7 +333,7 @@ FL.Unit.typeArray = [
 		defense: 0,
 		healRate: .1,
 		movement: 2,
-		sightRangeSqr: 8,
+		sightRangeSqr: 5,
 		sightRangeSqrHill: 10,
 		cost: 200,
 		resources: ["heavy"],
@@ -352,7 +351,7 @@ FL.Unit.typeArray = [
 		defense: 4,
 		healRate: .1,
 		movement: 2,
-		sightRangeSqr: 8,
+		sightRangeSqr: 5,
 		sightRangeSqrHill: 10,
 		cost: 175,
 		resources: ["heavy"],
