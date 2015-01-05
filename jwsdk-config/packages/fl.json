@@ -25,6 +25,7 @@
 		"fl/monitor.js",
 		"fl/monitor.jw.html : FL.Monitor",
 		"fl/monitor.styl",
+		"fl/names.js",
 		"fl/panel/panel.js",
 		"fl/panel/panel.jw.html : FL.Panel",
 		"fl/panel/panel.styl",
@@ -55,6 +56,7 @@
 		"fl/unitInfo/header.jw.html : FL.UnitInfo.Header",
 		"fl/unitInfo/stats.js",
 		"fl/unitInfo/stats.jw.html : FL.UnitInfo.Stats",
+		"fl/unitNameList.js",
 		"fl/unitView.js",
 		"fl/vector.js",
 

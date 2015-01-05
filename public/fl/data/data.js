@@ -8,6 +8,15 @@ FL.Data = function() {
 	this.turn = new JW.Property(1);
 	this.player = 0;
 	this.animationManager = this.own(new FL.Data.AnimationManager(this));
+	this.baseNames = FL.baseNames.concat();
+	this.unitNames = [];
+	for (var i = 0; i < 2; ++i) {
+		this.unitNames.push({
+			worker   : this.own(new FL.UnitNameList(["Worker"])),
+			infantry : this.own(new FL.UnitNameList(FL.infantryNames)),
+			vehicle  : this.own(new FL.UnitNameList(FL.vehicleNames))
+		});
+	}
 	this._generateMap();
 };
 
@@ -15,6 +24,13 @@ JW.extend(FL.Data, JW.Class, {
 	createBase: function(ij, player) {
 		var cell = this.map.getCell(ij);
 		var base = new FL.Base(cell, player);
+		if (this.baseNames.length === 0) {
+			base.name = "No more names";
+		} else {
+			var nameIndex = FL.random(this.baseNames.length);
+			base.name = this.baseNames[nameIndex];
+			this.baseNames.splice(nameIndex, 1);
+		}
 		this.bases.add(base);
 		cell.base = base;
 		this.map.eachWithin(ij, FL.baseMiningRangeSqr, function(cell) {
@@ -31,13 +47,18 @@ JW.extend(FL.Data, JW.Class, {
 		this.bases.remove(base);
 		this.map.getCell(base.ij).setBase(null);
 		base.destroy();
+		if (base.name !== "No more names") {
+			this.baseNames.push(base.name);
+		}
 		if (this.bases.count(JW.byValue("player", base.player)) === 0) {
 			this.lostEvent.trigger(base.player);
 		}
 	},
 
-	createUnit: function(ij, player, type, behaviour) {
+	createUnit: function(ij, player, type, behaviour, name) {
 		var unit = new FL.Unit(this, ij, player, type, behaviour);
+		var unitNameList = this.unitNames[player][type.category];
+		unit.name = unitNameList.checkout(name);
 		this.units.add(unit);
 		this.reveal(ij, unit.getSightRangeSqr(), player);
 		return unit;
@@ -315,7 +336,7 @@ JW.extend(FL.Data, JW.Class, {
 				}
 				var fits = callback.call(scope || this, cell);
 				var unit = cell.unit;
-				if (unit && unit.visible && !fits) {
+				if (unit && unit.visible[player] && !fits) {
 					continue;
 				}
 				if (cell.visible[player]) {

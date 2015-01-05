@@ -5,6 +5,10 @@ FL.Panel.Base = function(base) {
 };
 
 JW.extend(FL.Panel.Base, JW.UI.Component, {
+	renderName: function(el) {
+		el.text(this.base.name);
+	},
+
 	renderDefense: function(el) {
 		var value = this.base.health.get();
 		el.html(

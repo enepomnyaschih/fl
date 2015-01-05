@@ -7,6 +7,7 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 	this.movement = this.own(new JW.Property(this.type.movement)); // <Integer>
 	this.cell = null; // FL.Cell
 	this.ijTarget = null; // Vector
+	this.name = ["Unnamed", 1];
 	this.hold = false;
 	this.skipped = false;
 	this.behaviour = behaviour || type.ai[FL.random(type.ai.length)];
@@ -84,7 +85,7 @@ JW.extend(FL.Unit, JW.Class, {
 		}, this);
 		this.setPersons(remainingPersons);
 
-		var unit = this.data.createUnit(this.ij.get(), this.player, this.type, this.behaviour);
+		var unit = this.data.createUnit(this.ij.get(), this.player, this.type, this.behaviour, this.name[0]);
 		unit.ijTarget = this.ijTarget;
 		this.ijTarget = null;
 		unit.setPersons(splittedPersons);
@@ -181,7 +182,8 @@ FL.Unit.typeArray = [
 		cost: 300,
 		ai: ["build"],
 		capacity: 1,
-		aiPreferred: true
+		aiPreferred: true,
+		category: "worker"
 	},
 	{
 		id: "militia",
@@ -197,7 +199,8 @@ FL.Unit.typeArray = [
 		cost: 50,
 		ai: ["hold", "rush"],
 		capacity: 10,
-		aiPreferred: false
+		aiPreferred: false,
+		category: "infantry"
 	},
 	{
 		id: "infantry",
@@ -213,7 +216,8 @@ FL.Unit.typeArray = [
 		cost: 65,
 		ai: ["attack"],
 		capacity: 10,
-		aiPreferred: false
+		aiPreferred: false,
+		category: "infantry"
 	},
 	/*{
 		id: "ack",
@@ -242,7 +246,8 @@ FL.Unit.typeArray = [
 		resources: ["yard"],
 		ai: ["hold", "rush"],
 		capacity: 5,
-		aiPreferred: true
+		aiPreferred: true,
+		category: "infantry"
 	},
 	{
 		id: "paratrooper",
@@ -260,7 +265,8 @@ FL.Unit.typeArray = [
 		paradroppable: true,
 		ai: ["drop"],
 		capacity: 5,
-		aiPreferred: true
+		aiPreferred: true,
+		category: "infantry"
 	},
 	/*{
 		id: "artillery",
@@ -290,7 +296,8 @@ FL.Unit.typeArray = [
 		resources: ["light"],
 		ai: ["patrol", "attack"],
 		capacity: 5,
-		aiPreferred: true
+		aiPreferred: true,
+		category: "vehicle"
 	},
 	/*{
 		id: "sam",
@@ -322,7 +329,8 @@ FL.Unit.typeArray = [
 		resources: ["light"],
 		ai: ["patrol", "rush"],
 		capacity: 5,
-		aiPreferred: true
+		aiPreferred: true,
+		category: "vehicle"
 	},
 	{
 		id: "tank",
@@ -340,7 +348,8 @@ FL.Unit.typeArray = [
 		ai: ["attack"],
 		blitz: true,
 		capacity: 3,
-		aiPreferred: true
+		aiPreferred: true,
+		category: "vehicle"
 	},
 	{
 		id: "mobile",
@@ -358,7 +367,8 @@ FL.Unit.typeArray = [
 		ai: ["patrol", "attack", "rush"],
 		cover: true,
 		capacity: 3,
-		aiPreferred: true
+		aiPreferred: true,
+		category: "vehicle"
 	}/*,
 	{
 		id: "helicopter",

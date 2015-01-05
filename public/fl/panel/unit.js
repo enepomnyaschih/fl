@@ -7,6 +7,10 @@ FL.Panel.Unit = function(monitor, unit) {
 };
 
 JW.extend(FL.Panel.Unit, JW.UI.Component, {
+	renderName: function(el) {
+		el.text(this.unit.name[0] + " #" + this.unit.name[1]);
+	},
+
 	renderHeader: function() {
 		return this.own(new FL.UnitInfo.Header(this.unit.type, this.unit.player));
 	},
