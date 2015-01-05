@@ -90,38 +90,38 @@ JW.extend(FL.Data, JW.Class, {
 		if (!JW.Array.every(selection, JW.byField())) {
 			unit = unit.split(selection);
 		}
-		var selectionCount = JW.Array.count(selection, JW.byField());
 		for (var i = 0; (i < path.length) && unit.movement.get(); ++i) {
 			var tij = FL.Vector.add(unit.ij.get(), FL.dir8[path[i]]);
-			if (!this.isPassable(tij)) {
+			var outcome = this.getMoveOutcome(unit, tij, FL.Vector.equal(tij, unit.ijTarget));
+			if (outcome === 0) {
 				break;
 			}
-			var sourceCell = unit.cell;
 			var targetCell = this.map.getCell(tij);
-			if (targetCell.unit) {
-				if ((targetCell.unit.player !== unit.player) &&
-						FL.Vector.equal(tij, unit.ijTarget) && (unit.type.damage !== 0)) {
-					this.fightUnit(unit, targetCell.unit);
-				} else if ((targetCell.unit.player === unit.player) &&
-						(targetCell.unit.type === unit.type) &&
-						(targetCell.unit.getCount() + selectionCount <= unit.type.capacity) &&
-						FL.Vector.equal(tij, unit.ijTarget)) {
-					unit.decreaseMovement();
-					unit.ij.set(tij);
-					break;
-				}
+			if (outcome === 2) {
+				this.fightUnit(unit, targetCell.unit);
 				unit.ijTarget = null;
 				break;
 			}
-			if (targetCell.base && (targetCell.base.player !== unit.player)) {
-				if (FL.Vector.equal(tij, unit.ijTarget) && (unit.type.damage !== 0)) {
-					this.fightBase(unit, targetCell.base);
-				}
+			if (outcome === 3) {
+				this.fightBase(unit, targetCell.base);
+				unit.ijTarget = null;
+				break;
+			}
+			if (outcome === 5) {
+				this.map.everyWithin8(tij, 1, function(cell) {
+					if (cell.unit) {
+						cell.reveal(unit.player);
+					}
+				}, this);
 				unit.ijTarget = null;
 				break;
 			}
 			unit.decreaseMovement();
 			unit.ij.set(tij);
+			if (outcome === 4) {
+				unit.ijTarget = null;
+				break;
+			}
 		}
 		if (unit.ijTarget && FL.Vector.equal(unit.ij.get(), unit.ijTarget)) {
 			unit.ijTarget = null;
@@ -284,25 +284,43 @@ JW.extend(FL.Data, JW.Class, {
 		return false;
 	},
 
-	isByEnemy: function(cij, player) {
+	isByEnemy: function(cij, player, onlyVisible) {
 		return this.map.someWithin8(cij, 1, function(cell) {
-			return cell.unit && (cell.unit.player !== player);
+			return cell.unit && (cell.unit.player !== player) &&
+				(!onlyVisible || cell.unit.visible[player]);
 		}, this);
 	},
 
-	revealEnemies: function(cij, player) {
-		var isVisibleEnemy = this.map.someWithin8(cij, 1, function(cell) {
-			return cell.unit && (cell.unit.player !== player) && cell.unit.visible[player];
-		}, this);
-		if (isVisibleEnemy) {
-			return false;
+	/*
+	0 - can not move
+	1 - can move
+	2 - fight unit
+	3 - fight base
+	4 - merge
+	5 - can not move because of hidden enemies
+	*/
+	getMoveOutcome: function(unit, tij, isTargetPoint) {
+		if (!this.isPassable(tij)) {
+			return 0;
 		}
-		this.map.everyWithin8(cij, 1, function(cell) {
-			if (cell.unit) {
-				cell.reveal(player);
-			}
-		}, this);
-		return true;
+		isTargetPoint = (isTargetPoint == null) || isTargetPoint;
+		var sourceCell = unit.cell;
+		var targetCell = this.map.getCell(tij);
+		if (targetCell.unit && (targetCell.unit.player !== unit.player)) {
+			return (unit.type.damage !== 0 && isTargetPoint) ? 2 : 0;
+		}
+		if (this.isByEnemy(unit.ij.get(), unit.player) && this.isByEnemy(tij, unit.player)) {
+			return this.isByEnemy(tij, unit.player, true) ? 0 : 5;
+		}
+		if (targetCell.unit && (targetCell.unit.player === unit.player)) {
+			return ((targetCell.unit.type === unit.type) &&
+				(targetCell.unit.getCount() + unit.getCount() <= unit.type.capacity) &&
+				isTargetPoint) ? 4 : 0;
+		}
+		if (targetCell.base && (targetCell.base.player !== unit.player)) {
+			return (unit.type.damage !== 0 && isTargetPoint) ? 3 : 0;
+		}
+		return 1;
 	},
 
 	getPath: function(sij, tij, player) {
@@ -339,15 +357,12 @@ JW.extend(FL.Data, JW.Class, {
 				if (unit && unit.visible[player] && !fits) {
 					continue;
 				}
-				if (cell.visible[player]) {
-					if ((!unit || unit.player === player) &&
-							this.isByEnemy(cij, player) && this.isByEnemy(dij, player)) {
-						continue;
-					}
-					var base = cell.base;
-					if (base && (base.player !== player) && !fits) {
-						continue;
-					}
+				if ((!unit || unit.player === player) &&
+						this.isByEnemy(cij, player, true) && this.isByEnemy(dij, player, true)) {
+					continue;
+				}
+				if (cell.visible[player] && cell.base && (cell.base.player !== player) && !fits) {
+					continue;
 				}
 				queue.push(dij);
 				dirs.setCell(dij, dir);
