@@ -106,6 +106,8 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			var base = this.cellSelect.base;
 			if (this._isBaseAutoSelectable(base)) {
 				this.baseExitAttachment.set(base.unitType.changeEvent.bind(this.selectNextIfDone, this));
+			} else if (base) {
+				this.baseExitAttachment.set(base.unitType.changeEvent.bind(this.reselectCell, this));
 			}
 			if (this.cellSelect.unit && (this.cellSelect.unit.player === 0)) {
 				this.unitSelection = JW.Array.map(this.cellSelect.unit.persons.get(), function() { return false; });
@@ -151,12 +153,16 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 
 	selectNextIfDone: function() {
 		if (this.cellSelect && this._isBaseAutoSelectable(this.cellSelect.base)) {
-			this.selectCell(this.cellSelect.ij);
+			this.reselectCell();
 		} else if (this.cellSelect && this._isUnitAutoSelectable(this.cellSelect.unit)) {
-			this.selectCell(this.cellSelect.ij);
+			this.reselectCell();
 		} else {
 			this.selectNext();
 		}
+	},
+
+	reselectCell: function() {
+		this.selectCell(this.cellSelect.ij);
 	},
 
 	updateMap: function(force) {

@@ -19,25 +19,26 @@ JW.extend(FL.Panel.Base, JW.UI.Component, {
 	},
 
 	renderUnitsBox: function(el) {
-		if (!this.base.unitType.get()) {
-			this.selectAnimation.set(new FL.AlternateAnimation({
-				updater: function(value) {
-					el.css("background", JW.Color.str(JW.Color.gradient("#FFF", "#BFB", value)));
-					el.css("border-color", JW.Color.str(JW.Color.gradient("#FFF", "#0F0", value)));
-					el.css("color", JW.Color.str(JW.Color.gradient("#FFF", "#0D0", value)));
-				},
-				finish: function(value) {
-					el.css("background", "");
-					el.css("border-color", "");
-					el.css("color", "");
-				},
-				scope: this
-			}));
-			this.own(this.base.unitType.changeEvent.bind(function() {
-				this.selectAnimation.set(null);
-			}, this));
-		}
 		el.width(16 * FL.Unit.typeArray.length + "px");
+		if (this.base.unitType.get()) {
+			return;
+		}
+		this.selectAnimation.set(new FL.AlternateAnimation({
+			updater: function(value) {
+				el.css("background", JW.Color.str(JW.Color.gradient("#FFF", "#BFB", value)));
+				el.css("border-color", JW.Color.str(JW.Color.gradient("#FFF", "#0F0", value)));
+				el.css("color", JW.Color.str(JW.Color.gradient("#BFB", "#0D0", value)));
+			},
+			finish: function(value) {
+				el.css("background", "");
+				el.css("border-color", "");
+				el.css("color", "");
+			},
+			scope: this
+		}));
+		this.own(this.base.unitType.changeEvent.bind(function() {
+			this.selectAnimation.set(null);
+		}, this));
 	},
 
 	renderSelectProduction: function(el) {

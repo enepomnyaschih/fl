@@ -2,7 +2,8 @@ FL.Panel.Unit = function(monitor, unit) {
 	FL.Panel.Unit._super.call(this);
 	this.monitor = monitor;
 	this.unit = unit;
-	this.requireAction = monitor._isUnitAutoSelectable(unit);
+	this.blocksProduction = monitor.data.isUnitBlockProduction(unit.cell.base);
+	this.requiresAction = monitor._isUnitAutoSelectable(unit);
 };
 
 JW.extend(FL.Panel.Unit, JW.UI.Component, {
@@ -16,13 +17,32 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		}, this);
 	},
 
+	renderLeave: function(el) {
+		if ((this.unit.player !== 0) || !this.blocksProduction) {
+			return false;
+		}
+		this.own(new FL.AlternateAnimation({
+			updater: function(value) {
+				el.css("background", JW.Color.str(JW.Color.gradient("#FFF", "#FBB", value)));
+				el.css("border-color", JW.Color.str(JW.Color.gradient("#FFF", "#F00", value)));
+				el.css("color", JW.Color.str(JW.Color.gradient("#FBB", "#D00", value)));
+			},
+			finish: function(value) {
+				el.css("background", "");
+				el.css("border-color", "");
+				el.css("color", "");
+			},
+			scope: this
+		}));
+	},
+
 	renderButtons: function(el) {
 		return this.unit.player === 0;
 	},
 
 	renderHold: function(el) {
 		if (!this.unit.isHealed()) {
-			if (this.requireAction) {
+			if (this.requiresAction && !this.blocksProduction) {
 				this.own(new FL.ButtonAnimation(el));
 			}
 			el.text("Heal");
@@ -50,7 +70,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		if (!this.monitor.data.isBaseBuildable(this.unit.ij.get(), FL.minBaseDistanceSqr)) {
 			return false;
 		}
-		if (this.requireAction) {
+		if (this.requiresAction) {
 			this.own(new FL.ButtonAnimation(el));
 		}
 		el.click(JW.inScope(function() {
@@ -64,7 +84,7 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 		if (!this.unit.canDrop()) {
 			return false;
 		}
-		if (this.requireAction) {
+		if (this.requiresAction) {
 			this.own(new FL.ButtonAnimation(el));
 		}
 		el.click(JW.inScope(function() {

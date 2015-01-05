@@ -13,9 +13,10 @@ FL.Data = function() {
 
 JW.extend(FL.Data, JW.Class, {
 	createBase: function(ij, player) {
-		var base = new FL.Base(ij, player);
+		var cell = this.map.getCell(ij);
+		var base = new FL.Base(cell, player);
 		this.bases.add(base);
-		this.map.getCell(ij).base = base;
+		cell.base = base;
 		this.map.eachWithin(ij, FL.baseMiningRangeSqr, function(cell) {
 			cell.addNearBase(base);
 		}, this);
@@ -341,6 +342,22 @@ JW.extend(FL.Data, JW.Class, {
 		return (this.player === 0) && !this.animationManager.sequential;
 	},
 
+	isUnitBlockProduction: function(base) {
+		if (!base) {
+			return false;
+		}
+		var type = base.unitType.get();
+		if (!base.cell.unit || !type) {
+			return false;
+		}
+		if ((base.cell.unit.type === type) && (base.cell.unit.getCount() < type.capacity)) {
+			return false;
+		}
+		var coef = (base.player === 0) ? 1 : FL.AI.productionCoef;
+		var production = base.production[type.id] + base.overflow + Math.round(coef * base.mining);
+		return production >= type.cost;
+	},
+
 	_generateMap: function() {
 		this.map = new FL.Matrix(FL.mapSize);
 		for (var i = 0; i < FL.mapSize; ++i) {
@@ -509,8 +526,11 @@ JW.extend(FL.Data, JW.Class, {
 			var production = base.production[type.id] + base.overflow + Math.round(coef * base.mining);
 			var cell = this.map.getCell(base.ij);
 			if (production < type.cost) {
-				base.production[type.id] = Math.min(production, type.cost);
+				base.production[type.id] = production;
 				base.overflow = 0;
+				if (this.isUnitBlockProduction(base)) {
+					base.cell.unit.hold = false;
+				}
 				return;
 			}
 			if (!cell.unit) {
@@ -519,6 +539,9 @@ JW.extend(FL.Data, JW.Class, {
 					(cell.unit.getCount() < cell.unit.type.capacity)) {
 				cell.unit.merge([new FL.Unit.Person(cell.unit.type)]);
 			} else {
+				if (this.isUnitBlockProduction(base)) {
+					base.cell.unit.hold = false;
+				}
 				return;
 			}
 			base.production[type.id] = 0;

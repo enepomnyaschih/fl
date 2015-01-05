@@ -1,6 +1,7 @@
-FL.Base = function(ij, player) {
+FL.Base = function(cell, player) {
 	FL.Base._super.call(this);
-	this.ij = ij;
+	this.cell = cell;
+	this.ij = cell.ij;
 	this.player = player;
 	this.unitType = this.own(new JW.Property(null));
 	this.unitBehaviour = null; // for AI
