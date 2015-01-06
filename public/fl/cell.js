@@ -94,8 +94,8 @@ JW.extend(FL.Cell, JW.Class, {
 	},
 
 	isAirportBy: function(player) {
-		return this.miningBase && (this.miningBase.player === player) &&
-			this.resource && (this.resource.id === "airport");
+		return (this.miningBase != null) && (this.miningBase.player === player) &&
+			(this.resource != null) && (this.resource.id === "airport");
 	},
 
 	_resetMining: function() {

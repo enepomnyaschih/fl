@@ -154,8 +154,8 @@ JW.extend(FL.Data, JW.Class, {
 		var attackerSurvivors = JW.Array.map(attacker.persons.get(), JW.byMethod("clone"));
 		var defenderSurvivors = JW.Array.map(defender.persons.get(), JW.byMethod("clone"));
 		var defense = 1 + (defender.cell.hill ? 1 : 0);
-		var attackerHits = JW.Array.count(attackerSurvivors, JW.byField("attack"));
-		var defenderHits = JW.Array.count(defenderSurvivors, JW.byField("defend"));
+		var attackerHits = attacker.getAttackCount();
+		var defenderHits = defender.getDefendCount();
 		if (attackerHits === 0) {
 			return false;
 		}
@@ -176,7 +176,7 @@ JW.extend(FL.Data, JW.Class, {
 
 	fightBase: function(attacker, base) {
 		var defenderSurvivors = [base.toPerson()];
-		var attackerHits = JW.Array.count(attacker.persons.get(), JW.byField("attack"));
+		var attackerHits = attacker.getAttackCount();
 		if (attackerHits === 0) {
 			return false;
 		}
@@ -353,20 +353,37 @@ JW.extend(FL.Data, JW.Class, {
 		return path ? JW.Array.map(path, JW.byField("0")) : null;
 	},
 
-	findTarget: function(sij, player, callback, scope, everythingVisible) {
+	findTarget: function(sij, player, callback, scope, everythingVisible, movementLimit) {
 		if (callback.call(scope || this, this.map.getCell(sij))) {
 			return [];
 		}
+		if (movementLimit == null) {
+			movementLimit = Number.POSITIVE_INFINITY;
+		}
 		var queue = [sij];
 		var tail = 0;
+		var movement = 0;
+		var movementHead = 0;
+
+		/*
+		dirs values:
+		- number - direction to go from
+		- boolean - result of callback function if already determined
+		- empty string - source cell
+		*/
 		var dirs = new FL.Matrix(this.map.size);
-		dirs.setCell(sij, true);
+		dirs.setCell(sij, "");
 		while (tail < queue.length) {
+			if (tail == movementHead) {
+				++movement;
+				movementHead = queue.length;
+			}
 			var cij = queue[tail++];
 			for (var d = 0; d < FL.dir8.length; ++d) {
 				var dir = (d < 4) ? (2 * d) : (2 * d - 7);
 				var dij = FL.Vector.add(cij, FL.dir8[dir]);
-				if (!this.map.inMatrix(dij) || (dirs.getCell(dij) != null)) {
+				var label = dirs.getCell(dij);
+				if (!this.map.inMatrix(dij) || (typeof label === "number") || (typeof label === "string")) {
 					continue;
 				}
 				var cell = this.map.getCell(dij);
@@ -375,7 +392,13 @@ JW.extend(FL.Data, JW.Class, {
 						continue;
 					}
 				}
-				var fits = callback.call(scope || this, cell);
+				var fits;
+				if (typeof label === "boolean") {
+					fits = label;
+				} else {
+					fits = callback.call(scope || this, cell, dij) !== false;
+					dirs.setCell(dij, fits);
+				}
 				var unit = cell.unit;
 				if (unit && (everythingVisible || unit.visible[player]) && !fits) {
 					continue;
@@ -389,7 +412,9 @@ JW.extend(FL.Data, JW.Class, {
 						(cell.base.player !== player) && !fits) {
 					continue;
 				}
-				queue.push(dij);
+				if (movement < movementLimit) {
+					queue.push(dij);
+				}
 				dirs.setCell(dij, dir);
 				if (fits) {
 					return this._backtracePath(dirs, dij);
@@ -565,7 +590,7 @@ JW.extend(FL.Data, JW.Class, {
 		var path = [];
 		while (true) {
 			var d = dirs.getCell(tij);
-			if (d === true) {
+			if (d === "") {
 				path.reverse();
 				return path;
 			}

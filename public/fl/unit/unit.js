@@ -64,6 +64,14 @@ JW.extend(FL.Unit, JW.Class, {
 		return this.persons.get().length;
 	},
 
+	getAttackCount: function() {
+		return JW.Array.count(this.persons.get(), JW.byField("attack"));
+	},
+
+	getDefendCount: function() {
+		return JW.Array.count(this.persons.get(), JW.byField("defend"));
+	},
+
 	getSightRangeSqr: function() {
 		return this.cell.hill ? this.type.sightRangeSqrHill : this.type.sightRangeSqr;
 	},
@@ -328,7 +336,7 @@ FL.Unit.typeArray = [
 		bombAttack: 2,
 		cost: 125,
 		resources: ["light"],
-		ai: ["patrol", "rush"],
+		ai: ["patrol", "hold", "rush"],
 		capacity: 5,
 		aiPreferred: true,
 		category: "vehicle"

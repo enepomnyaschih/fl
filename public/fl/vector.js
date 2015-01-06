@@ -37,5 +37,10 @@ FL.Vector = {
 
 	norm8: function(a) {
 		return [JW.sgn(a[0]), JW.sgn(a[1])];
+	},
+
+	parse: function(s) {
+		s = s.split(",");
+		return [+s[0], +s[1]];
 	}
 };

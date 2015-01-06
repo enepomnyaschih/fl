@@ -4,7 +4,6 @@ FL.AI = function(data, player) {
 	this.player = player;
 
 	this.bases = data.bases.$toArray().filter(JW.byValue("player", player));
-	this.units = data.units.$toArray().filter(JW.byValue("player", player));
 	this.stackCost = this.stackCostInitial + this.stackCostPerBase * this.bases.length;
 	this.unitCount = JW.Map.map(FL.Unit.types, function() { return 0; });
 	this.totalUnitCount = JW.Map.map(FL.Unit.types, function() { return 0; });
@@ -12,6 +11,10 @@ FL.AI = function(data, player) {
 	this.totalBehaviourCount = JW.Map.map(this.behaviourUnits, function() { return 0; });
 	this.unitBehaviours = {};
 	this.basePatrolCount = JW.Array.$index(this.bases, JW.byField("_iid")).map(function() { return 0; });
+	this.units = [];
+	this.enemyUnits = null; // Map<Vector2, FL.Unit>
+	this.enemyBases = null; // Map<Vector2, FL.Base>
+	this.allEnemies = null; // Map<Vector2, Vector2>
 
 	var enemyUnits = data.units.$toArray().filter(function(unit) { return unit.player !== this.player }, this);
 	this.threateningPairs = JW.Array.$map(enemyUnits, function(unit) {
@@ -29,7 +32,11 @@ FL.AI = function(data, player) {
 		return [unit, nearestBase];
 	}, this).filter(JW.byField());
 
-	JW.Array.each(this.units, function(unit) {
+	data.units.each(function(unit) {
+		if (unit.player !== this.player) {
+			return;
+		}
+		this.units.push(unit);
 		++this.unitCount[unit.type.id];
 		++this.totalUnitCount[unit.type.id];
 		if (unit.cell.base) {
@@ -116,14 +123,11 @@ JW.extend(FL.AI, JW.Class, {
 		"drop",
 		"attack",
 		"attacking",
-		"assaulting",
-		"support",
-		"bombard",
-		"fly"
+		"assaulting"
 	],
 	patrolDistance: 3,
 	healSafeDistance: 3,
-	aquisitionDistanceSqr: 50,
+	aquisitionDistanceSqr: 37,
 	baseHoldRangeSqr: 5,
 	unitHoldRangeSqr: 4,
 	patrolInitial: 3,
@@ -136,7 +140,11 @@ JW.extend(FL.AI, JW.Class, {
 	stackCostPerBase: 100,
 
 	doSomething: function() {
-		return this.build() ||
+		if (this.build()) {
+			return true;
+		}
+		this.findEnemies();
+		return this.punish() ||
 			this.defend() ||
 			this.rush() ||
 			this.patrol() ||
@@ -148,6 +156,10 @@ JW.extend(FL.AI, JW.Class, {
 	build: function() {
 		return JW.Array.some(this.behaviourUnits["build"].concat(), function(unit) {
 			this.makeUseless(unit);
+			/*if (this.data.isByEnemy(unit.ij.get(), this.player, true)) {
+				this.moveUnit(unit, this.bases.length ? this.bases[0].ij : null);
+				return true;
+			}*/
 			var ijTarget = this.findBaseSpot(unit.ij.get());
 			if (!ijTarget) {
 				unit.ijTarget = null;
@@ -160,6 +172,112 @@ JW.extend(FL.AI, JW.Class, {
 			}
 			return true;
 		}, this);
+	},
+
+	findEnemies: function() {
+		this.allEnemies = {};
+		this.enemyUnits = {};
+		this.data.units.each(function(unit) {
+			if (unit.alive && (unit.player !== this.player)) {
+				this.allEnemies[unit.ij.get()] = unit.ij.get();
+				this.enemyUnits[unit.ij.get()] = unit;
+			}
+		}, this);
+		this.enemyBases = {};
+		this.data.bases.each(function(base) {
+			if (base.player !== this.player) {
+				this.allEnemies[base.ij] = base.ij;
+				this.enemyBases[base.ij] = base;
+			}
+		}, this);
+	},
+
+	punish: function() {
+		var punishMatrix = {};
+		JW.Array.each(this.units, function(unit) {
+			if (!unit.type.damage || !unit.getAttackCount()) {
+				return;
+			}
+			if (unit.type.defense && unit.cell.resource && !unit.cell.nearBases.isEmpty()) {
+				return;
+			}
+			this.data.findTarget(unit.ij.get(), unit.player, function(cell, ij) {
+				if (!this.allEnemies[ij]) {
+					return false;
+				}
+				var punishers = punishMatrix[ij] || [];
+				punishers.push(unit);
+				punishMatrix[ij] = punishers;
+				return false;
+			}, this, false, unit.movement.get());
+		}, this);
+
+		var vulnerableTarget,
+			vulnerableVulnerability = 0;
+		JW.Map.each(punishMatrix, function(punishers, key) {
+			var ij = FL.Vector.parse(key);
+			var cell = this.data.map.getCell(ij);
+			var vulnerability = 0;
+			if (cell.base) {
+				vulnerability += 10 - FL.baseArmor * cell.base.health.get();
+			}
+			if (cell.unit) {
+				if (cell.unit.type.id === "mcv") {
+					vulnerability += 10;
+				}
+				JW.Array.each(cell.unit.persons.get(), function(person) {
+					var defense = 1;
+					if (cell.hill) {
+						++defense;
+					}
+					if (person.fortified) {
+						++defense;
+					}
+					vulnerability -= person.health * (person.type.armor + defense * person.type.defense);
+					if (person.defend) {
+						vulnerability -= 2 * person.type.damage;
+					}
+				}, this);
+			}
+			JW.Array.each(punishers, function(punisher) {
+				var damage = punisher.type.damage * punisher.getAttackCount();
+				if (punisher.type.blitz && (FL.Vector.length8(FL.Vector.diff(punisher.ij.get(), ij)) === 1)) {
+					damage *= 1.5; // tanks can die in the first battle, so 2 is too much =(
+				}
+				vulnerability += damage;
+				JW.Array.each(punisher.persons.get(), function(person) {
+					vulnerability += .5 * person.health * person.type.armor;
+				}, this);
+			}, this);
+			if (vulnerableVulnerability <= vulnerability) {
+				vulnerableTarget = ij;
+				vulnerableVulnerability = vulnerability;
+			}
+		}, this);
+
+		if (!vulnerableTarget) {
+			return false;
+		}
+		var punishers = punishMatrix[vulnerableTarget];
+		var toughestPunisher,
+			toughestToughness = 0;
+		JW.Array.each(punishers, function(punisher) {
+			var toughness = punisher.type.damage * punisher.getAttackCount();
+			JW.Array.each(punisher.persons.get(), function(person) {
+				toughness += person.health;
+			}, this);
+			if (toughestToughness < toughness) {
+				toughestPunisher = punisher;
+				toughestToughness = toughness;
+			}
+		}, this);
+
+		if (!toughestPunisher) { // impossible but what the heck
+			console.warn("Impossible scenario: couldn't select a punisher");
+			return false;
+		}
+		this.moveUnit(toughestPunisher, vulnerableTarget);
+		return true;
 	},
 
 	findBaseSpot: function(ijUnit) {
@@ -284,7 +402,7 @@ JW.extend(FL.AI, JW.Class, {
 	},
 
 	isRushable: function(cell) {
-		return cell.resource && !cell.nearBases.every(JW.byValue("player", this.player));
+		return (cell.resource != null) && !cell.nearBases.every(JW.byValue("player", this.player));
 	},
 
 	patrol: function() {
@@ -403,29 +521,14 @@ JW.extend(FL.AI, JW.Class, {
 			var behaviour = (this.isEnemyWithin(unit.ij.get(), 3) || FL.random(2)) ? "attacking" : "assaulting";
 			this.changeBehaviour(unit, behaviour, true);
 		}, this);
-		return this.issueAttack(this.behaviourUnits["assaulting"], false, true) ||
-			this.issueAttack(this.behaviourUnits["attacking"], true, true);
+		return this.issueAttack(this.behaviourUnits["assaulting"], this.enemyBases) ||
+			this.issueAttack(this.behaviourUnits["attacking"], this.allEnemies);
 	},
 
-	issueAttack: function(units, includeUnits, includeBases) {
-		var ijTargets = {};
-		if (includeBases) {
-			this.data.bases.each(function(base) {
-				if (base.player !== this.player) {
-					ijTargets[base.ij] = true;
-				}
-			}, this);
-		}
-		if (includeUnits) {
-			this.data.units.each(function(unit) {
-				if (unit.player !== this.player) {
-					ijTargets[unit.ij.get()] = true;
-				}
-			}, this);
-		}
+	issueAttack: function(units, enemies) {
 		return JW.Array.some(units.concat(), function(unit) {
-			var path = this.data.findTarget(unit.ij.get(), this.player, function(cell) {
-				return ijTargets[cell.ij];
+			var path = this.data.findTarget(unit.ij.get(), this.player, function(cell, ij) {
+				return enemies[ij] != null;
 			}, this);
 			if (path && (path.length !== 0)) {
 				this.moveUnit(unit, JW.Array.getLast(path)[1]);
@@ -444,7 +547,9 @@ JW.extend(FL.AI, JW.Class, {
 		var holdMap = new FL.Matrix(this.data.map.size);
 		JW.Array.each(this.bases, function(base) {
 			this.data.map.eachWithin(base.ij, this.baseHoldRangeSqr, function(cell, ij) {
-				holdMap.setCell(ij, true);
+				if (!cell.resource || (cell.resource.id === "airport")) {
+					holdMap.setCell(ij, true);
+				}
 			}, this);
 		}, this);
 		this.data.map.every(function(cell, ij) {
@@ -458,7 +563,9 @@ JW.extend(FL.AI, JW.Class, {
 			}
 			if (unit.hold) {
 				this.data.map.eachWithin(unit.ij.get(), this.unitHoldRangeSqr, function(cell, ij) {
-					holdMap.setCell(ij, true);
+					if (!cell.resource || FL.Vector.equal(ij, unit.ij.get())) {
+						holdMap.setCell(ij, true);
+					}
 				}, this);
 				this.makeUseless(unit);
 				return false;
@@ -511,7 +618,10 @@ JW.extend(FL.AI, JW.Class, {
 
 	makeUseless: function(unit) {
 		var behaviour = this.unitBehaviours[unit._iid];
-		JW.Array.removeItem(this.behaviourUnits[behaviour], unit);
+		if (behaviour) {
+			JW.Array.removeItem(this.behaviourUnits[behaviour], unit);
+		}
+		JW.Array.removeItem(this.units, unit);
 	},
 
 	changeBehaviour: function(unit, behaviour, permanent) {
