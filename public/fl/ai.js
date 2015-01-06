@@ -45,7 +45,6 @@ FL.AI = function(data, player) {
 		}
 		++this.totalBehaviourCount[unit.behaviour];
 	}, this);
-	console.log(JSON.stringify(this.totalBehaviourCount));
 
 	JW.Array.each(this.bases, function(base) {
 		var type = base.unitType.get();

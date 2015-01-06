@@ -105,12 +105,12 @@ JW.extend(FL.Data, JW.Class, {
 			}
 			var targetCell = this.map.getCell(tij);
 			if (outcome === 2) {
-				useful = useful || this.fightUnit(unit, targetCell.unit);
+				useful = this.fightUnit(unit, targetCell.unit) || useful;
 				unit.ijTarget = null;
 				break;
 			}
 			if (outcome === 3) {
-				useful = useful || this.fightBase(unit, targetCell.base);
+				useful = this.fightBase(unit, targetCell.base) || useful;
 				unit.ijTarget = null;
 				break;
 			}
