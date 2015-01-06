@@ -207,7 +207,7 @@ FL.Unit.typeArray = [
 		sightRangeSqrHill: 5,
 		cost: 50,
 		ai: ["hold", "rush"],
-		capacity: 10,
+		capacity: 5,
 		aiPreferred: false,
 		category: "infantry"
 	},
@@ -224,7 +224,7 @@ FL.Unit.typeArray = [
 		sightRangeSqrHill: 5,
 		cost: 65,
 		ai: ["attack"],
-		capacity: 10,
+		capacity: 5,
 		aiPreferred: false,
 		category: "infantry"
 	},
@@ -327,7 +327,7 @@ FL.Unit.typeArray = [
 		description: "Strong defensive unit. High sight range lets it see the enemy forces from the distance and provide nasty drop locations for paratroopers.",
 		damage: 2,
 		armor: 5,
-		defense: 3,
+		defense: 2.5,
 		healRate: .1,
 		movement: 2,
 		sightRangeSqr: 18,
