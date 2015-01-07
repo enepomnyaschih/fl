@@ -197,6 +197,36 @@ FL.Unit.shotAnimations = {
 			radius: 0.04,
 			duration: 200
 		}
+	},
+	lightCannon: {
+		countPerDamage: 2,
+		originCount: 1,
+		spreadCount: 1,
+		originDistance: .5,
+		spreadDistance: 0,
+		particle: {
+			colorFrom: "#FF0",
+			colorTo: "#000",
+			opacityFrom: 1,
+			opacityTo: 0,
+			radius: 0.2,
+			duration: 1000
+		}
+	},
+	heavyCannon: {
+		countPerDamage: .5,
+		originCount: 1,
+		spreadCount: 1,
+		originDistance: .5,
+		spreadDistance: 0,
+		particle: {
+			colorFrom: "#FF0",
+			colorTo: "#000",
+			opacityFrom: 1,
+			opacityTo: 0,
+			radius: 0.3,
+			duration: 1200
+		}
 	}
 };
 
@@ -220,11 +250,11 @@ FL.Unit.deathAnimations = {
 		originCount: 2,
 		spreadCount: 4,
 		originDistance: .3,
-		spreadDistance: .3,
+		spreadDistance: .6,
 		particle: {
 			color: "#D00",
 			opacity: .8,
-			radius: 1,
+			radius: 0.05,
 			duration: 500
 		}
 	},
@@ -436,7 +466,7 @@ FL.Unit.typeArray = [
 		capacity: 5,
 		aiPreferred: true,
 		category: "vehicle",
-		shotAnimation: FL.Unit.shotAnimations.rifle,
+		shotAnimation: FL.Unit.shotAnimations.lightCannon,
 		deathAnimation: FL.Unit.deathAnimations.lightVehicle
 	},
 	{
@@ -457,7 +487,7 @@ FL.Unit.typeArray = [
 		capacity: 3,
 		aiPreferred: true,
 		category: "vehicle",
-		shotAnimation: FL.Unit.shotAnimations.rifle,
+		shotAnimation: FL.Unit.shotAnimations.heavyCannon,
 		deathAnimation: FL.Unit.deathAnimations.heavyVehicle
 	},
 	{
@@ -478,7 +508,7 @@ FL.Unit.typeArray = [
 		capacity: 3,
 		aiPreferred: true,
 		category: "vehicle",
-		shotAnimation: FL.Unit.shotAnimations.rifle,
+		shotAnimation: FL.Unit.shotAnimations.lightCannon,
 		deathAnimation: FL.Unit.deathAnimations.heavyVehicle
 	}/*,
 	{
