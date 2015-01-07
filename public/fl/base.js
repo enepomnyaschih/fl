@@ -1,5 +1,6 @@
-FL.Base = function(cell, player) {
+FL.Base = function(data, cell, player) {
 	FL.Base._super.call(this);
+	this.data = data;
 	this.cell = cell;
 	this.ij = cell.ij;
 	this.player = player;
@@ -13,6 +14,7 @@ FL.Base = function(cell, player) {
 	this.health = this.own(new JW.Property(.1));
 };
 
+// implements FL.BattleAnimatable
 JW.extend(FL.Base, JW.Class, {
 	isUnitTypeAvailable: function(type) {
 		if (!type.resources) {
@@ -53,5 +55,39 @@ JW.extend(FL.Base, JW.Class, {
 		if (unitType && !this.isUnitTypeAvailable(unitType)) {
 			this.unitType.set(null);
 		}
+	},
+
+	getShotAnimation: function() {
+		return null;
+	},
+
+	getDeathAnimation: function() {
+		return FL.Base.deathAnimation;
+	},
+
+	getCenter: function() {
+		return FL.Vector.add(FL.ijToXy(this.ij), [FL.cellSize / 2, FL.cellSize / 2]);
+	},
+
+	onBattleFinish: function() {
+		if (this.health.get() === 0) {
+			this.data.destroyBase(this);
+		}
 	}
 });
+
+FL.Base.deathAnimation = {
+	originCount: 1,
+	spreadCount: 1,
+	originDistance: 0,
+	spreadDistance: 0,
+	particle: {
+		colorFrom: "#FFF",
+		colorTo: "#FF0",
+		opacityFrom: 1,
+		opacityTo: .2,
+		radiusFrom: .2,
+		radiusTo: 1,
+		duration: 1500
+	}
+};

@@ -1,8 +1,12 @@
-FL.Unit.BattleAnimation = function(data, unit, unitDamage, unitVictims, target, targetDamage, targetVictims) {
-	FL.Unit.BattleAnimation._super.call(this, unit);
+FL.Unit.BattleAnimation = function(data,
+		attacker, attackerDamage, attackerVictims,
+		defender, defenderDamage, defenderVictims) {
+	FL.Unit.BattleAnimation._super.call(this, attacker);
 	this.data = data; // FL.Data
-	this.unitSide = new FL.Unit.BattleAnimation.Side(this.data, unit, unitDamage, unitVictims);
-	this.targetSide = new FL.Unit.BattleAnimation.Side(this.data, target, targetDamage, targetVictims);
+	this.attackerSide = new FL.Unit.BattleAnimation.Side(
+		this.data, defender, attacker, attackerDamage, attackerVictims);
+	this.defenderSide = new FL.Unit.BattleAnimation.Side(
+		this.data, attacker, defender, defenderDamage, defenderVictims);
 	this.speed = this.animationsPerSecond / FL.animationStepsPerSecond;
 	this.progress = 0;
 	this.duration = 0;
@@ -13,39 +17,41 @@ JW.extend(FL.Unit.BattleAnimation, FL.Unit.Animation, {
 
 	animate: function() {
 		this.progress = Math.min(1, this.progress + this.speed);
-		this.unitSide.animate(this.progress);
-		this.targetSide.animate(this.progress);
+		this.attackerSide.animate(this.progress);
+		this.defenderSide.animate(this.progress);
 		return this.progress === 1;
 	}
 });
 
 
 
-FL.Unit.BattleAnimation.Side = function(data, unit, damage, victims) {
+FL.Unit.BattleAnimation.Side = function(data, attacker, defender, damage, victims) {
 	FL.Unit.BattleAnimation.Side._super.call(this);
 	this.data = data;
-	this.unit = unit;
+	this.attacker = attacker;
+	this.defender = defender;
 	this.damage = damage;
 	this.victims = victims;
 	this.shots = 0;
-	this.shotAnimation = this.unit.type.shotAnimation;
-	this.deathAnimation = this.unit.type.deathAnimation;
+	this.shotAnimation = this.attacker.getShotAnimation();
+	this.deathAnimation = this.defender.getDeathAnimation();
 };
 
 JW.extend(FL.Unit.BattleAnimation.Side, JW.Class, {
 	animate: function(progress) {
-		var shots = Math.round(this.shotAnimation.countPerDamage * progress * this.damage);
-		while (this.shots < shots) {
-			++this.shots;
-			this.data.animationManager.addParticles(this.unit.getCenter(), this.shotAnimation);
+		var center = this.defender.getCenter();
+		if (this.shotAnimation) {
+			var shots = Math.round(this.shotAnimation.countPerDamage * progress * this.damage);
+			while (this.shots < shots) {
+				++this.shots;
+				this.data.animationManager.addParticles(center, this.shotAnimation);
+			}
 		}
 		if (progress === 1) {
 			for (var i = 0; i < this.victims; ++i) {
-				this.data.animationManager.addParticles(this.unit.getCenter(), this.deathAnimation);
+				this.data.animationManager.addParticles(center, this.deathAnimation);
 			}
-			if (!this.unit.alive) {
-				this.data.destroyUnit(this.unit);
-			}
+			this.defender.onBattleFinish();
 		}
 	}
 });

@@ -62,6 +62,9 @@ JW.extend(FL.Data.AnimationManager, JW.Class, {
 	},
 
 	addParticles: function(xy, config) {
+		if (!config) {
+			return;
+		}
 		for (var i = 0; i < config.originCount; ++i) {
 			var origin = FL.Vector.mult(this._randomVectorInCircle(), config.originDistance);
 			var xyOrigin = FL.Vector.add(xy, FL.Vector.mult(origin, FL.cellSize));

@@ -26,7 +26,7 @@ FL.Data = function() {
 JW.extend(FL.Data, JW.Class, {
 	createBase: function(ij, player) {
 		var cell = this.map.getCell(ij);
-		var base = new FL.Base(cell, player);
+		var base = new FL.Base(this, cell, player);
 		if (this.baseNames.length === 0) {
 			base.name = "No more names";
 		} else {
@@ -157,11 +157,11 @@ JW.extend(FL.Data, JW.Class, {
 		var defense = 1 + (defender.cell.hill ? 1 : 0);
 		var attackerHits = attacker.getAttackCount();
 		var defenderHits = defender.getDefendCount();
-		var attackerDamage = 0;
-		var defenderDamage = 0;
 		if (attackerHits === 0) {
 			return false;
 		}
+		var attackerDamage = 0;
+		var defenderDamage = 0;
 		while ((attackerHits !== 0) && (defenderSurvivors.length !== 0)) {
 			--attackerHits;
 			attackerDamage += attacker.type.damage;
@@ -172,14 +172,16 @@ JW.extend(FL.Data, JW.Class, {
 			defenderDamage += defender.type.damage;
 			FL.fight(defender.type.damage, 0, attackerSurvivors);
 		}
-		attacker.animations.push(new FL.Unit.BattleAnimation(this,
-			attacker, defenderDamage, attacker.getCount() - attackerSurvivors.length,
-			defender, attackerDamage, defender.getCount() - defenderSurvivors.length));
-		this.animationManager.enqueue(attacker);
+		var attackerVictims = attacker.getCount() - attackerSurvivors.length;
+		var defenderVictims = defender.getCount() - defenderSurvivors.length;
 		attacker.setPersons(attackerSurvivors, true);
 		defender.setPersons(defenderSurvivors, true);
 		attacker.retainAttacks(attackerHits);
 		defender.retainDefends(defenderHits);
+		attacker.animations.push(new FL.Unit.BattleAnimation(this,
+			attacker, defenderDamage, attackerVictims,
+			defender, attackerDamage, defenderVictims));
+		this.animationManager.enqueue(attacker);
 		return true;
 	},
 
@@ -189,15 +191,17 @@ JW.extend(FL.Data, JW.Class, {
 		if (attackerHits === 0) {
 			return false;
 		}
+		var attackerDamage = 0;
 		while ((attackerHits !== 0) && (defenderSurvivors.length !== 0)) {
 			--attackerHits;
+			attackerDamage += attacker.type.damage;
 			FL.fight(attacker.type.damage, 0, defenderSurvivors);
 		}
-		if (defenderSurvivors.length === 0) {
-			this.destroyBase(base);
-		} else {
-			base.health.set(defenderSurvivors[0].health);
-		}
+		base.health.set((defenderSurvivors.length === 0) ? 0 : defenderSurvivors[0].health);
+		attacker.animations.push(new FL.Unit.BattleAnimation(this,
+			attacker, 0, 0,
+			base, attackerDamage, 1 - defenderSurvivors.length));
+		this.animationManager.enqueue(attacker);
 		attacker.retainAttacks(attackerHits);
 		return true;
 	},

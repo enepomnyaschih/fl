@@ -103,13 +103,14 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this.unitSelection = [];
 		this.cellSelect = ij ? this.data.map.getCell(ij) : null;
 		if (this.cellSelect) {
-			var borderEl = this._getCell(ij).children(".fl-border");
+			var cellEl = this._getCell(ij);
 			this.cellAnimation.set(new FL.AlternateAnimation({
 				updater: function(value) {
-					borderEl.css("background", "rgba(255, 255, 255, " + value.toFixed(2) + ")");
+					cellEl.children(".fl-border").css("background",
+						"rgba(255, 255, 255, " + value.toFixed(2) + ")");
 				},
 				finish: function() {
-					borderEl.css("background", "");
+					cellEl.children(".fl-border").css("background", "");
 				},
 				scope: this
 			}));

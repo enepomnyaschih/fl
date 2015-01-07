@@ -47,6 +47,7 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 	}));
 };
 
+// implements FL.BattleAnimatable
 JW.extend(FL.Unit, JW.Class, {
 	destroy: function() {
 		this.alive = false;
@@ -76,8 +77,22 @@ JW.extend(FL.Unit, JW.Class, {
 		return this.cell.hill ? this.type.sightRangeSqrHill : this.type.sightRangeSqr;
 	},
 
+	getShotAnimation: function() {
+		return this.type.shotAnimation;
+	},
+
+	getDeathAnimation: function() {
+		return this.type.deathAnimation;
+	},
+
 	getCenter: function() {
 		return FL.Vector.add(this.xy.get(), [FL.cellSize / 2, FL.cellSize / 2]);
+	},
+
+	onBattleFinish: function() {
+		if (!this.alive) {
+			this.data.destroyUnit(this);
+		}
 	},
 
 	merge: function(persons) {
