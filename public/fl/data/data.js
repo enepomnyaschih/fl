@@ -55,9 +55,7 @@ JW.extend(FL.Data, JW.Class, {
 			this.baseNames.push(base.name);
 		}
 		this.mapUpdateEvent.trigger();
-		if (this.bases.count(JW.byValue("player", base.player)) === 0) {
-			this.lostEvent.trigger(base.player);
-		}
+		this.checkDefeat(base.player);
 	},
 
 	createUnit: function(ij, player, type, behaviour, name) {
@@ -74,6 +72,18 @@ JW.extend(FL.Data, JW.Class, {
 		this.units.removeItem(unit);
 		unit.destroy();
 		this.mapUpdateEvent.trigger();
+		this.checkDefeat(unit.player);
+	},
+
+	checkDefeat: function(player) {
+		var baseCount = this.bases.count(JW.byValue("player", player));
+		var mcvCount = this.units.count(function(unit) {
+			return unit.alive && (unit.player === player) && (unit.type.id === "mcv");
+		}, this);
+		if (baseCount === 0 && mcvCount === 0) {
+			this.revealAll(0);
+			this.lostEvent.trigger(player);
+		}
 	},
 
 	moveUnit: function(unit, selection) {
@@ -237,6 +247,13 @@ JW.extend(FL.Data, JW.Class, {
 
 	reveal: function(cij, distanceSqr, player) {
 		this.map.eachWithin(cij, distanceSqr, JW.byMethod("reveal", [player]));
+	},
+
+	revealAll: function(player) {
+		this.map.every(function(cell) {
+			cell.reveal(player);
+		}, this);
+		this.mapUpdateEvent.trigger();
 	},
 
 	resetVision: function(player) {
@@ -405,6 +422,12 @@ JW.extend(FL.Data, JW.Class, {
 						continue;
 					}
 				}
+				var unit = cell.unit;
+				if ((!unit || unit.player === player) &&
+						this.isByEnemy(cij, player, !everythingVisible) &&
+						this.isByEnemy(dij, player, !everythingVisible)) {
+					continue;
+				}
 				var fits;
 				if (typeof label === "boolean") {
 					fits = label;
@@ -412,13 +435,7 @@ JW.extend(FL.Data, JW.Class, {
 					fits = callback.call(scope || this, cell, dij) !== false;
 					dirs.setCell(dij, fits);
 				}
-				var unit = cell.unit;
 				if (unit && (everythingVisible || unit.visible[player]) && !fits) {
-					continue;
-				}
-				if ((!unit || unit.player === player) &&
-						this.isByEnemy(cij, player, !everythingVisible) &&
-						this.isByEnemy(dij, player, !everythingVisible)) {
 					continue;
 				}
 				if ((everythingVisible || cell.visible[player]) && cell.base &&

@@ -12,6 +12,7 @@ FL.Monitor = function(data) {
 	this.order = null;
 	this.cells = new FL.Matrix(this.data.map.size);
 	this.unitSelection = [];
+	this.collapsed = false;
 	this.own(this.data.nextPlayerEvent.bind(this.selectNext, this));
 	this.own(this.data.mapUpdateEvent.bind(this.updateMap, this));
 };
@@ -216,6 +217,18 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}
 	},
 
+	collapse: function() {
+		this.getElement("left-panel").
+			add(this.getElement("right-panel")).
+			css("visibility", "hidden").animate({
+				"margin-right": 0,
+				"width": 0
+			}, 2000);
+		this.panel.set(null);
+		this.selectCell(null);
+		this.collapsed = true;
+	},
+
 	_getCell: function(ij) {
 		return this.cells.getCell(ij);
 	},
@@ -281,7 +294,9 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	_onLeftMouseDown: function(cellEl, ij) {
-		this.selectCell(ij);
+		if (!this.collapsed) {
+			this.selectCell(ij);
+		}
 	},
 
 	_onRightMouseDown: function(cellEl, ij) {

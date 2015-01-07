@@ -18,6 +18,7 @@ JW.extend(FL.App, JW.UI.Component, {
 	},
 
 	_onLost: function(lostPlayer) {
-		this.children.set(new FL.ScreenWin(lostPlayer !== 0), "monitor");
+		this.monitor.collapse();
+		this.children.set(new FL.ScreenWin(lostPlayer !== 0), "screen-win");
 	}
 });
