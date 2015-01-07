@@ -595,11 +595,15 @@ JW.extend(FL.AI, JW.Class, {
 		if (unit.getCount() >= Math.min(unit.type.capacity, Math.round(this.stackCost / unit.type.cost))) {
 			return true;
 		}
-		if (!unit.cell.base) {
+		var base = unit.cell.base;
+		if (!base) {
 			return true;
 		}
-		var type = unit.cell.base.unitType.get();
-		return (!type || (type === unit.type)) && base.isUnitTypeAvailable(unit.type);
+		if (!base.isUnitTypeAvailable(unit.type)) {
+			return true;
+		}
+		var type = base.unitType.get();
+		return type && (type !== unit.type);
 	},
 
 	isEnemyWithin: function(ij, distance) {
