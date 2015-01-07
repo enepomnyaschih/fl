@@ -76,6 +76,10 @@ JW.extend(FL.Unit, JW.Class, {
 		return this.cell.hill ? this.type.sightRangeSqrHill : this.type.sightRangeSqr;
 	},
 
+	getCenter: function() {
+		return FL.Vector.add(this.xy.get(), [FL.cellSize / 2, FL.cellSize / 2]);
+	},
+
 	merge: function(persons) {
 		this.setPersons(persons.concat(this.persons.get()));
 		this.ijTarget = null;
@@ -176,6 +180,82 @@ JW.extend(FL.Unit, JW.Class, {
 	}
 });
 
+FL.Unit.shotAnimations = {
+	rifle: {
+		countPerDamage: 8,
+		originCount: 1,
+		spreadCount: 1,
+		originDistance: .5,
+		spreadDistance: 0,
+		particle: {
+			color: "#FFF",
+			opacity: 1,
+			radius: 0.04,
+			duration: 200
+		}
+	}
+};
+
+FL.Unit.deathAnimations = {
+	mcv: {
+		originCount: 1,
+		spreadCount: 1,
+		originDistance: 0,
+		spreadDistance: 0,
+		particle: {
+			colorFrom: "#FF0",
+			colorTo: "#000",
+			opacityFrom: 1,
+			opacityTo: 0,
+			radiusFrom: 0,
+			radiusTo: 1,
+			duration: 2000
+		}
+	},
+	infantry: {
+		originCount: 2,
+		spreadCount: 4,
+		originDistance: .3,
+		spreadDistance: .3,
+		particle: {
+			color: "#D00",
+			opacity: .8,
+			radius: 1,
+			duration: 500
+		}
+	},
+	lightVehicle: {
+		originCount: 1,
+		spreadCount: 1,
+		originDistance: .3,
+		spreadDistance: 0,
+		particle: {
+			colorFrom: "#FF0",
+			colorTo: "#000",
+			opacityFrom: 1,
+			opacityTo: 0,
+			radiusFrom: 0,
+			radiusTo: .5,
+			duration: 800
+		}
+	},
+	heavyVehicle: {
+		originCount: 1,
+		spreadCount: 1,
+		originDistance: .2,
+		spreadDistance: 0,
+		particle: {
+			colorFrom: "#FF0",
+			colorTo: "#000",
+			opacityFrom: 1,
+			opacityTo: 0,
+			radiusFrom: 0,
+			radiusTo: .8,
+			duration: 1200
+		}
+	}
+};
+
 FL.Unit.typeArray = [
 	{
 		id: "mcv",
@@ -192,7 +272,9 @@ FL.Unit.typeArray = [
 		ai: ["build"],
 		capacity: 1,
 		aiPreferred: true,
-		category: "worker"
+		category: "worker",
+		shotAnimation: FL.Unit.shotAnimations.rifle,
+		deathAnimation: FL.Unit.deathAnimations.mcv
 	},
 	{
 		id: "militia",
@@ -209,7 +291,9 @@ FL.Unit.typeArray = [
 		ai: ["hold", "rush"],
 		capacity: 5,
 		aiPreferred: false,
-		category: "infantry"
+		category: "infantry",
+		shotAnimation: FL.Unit.shotAnimations.rifle,
+		deathAnimation: FL.Unit.deathAnimations.infantry
 	},
 	{
 		id: "infantry",
@@ -226,7 +310,9 @@ FL.Unit.typeArray = [
 		ai: ["attack"],
 		capacity: 5,
 		aiPreferred: false,
-		category: "infantry"
+		category: "infantry",
+		shotAnimation: FL.Unit.shotAnimations.rifle,
+		deathAnimation: FL.Unit.deathAnimations.infantry
 	},
 	/*{
 		id: "ack",
@@ -256,7 +342,9 @@ FL.Unit.typeArray = [
 		ai: ["hold", "rush"],
 		capacity: 5,
 		aiPreferred: true,
-		category: "infantry"
+		category: "infantry",
+		shotAnimation: FL.Unit.shotAnimations.rifle,
+		deathAnimation: FL.Unit.deathAnimations.infantry
 	},
 	{
 		id: "paratrooper",
@@ -275,7 +363,9 @@ FL.Unit.typeArray = [
 		ai: ["drop"],
 		capacity: 5,
 		aiPreferred: true,
-		category: "infantry"
+		category: "infantry",
+		shotAnimation: FL.Unit.shotAnimations.rifle,
+		deathAnimation: FL.Unit.deathAnimations.infantry
 	},
 	/*{
 		id: "artillery",
@@ -306,7 +396,9 @@ FL.Unit.typeArray = [
 		ai: ["patrol", "attack"],
 		capacity: 5,
 		aiPreferred: true,
-		category: "vehicle"
+		category: "vehicle",
+		shotAnimation: FL.Unit.shotAnimations.rifle,
+		deathAnimation: FL.Unit.deathAnimations.lightVehicle
 	},
 	/*{
 		id: "sam",
@@ -339,7 +431,9 @@ FL.Unit.typeArray = [
 		ai: ["patrol", "hold", "rush"],
 		capacity: 5,
 		aiPreferred: true,
-		category: "vehicle"
+		category: "vehicle",
+		shotAnimation: FL.Unit.shotAnimations.rifle,
+		deathAnimation: FL.Unit.deathAnimations.lightVehicle
 	},
 	{
 		id: "tank",
@@ -358,7 +452,9 @@ FL.Unit.typeArray = [
 		blitz: true,
 		capacity: 3,
 		aiPreferred: true,
-		category: "vehicle"
+		category: "vehicle",
+		shotAnimation: FL.Unit.shotAnimations.rifle,
+		deathAnimation: FL.Unit.deathAnimations.heavyVehicle
 	},
 	{
 		id: "mobile",
@@ -377,7 +473,9 @@ FL.Unit.typeArray = [
 		cover: true,
 		capacity: 3,
 		aiPreferred: true,
-		category: "vehicle"
+		category: "vehicle",
+		shotAnimation: FL.Unit.shotAnimations.rifle,
+		deathAnimation: FL.Unit.deathAnimations.heavyVehicle
 	}/*,
 	{
 		id: "helicopter",

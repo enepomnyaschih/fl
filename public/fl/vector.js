@@ -8,7 +8,7 @@ FL.Vector = {
 	},
 
 	mult: function(a, c) {
-		return [Math.round(c * a[0]), Math.round(c * a[1])];
+		return [c * a[0], c * a[1]];
 	},
 
 	equal: function(a, b) {

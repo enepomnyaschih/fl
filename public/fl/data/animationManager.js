@@ -3,6 +3,7 @@ FL.Data.AnimationManager = function(data) {
 	this.data = data; // FL.Data
 	this.animationQueue = []; // <FL.Unit>
 	this.lastHit = new Date().getTime();
+	this.lastHitRounded = this.lastHit;
 	this.changePlayerOnFinish = false;
 	this.timer = this.own(new JW.Property(
 		new JW.Interval(this._onInterval, this, 17))).ownValue();
@@ -17,11 +18,6 @@ JW.extend(FL.Data.AnimationManager, JW.Class, {
 	},
 
 	animate: function() {
-		if (!this.success) {
-			this.timer.set(null);
-			return;
-		}
-		this.success = false;
 		this.animateAll();
 		if (this.animationQueue.length === 0) {
 			if (this.data.ai && !this.data.ai.doSomething()) {
@@ -32,7 +28,6 @@ JW.extend(FL.Data.AnimationManager, JW.Class, {
 				this.data.nextPlayer();
 			}
 		}
-		this.success = true;
 	},
 
 	animateSingle: function() {
@@ -58,10 +53,39 @@ JW.extend(FL.Data.AnimationManager, JW.Class, {
 		}
 	},
 
+	animateParticles: function(timeSpent) {
+		this.data.particles.$toArray().each(function(particle) {
+			if (particle.animate(timeSpent)) {
+				this.data.particles.removeItem(particle);
+			}
+		}, this);
+	},
+
+	addParticles: function(xy, config) {
+		for (var i = 0; i < config.originCount; ++i) {
+			var origin = FL.Vector.mult(this._randomVectorInCircle(), config.originDistance);
+			var xyOrigin = FL.Vector.add(xy, FL.Vector.mult(origin, FL.cellSize));
+			for (var j = 0; j < config.spreadCount; ++j) {
+				var spread = FL.Vector.mult(this._randomVectorInCircle(), config.spreadDistance);
+				this.data.particles.add(new FL.Data.Particle(JW.apply({}, config.particle, {
+					xyFrom: xyOrigin,
+					xyTo: FL.Vector.add(xyOrigin, FL.Vector.mult(spread, FL.cellSize)),
+					radiusFrom: config.particle.radiusFrom && (FL.cellSize * config.particle.radiusFrom),
+					radiusTo: config.particle.radiusTo && (FL.cellSize * config.particle.radiusTo),
+					radius: config.particle.radius && (FL.cellSize * config.particle.radius),
+				})));
+			}
+		}
+	},
+
 	// returns true if unit animation is finished
 	_animateUnit: function(unit) {
 		while (unit.animations.length) {
 			var animation = unit.animations[0];
+			if (!animation.inited) {
+				animation.inited = true;
+				animation.init();
+			}
 			if (!animation.animate()) {
 				return false;
 			}
@@ -74,10 +98,27 @@ JW.extend(FL.Data.AnimationManager, JW.Class, {
 	},
 
 	_onInterval: function() {
+		if (!this.success) {
+			this.timer.set(null);
+			return;
+		}
+		this.success = false;
 		var hit = new Date().getTime();
-		while (this.lastHit < hit) {
-			this.lastHit += 1000 / FL.animationStepsPerSecond;
+		while (this.lastHitRounded < hit) {
+			this.lastHitRounded += 1000 / FL.animationStepsPerSecond;
 			this.animate();
 		}
+		this.animateParticles(hit - this.lastHit);
+		this.lastHit = hit;
+		this.success = true;
+	},
+
+	_randomRadiusVector: function() {
+		var angle = 2 * Math.PI * Math.random();
+		return [Math.cos(angle), Math.sin(angle)];
+	},
+
+	_randomVectorInCircle: function() {
+		return FL.Vector.mult(this._randomRadiusVector(), Math.random());
 	}
 });

@@ -4,8 +4,8 @@ FL.PositionUpdater = function(el, xy) {
 	// JW.Property<Vector> xy;
 	this.own(new JW.Updater([xy], function(xy) {
 		this.el.css({
-			left : xy[0] + "px",
-			top  : xy[1] + "px"
+			left : Math.round(xy[0]) + "px",
+			top  : Math.round(xy[1]) + "px"
 		});
 	}, this));
 };

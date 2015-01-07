@@ -3,6 +3,7 @@ FL.Data = function() {
 	this.map = null;
 	this.bases = new JW.Set();
 	this.units = new JW.ObservableArray();
+	this.particles = new JW.ObservableArray();
 	this.lostEvent = new JW.Event();
 	this.nextPlayerEvent = new JW.Event();
 	this.mapUpdateEvent = new JW.Event();
@@ -156,17 +157,25 @@ JW.extend(FL.Data, JW.Class, {
 		var defense = 1 + (defender.cell.hill ? 1 : 0);
 		var attackerHits = attacker.getAttackCount();
 		var defenderHits = defender.getDefendCount();
+		var attackerDamage = 0;
+		var defenderDamage = 0;
 		if (attackerHits === 0) {
 			return false;
 		}
 		while ((attackerHits !== 0) && (defenderSurvivors.length !== 0)) {
 			--attackerHits;
+			attackerDamage += attacker.type.damage;
 			FL.fight(attacker.type.damage, defense, defenderSurvivors);
 		}
 		while ((defenderHits !== 0) && (attackerSurvivors.length !== 0)) {
 			--defenderHits;
+			defenderDamage += defender.type.damage;
 			FL.fight(defender.type.damage, 0, attackerSurvivors);
 		}
+		attacker.animations.push(new FL.Unit.BattleAnimation(this,
+			attacker, defenderDamage, attacker.getCount() - attackerSurvivors.length,
+			defender, attackerDamage, defender.getCount() - defenderSurvivors.length));
+		this.animationManager.enqueue(attacker);
 		attacker.setPersons(attackerSurvivors);
 		defender.setPersons(defenderSurvivors);
 		attacker.retainAttacks(attackerHits);

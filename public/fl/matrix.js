@@ -25,7 +25,7 @@ JW.extend(FL.Matrix, JW.Class, {
 	},
 
 	ijCenter: function() {
-		return FL.Vector.mult([this.size, this.size], .5);
+		return FL.Vector.round(FL.Vector.mult([this.size, this.size], .5));
 	},
 
 	getRect: function(cij, distance) {

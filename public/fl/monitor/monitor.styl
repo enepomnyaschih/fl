@@ -36,11 +36,13 @@
 
 	&-cells
 	&-units
+	&-particles
 		position absolute
 		size 512px 512px
 		xy 0 0
 
 	&-units
+	&-particles
 		pointer-events none
 
 	&-panel
@@ -62,6 +64,10 @@
 				border 1px solid black
 				size 4px 4px
 
+	&-particle
+		position absolute
+		z-index 1
+
 	&-cell
 		background black none scroll 0 0 no-repeat
 		float left
@@ -69,13 +75,13 @@
 		size 16px 16px
 
 		&.fl-scouted
-			background-image url(../images/land.png)
+			background-image url(../../images/land.png)
 
 			&.fl-hill
-				background-image url(../images/hill.png)
+				background-image url(../../images/hill.png)
 
 			&.fl-rock
-				background-image url(../images/rock.png)
+				background-image url(../../images/rock.png)
 
 			& > .fl-resource
 				display block
@@ -141,7 +147,7 @@
 			display none
 
 		.fl-order-paradrop &
-			cursor url(../images/paradrop-success.png) 9 21, crosshair
+			cursor url(../../images/paradrop-success.png) 9 21, crosshair
 
 		.fl-order-paradrop & > .fl-order-overlay
-			cursor url(../images/paradrop-error.png) 9 21, crosshair
+			cursor url(../../images/paradrop-error.png) 9 21, crosshair

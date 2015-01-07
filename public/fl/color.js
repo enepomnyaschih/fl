@@ -1,6 +1,6 @@
 /**
- * TODO: hsv
- * 
+ * TODO: hsv, alpha
+ *
  * All convertion functions require valid color in parameter!
  * Valid color formats are:
  * 1) Integer from 0 to 0xFFFFFF
@@ -162,12 +162,12 @@ JW.Color = {
         "yellow": [255, 255, 0],
         "yellowgreen": [154, 205, 50]
     },
-    
+
     _format1: /^rgb\s*\(\s*([0-9]+)\s*,\s*([0-9]+)\s*,\s*([0-9]+)\s*\)$/,
     _format2: /^rgb\s*\(\s*(-?[0-9]+(?:\.[0-9]+)?)\%\s*,\s*(-?[0-9]+(?:\.[0-9]+)?)\%\s*,\s*(-?[0-9]+(?:\.[0-9]+)?)\%\s*\)$/,
     _format3: /^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/,
     _format4: /^#([a-fA-F0-9])([a-fA-F0-9])([a-fA-F0-9])$/,
-    
+
     /**
      * Convert arbitrary value to rgb array
      * 1) Guarantees proper rgb or null in output
@@ -181,21 +181,21 @@ JW.Color = {
         {
             if (!JW.isInt(color) || (color < 0) || (color > 0xFFFFFF))
                 return null;
-            
+
             return [
                 (color >> 16),
                 (color >> 8) & 0xFF,
                 (color) & 0xFF
             ];
         }
-        
+
         if (typeof color === "string")
         {
             var result;
             color = JW.String.trim(color).toLowerCase();
             if (result = JW.Color.colors[color])
                 return result.concat();
-            
+
             if (result = JW.Color._format1.exec(color))
             {
                 return JW.Color._parseArray([
@@ -204,7 +204,7 @@ JW.Color = {
                     parseInt(result[3])
                 ]);
             }
-            
+
             if (result = JW.Color._format2.exec(color))
             {
                 for (var i = 0; i < 3; ++i)
@@ -213,14 +213,14 @@ JW.Color = {
                     if (result[i + 1] < 0 || result[i + 1] > 100)
                         return null;
                 }
-                
+
                 return JW.Color._parseArray([
                     Math.round(result[1] * 2.55),
                     Math.round(result[2] * 2.55),
                     Math.round(result[3] * 2.55)
                 ]);
             }
-            
+
             if (result = JW.Color._format3.exec(color))
             {
                 return JW.Color._parseArray([
@@ -229,7 +229,7 @@ JW.Color = {
                     parseInt(result[3], 16)
                 ]);
             }
-            
+
             if (result = JW.Color._format4.exec(color))
             {
                 return JW.Color._parseArray([
@@ -238,10 +238,10 @@ JW.Color = {
                     parseInt(result[3], 16) * 17
                 ]);
             }
-            
+
             return null;
         }
-        
+
         if (JW.isArray(color) && color.length === 3 &&
             (typeof color[0] === "number") &&
             (typeof color[1] === "number") &&
@@ -250,10 +250,10 @@ JW.Color = {
         {
             return color.concat();
         }
-        
+
         return null;
     },
-    
+
     /**
      * Convert arbitrary value to rgb array
      * 1) Guarantees proper rgb or null in output
@@ -266,21 +266,21 @@ JW.Color = {
         if (typeof color === "number")
         {
             color = JW.mod(Math.round(color), 0x1000000);
-            
+
             return [
                 (color >> 16),
                 (color >> 8) & 0xFF,
                 (color) & 0xFF
             ];
         }
-        
+
         if (typeof color === "string")
         {
             var result;
             color = JW.String.trim(color).toLowerCase();
             if (result = JW.Color.colors[color])
                 return result.concat();
-            
+
             if (result = JW.Color._format1.exec(color))
             {
                 return JW.Color._suggestArray([
@@ -289,7 +289,7 @@ JW.Color = {
                     parseInt(result[3])
                 ]);
             }
-            
+
             if (result = JW.Color._format2.exec(color))
             {
                 return JW.Color._suggestArray([
@@ -298,7 +298,7 @@ JW.Color = {
                     parseFloat(result[3]) * 2.55
                 ]);
             }
-            
+
             if (result = JW.Color._format3.exec(color))
             {
                 return JW.Color._suggestArray([
@@ -307,7 +307,7 @@ JW.Color = {
                     parseInt(result[3], 16)
                 ]);
             }
-            
+
             if (result = JW.Color._format4.exec(color))
             {
                 return JW.Color._suggestArray([
@@ -316,10 +316,10 @@ JW.Color = {
                     parseInt(result[3], 16) * 17
                 ]);
             }
-            
+
             return null;
         }
-        
+
         if (JW.isArray(color) && color.length === 3 &&
             (typeof color[0] === "number") &&
             (typeof color[1] === "number") &&
@@ -327,10 +327,10 @@ JW.Color = {
         {
             return JW.Color._suggestArray(color);
         }
-        
+
         return null;
     },
-    
+
     /**
      * Convert arbitrary value to rgb array
      * 1) Does not guarantee proper rgb or null in output
@@ -348,14 +348,14 @@ JW.Color = {
                 (color) & 0xFF
             ];
         }
-        
+
         if (typeof color === "string")
         {
             var result;
             color = JW.String.trim(color).toLowerCase();
             if (result = JW.Color.colors[color])
                 return result.concat();
-            
+
             if (result = JW.Color._format1.exec(color))
             {
                 return [
@@ -364,7 +364,7 @@ JW.Color = {
                     parseInt(result[3])
                 ];
             }
-            
+
             if (result = JW.Color._format2.exec(color))
             {
                 return [
@@ -373,7 +373,7 @@ JW.Color = {
                     Math.round(parseFloat(result[3]) * 2.55)
                 ];
             }
-            
+
             if (result = JW.Color._format3.exec(color))
             {
                 return [
@@ -382,7 +382,7 @@ JW.Color = {
                     parseInt(result[3], 16)
                 ];
             }
-            
+
             if (result = JW.Color._format4.exec(color))
             {
                 return [
@@ -391,14 +391,14 @@ JW.Color = {
                     parseInt(result[3], 16) * 17
                 ];
             }
-            
+
             // bonus
             return null;
         }
-        
+
         return color.concat();
     },
-    
+
     /**
      * Convert arbitrary value to string (output format is varying)
      * 1) Works unexpectedly for improper value
@@ -410,11 +410,11 @@ JW.Color = {
     {
         if (typeof color === "string")
             return color;
-        
+
         color = JW.Color.num(color);
         return "#" + JW.String.prepend(color.toString(16), 6, "0");
     },
-    
+
     /**
      * Convert arbitrary value to number (output format is 0xFFFFFF)
      * 1) Works unexpectedly for improper value
@@ -424,11 +424,11 @@ JW.Color = {
     {
         if (typeof color === "number")
             return color;
-        
+
         color = JW.Color.rgb(color);
         return (color[0] << 16) | (color[1] << 8) | color[2];
     },
-    
+
     /**
      * Convert arbitrary value to string (output format is #FFFFFF)
      * 1) Works unexpectedly for improper value
@@ -438,7 +438,7 @@ JW.Color = {
     {
         return "#" + JW.String.prepend(JW.Color.num(color).toString(16), 6, "0");
     },
-    
+
     /**
      * Make color darker
      * power of 0 = color
@@ -448,7 +448,7 @@ JW.Color = {
     {
         return JW.Color.gradient(color, "black", power);
     },
-    
+
     /**
      * Make color lighter
      * power of 0 = color
@@ -458,7 +458,7 @@ JW.Color = {
     {
         return JW.Color.gradient(color, "white", power);
     },
-    
+
     /**
      * Check average color between two.
      * power of 0 = from
@@ -470,10 +470,10 @@ JW.Color = {
         to   = JW.Color.rgb(to);
         for (var i = 0; i < 3; ++i)
             from[i] += (to[i] - from[i]) * power;
-        
+
         return from;
     },
-    
+
     /**
      * Check average color in specified range.
      */
@@ -487,18 +487,18 @@ JW.Color = {
             if (power < points[i][0])
                 break;
         }
-        
+
         if (i == 0)
             return points[0][1];
-        
+
         if (i == points.length)
             return points[i - 1][1];
-        
+
         var a = points[i - 1];
         var b = points[i];
         return JW.Color.gradient(a[1], b[1], (power - a[0]) / (b[0] - a[0]));
     },
-    
+
     /**
      * Find the most different color from specified one to use as foreground on specified background.
      * Returns white or black in array format.
@@ -508,7 +508,7 @@ JW.Color = {
         var color = JW.Color.rgb(color);
         return (color[0] + color[1] + color[2] >= 384) ? [ 0, 0, 0 ] : [ 0xFF, 0xFF, 0xFF ];
     },
-    
+
     _parseArray: function(rgb)
     {
         for (var i = 0; i < 3; ++i)
@@ -516,16 +516,16 @@ JW.Color = {
             if (!JW.isInt(rgb[i]) || (rgb[i] < 0) || (rgb[i] > 0xFF))
                 return null;
         }
-        
+
         return rgb;
     },
-    
+
     _suggestArray: function(rgb)
     {
         var result = [];
         for (var i = 0; i < 3; ++i)
             result[i] = Math.round(Math.max(0, Math.min(0xFF, rgb[i])));
-        
+
         return result;
     }
 };

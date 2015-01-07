@@ -72,6 +72,16 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}).target;
 	},
 
+	renderParticles: function() {
+		return this.data.particles.createMapper({
+			createItem: function(particle) {
+				return new FL.Monitor.Particle(particle);
+			},
+			destroyItem: JW.destroy,
+			scope: this
+		}).target;
+	},
+
 	renderPanel: function() {
 		return this.panel;
 	},
