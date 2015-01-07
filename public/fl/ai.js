@@ -376,7 +376,7 @@ JW.extend(FL.AI, JW.Class, {
 			this.moveUnit(nearestUnit, nearestTarget);
 			return true;
 		}, this);
-		if (beatenPairIndex) {
+		if (beatenPairIndex != null) {
 			this.threateningPairs.splice(beatenPairIndex, 1);
 			return true;
 		}
@@ -589,8 +589,17 @@ JW.extend(FL.AI, JW.Class, {
 	},
 
 	isUnitReady: function(unit) {
-		return (unit.behaviour === "hold") ||
-			(unit.getCount() >= Math.min(unit.type.capacity, Math.round(this.stackCost / unit.type.cost)));
+		if (unit.behaviour === "hold") {
+			return true;
+		}
+		if (unit.getCount() >= Math.min(unit.type.capacity, Math.round(this.stackCost / unit.type.cost))) {
+			return true;
+		}
+		if (!unit.cell.base) {
+			return true;
+		}
+		var type = unit.cell.base.unitType.get();
+		return (!type || (type === unit.type)) && base.isUnitTypeAvailable(unit.type);
 	},
 
 	isEnemyWithin: function(ij, distance) {
