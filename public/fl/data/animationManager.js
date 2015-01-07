@@ -70,9 +70,9 @@ JW.extend(FL.Data.AnimationManager, JW.Class, {
 				this.data.particles.add(new FL.Data.Particle(JW.apply({}, config.particle, {
 					xyFrom: xyOrigin,
 					xyTo: FL.Vector.add(xyOrigin, FL.Vector.mult(spread, FL.cellSize)),
-					radiusFrom: config.particle.radiusFrom && (FL.cellSize * config.particle.radiusFrom),
-					radiusTo: config.particle.radiusTo && (FL.cellSize * config.particle.radiusTo),
-					radius: config.particle.radius && (FL.cellSize * config.particle.radius),
+					radiusFrom: this._convertRadius(config.particle.radiusFrom),
+					radiusTo: this._convertRadius(config.particle.radiusTo),
+					radius: this._convertRadius(config.particle.radius)
 				})));
 			}
 		}
@@ -120,5 +120,9 @@ JW.extend(FL.Data.AnimationManager, JW.Class, {
 
 	_randomVectorInCircle: function() {
 		return FL.Vector.mult(this._randomRadiusVector(), Math.random());
+	},
+
+	_convertRadius: function(value) {
+		return (value == null) ? null : (FL.cellSize * value);
 	}
 });

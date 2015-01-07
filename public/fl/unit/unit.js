@@ -104,9 +104,13 @@ JW.extend(FL.Unit, JW.Class, {
 		return unit;
 	},
 
-	setPersons: function(persons) {
+	setPersons: function(persons, animateDeath) {
 		if (persons.length === 0) {
-			this.data.destroyUnit(this);
+			if (animateDeath) {
+				this.alive = false;
+			} else {
+				this.data.destroyUnit(this);
+			}
 		} else {
 			this.persons.set(JW.Array.toSorted(persons, JW.byField("health"), this, -1));
 			this.movement.set(Math.min.apply(Math, JW.Array.map(persons, JW.byField("movement"))));
@@ -203,13 +207,13 @@ FL.Unit.deathAnimations = {
 		originDistance: 0,
 		spreadDistance: 0,
 		particle: {
-			colorFrom: "#FF0",
-			colorTo: "#000",
+			colorFrom: "#FFF",
+			colorTo: "#FF0",
 			opacityFrom: 1,
-			opacityTo: 0,
-			radiusFrom: 0,
+			opacityTo: .2,
+			radiusFrom: .2,
 			radiusTo: 1,
-			duration: 2000
+			duration: 1500
 		}
 	},
 	infantry: {
@@ -230,13 +234,13 @@ FL.Unit.deathAnimations = {
 		originDistance: .3,
 		spreadDistance: 0,
 		particle: {
-			colorFrom: "#FF0",
-			colorTo: "#000",
+			colorFrom: "#FFF",
+			colorTo: "#FF0",
 			opacityFrom: 1,
-			opacityTo: 0,
-			radiusFrom: 0,
+			opacityTo: .2,
+			radiusFrom: .15,
 			radiusTo: .5,
-			duration: 800
+			duration: 1000
 		}
 	},
 	heavyVehicle: {
@@ -245,11 +249,11 @@ FL.Unit.deathAnimations = {
 		originDistance: .2,
 		spreadDistance: 0,
 		particle: {
-			colorFrom: "#FF0",
-			colorTo: "#000",
+			colorFrom: "#FFF",
+			colorTo: "#FF0",
 			opacityFrom: 1,
-			opacityTo: 0,
-			radiusFrom: 0,
+			opacityTo: .2,
+			radiusFrom: .2,
 			radiusTo: .8,
 			duration: 1200
 		}

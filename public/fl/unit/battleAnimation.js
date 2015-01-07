@@ -33,26 +33,19 @@ FL.Unit.BattleAnimation.Side = function(data, unit, damage, victims) {
 };
 
 JW.extend(FL.Unit.BattleAnimation.Side, JW.Class, {
-	shotAnimation: {
-		originCount: 1,
-		spreadCount: 1,
-		originDistance: .4,
-		spreadDistance: 0,
-		particle: {
-			colorFrom: "#FF0",
-			colorTo: "#000",
-			opacityFrom: 1,
-			opacityTo: 0,
-			radius: 3,
-			duration: 800
-		}
-	},
-
 	animate: function(progress) {
 		var shots = Math.round(this.shotAnimation.countPerDamage * progress * this.damage);
 		while (this.shots < shots) {
 			++this.shots;
 			this.data.animationManager.addParticles(this.unit.getCenter(), this.shotAnimation);
+		}
+		if (progress === 1) {
+			for (var i = 0; i < this.victims; ++i) {
+				this.data.animationManager.addParticles(this.unit.getCenter(), this.deathAnimation);
+			}
+			if (!this.unit.alive) {
+				this.data.destroyUnit(this.unit);
+			}
 		}
 	}
 });

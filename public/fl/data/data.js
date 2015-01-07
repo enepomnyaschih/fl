@@ -176,8 +176,8 @@ JW.extend(FL.Data, JW.Class, {
 			attacker, defenderDamage, attacker.getCount() - attackerSurvivors.length,
 			defender, attackerDamage, defender.getCount() - defenderSurvivors.length));
 		this.animationManager.enqueue(attacker);
-		attacker.setPersons(attackerSurvivors);
-		defender.setPersons(defenderSurvivors);
+		attacker.setPersons(attackerSurvivors, true);
+		defender.setPersons(defenderSurvivors, true);
 		attacker.retainAttacks(attackerHits);
 		defender.retainDefends(defenderHits);
 		return true;
