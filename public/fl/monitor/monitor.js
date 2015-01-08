@@ -147,7 +147,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 				top : Math.round(xyArrows[1]) + "px"
 			};
 			if (animateArrows) {
-				this.getElement("arrows").animate(properties, 500, "easeOutQuad");
+				this.getElement("arrows").stop().animate(properties, 500, "easeOutQuad");
 			} else {
 				this.getElement("arrows").css(properties);
 			}
