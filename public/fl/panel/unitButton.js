@@ -13,6 +13,7 @@ JW.extend(FL.Panel.UnitButton, JW.UI.Component, {
 				'(cost: <span class="fl-id">' + this.type.cost + '</span>)');
 			el.attr("fl-player", this.base.player);
 			el.click(JW.inScope(function(event) {
+				FL.sound("production-selected");
 				this.base.unitType.set(this.type);
 			}, this));
 		} else {

@@ -80,6 +80,7 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	lose: function(player) {
+		this.enemyScouted = true;
 		this.revealAll(0);
 		this.lostEvent.trigger(player);
 	},
@@ -662,6 +663,9 @@ JW.extend(FL.Data, JW.Class, {
 				return;
 			}
 			if (!cell.unit) {
+				if (base.player === 0) {
+					FL.sound("produced");
+				}
 				this.createUnit(base.ij, base.player, type, base.unitBehaviour);
 			} else if ((cell.unit.type === base.unitType.get()) &&
 					(cell.unit.getCount() < cell.unit.type.capacity)) {

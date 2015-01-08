@@ -5,8 +5,10 @@ FL.ScreenWin = function(win) {
 	localStorage["losses"] = +(localStorage["losses"] || 0);
 	localStorage["wisdom"] = +(localStorage["wisdom"] || 0) + 1;
 	if (win) {
+		FL.sound("win");
 		localStorage["wins"] = +localStorage["wins"] + 1;
 	} else {
+		FL.sound("lose");
 		localStorage["losses"] = +localStorage["losses"] + 1;
 	}
 };

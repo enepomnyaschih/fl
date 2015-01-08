@@ -32,12 +32,14 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 
 	renderSurrender: function(el) {
 		el.click(JW.inScope(function() {
+			FL.sound("button");
 			this.getElement("surrender-dialog").dialog("open");
 		}, this));
 	},
 
 	renderNext: function(el) {
 		el.click(JW.inScope(function() {
+			FL.sound("button");
 			this.selectNext();
 		}, this));
 	},
@@ -47,6 +49,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			if (!this.data.isControllable()) {
 				return;
 			}
+			FL.sound("button");
 			this.selectionQueue = [];
 			this.endTurnAnimation.set(null);
 			this.endTurnSound.set(null);
@@ -111,6 +114,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 				{
 					text: "No",
 					click: function() {
+						FL.sound("button");
 						jQuery(this).dialog("close");
 					}
 				},
@@ -359,6 +363,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		if (this.collapsed) {
 			return;
 		}
+		FL.sound("button");
 		this.selectCell(ij);
 		if (!this._isCellAutoSelectable(this.cellSelect) && !this.endTurnAnimation.get()) {
 			this.selectNextAnimation.set(new FL.ButtonAnimation(this.getElement("next")));

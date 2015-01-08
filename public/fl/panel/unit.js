@@ -52,19 +52,21 @@ JW.extend(FL.Panel.Unit, JW.UI.Component, {
 			el.text("Heal");
 		}
 		el.click(JW.inScope(function() {
+			FL.sound("hold-position");
 			this.unit.hold = true;
 			this.monitor._updateCell(null, this.unit.ij.get());
 			this.monitor.selectNextIfDone();
-		}, this))
+		}, this));
 	},
 
 	renderSkip: function(el) {
 		el.click(JW.inScope(function() {
+			FL.sound("hold-position");
 			this.unit.hold = false;
 			this.unit.skipped = true;
 			this.monitor._updateCell(null, this.unit.ij.get());
 			this.monitor.selectNextIfDone();
-		}, this))
+		}, this));
 	},
 
 	renderBuild: function(el) {
