@@ -3,7 +3,9 @@
 		"bower_components/jquery/dist/jquery.js|auto",
 		"bower_components/jwidget/jwlib.js|auto",
 		"bower_components/jwidget/jwui.js|auto",
-		"thirdparty/reset.css"
+		"thirdparty/reset.css",
+		"thirdparty/jquery-ui/jquery-ui.css|auto",
+		"thirdparty/jquery-ui/jquery-ui.js|auto"
 	],
 
 	"resources": [

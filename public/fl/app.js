@@ -15,6 +15,10 @@ JW.extend(FL.App, JW.UI.Component, {
 	afterRender: function() {
 		this._super();
 		this.data.lostEvent.bind(this._onLost, this);
+		this.el.tooltip({
+			hide: false,
+			show: false
+		});
 	},
 
 	_onLost: function(lostPlayer) {

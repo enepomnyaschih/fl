@@ -309,7 +309,7 @@ FL.Unit.typeArray = [
 	{
 		id: "mcv",
 		name: "Mobile Construction Vehicle",
-		description: "Can build a new base.",
+		description: '<div class="fl-skill">- Can build a new base</div>',
 		damage: 0,
 		armor: 5,
 		defense: 0,
@@ -328,7 +328,10 @@ FL.Unit.typeArray = [
 	{
 		id: "militia",
 		name: "Militia \"Meat shield\"",
-		description: "Weak defensive unit. Used for base defense in emergencies. Can be used for scouting in the early stages of the game. In the late game, can be used to slow down the enemy forces.",
+		description: '<div class="fl-info">Weak defensive unit. Used for base defense in ' +
+			'emergencies. Can be used for scouting in the early stages of ' +
+			'the game. In the late game, can be used to slow down the enemy ' +
+			'forces.</div>',
 		damage: 1,
 		armor: 3,
 		defense: 1.5,
@@ -347,7 +350,8 @@ FL.Unit.typeArray = [
 	{
 		id: "infantry",
 		name: "Infantry \"Cannon fodder\"",
-		description: "Spendable attacking unit. Can be used for early push and weakening the enemy defenses, but requires protection.",
+		description: '<div class="fl-info">Spendable attacking unit. Can be used for early push ' +
+			'and weakening the enemy defenses, but requires protection.</div>',
 		damage: 2,
 		armor: 3,
 		defense: 0,
@@ -378,7 +382,9 @@ FL.Unit.typeArray = [
 	{
 		id: "marine",
 		name: "Marine \"Hotheads\"",
-		description: "Strong defensive unit. Increased heal rate and low cost make them essential in the choke points protection.",
+		description: '<div class="fl-skill">- Has enhanced heal reate</div>' +
+			'<div class="fl-info">Strong defensive unit. Increased heal rate and low cost make ' +
+			'them essential in the choke points protection.</div>',
 		damage: 2,
 		armor: 4,
 		defense: 2,
@@ -398,7 +404,9 @@ FL.Unit.typeArray = [
 	{
 		id: "paratrooper",
 		name: "Paratrooper \"Here's Jonny!\"",
-		description: "Strong attacking unit. Has very slow movement speed but can be paradropped to any visible point of the map from a secured airport.",
+		description: '<div class="fl-skill">- Can be paradropped</div>' +
+			'<div class="fl-info">Strong attacking unit. Has very slow movement speed but can be ' +
+			'paradropped to any visible point of the map from a secured airport.</div>',
 		damage: 3,
 		armor: 5,
 		defense: 0,
@@ -432,7 +440,9 @@ FL.Unit.typeArray = [
 	{
 		id: "humvee",
 		name: "Hum-Vee \"Us will not catch up\"",
-		description: "Low-armored, fast unit. High movement speed makes it essential in scouting, rushing enemy bases and supporting the main forces.",
+		description: '<div class="fl-info">Low-armored, fast unit. High movement speed makes it ' +
+			'essential in scouting, rushing enemy bases and supporting the ' +
+			'main forces.</div>',
 		damage: 2,
 		armor: 4,
 		defense: 0,
@@ -465,7 +475,10 @@ FL.Unit.typeArray = [
 	{
 		id: "radar",
 		name: "Radar vehicle \"Eye of Sauron\"",
-		description: "Strong defensive unit. High sight range lets it see the enemy forces from the distance and provide nasty drop locations for paratroopers.",
+		description: '<div class="fl-skill">- Has enhanced sight range</div>' +
+			'<div class="fl-info">Strong defensive unit. High sight range lets it see the enemy ' +
+			'forces from the distance and provide nasty drop locations for ' +
+			'paratroopers.</div>',
 		damage: 2,
 		armor: 5,
 		defense: 2.5,
@@ -487,7 +500,9 @@ FL.Unit.typeArray = [
 	{
 		id: "tank",
 		name: "Tank \"Shushpanzer\"",
-		description: "Powerful attacking unit. Has the highest damage and armor values among all units in the game. Can attack twice in one turn.",
+		description: '<div class="fl-skill">- Can attack twice in one turn</div>' +
+			'<div class="fl-info">Powerful attacking unit. Has the highest damage and armor ' +
+			'values among all units in the game.</div>',
 		damage: 4,
 		armor: 10,
 		defense: 0,
@@ -508,7 +523,9 @@ FL.Unit.typeArray = [
 	{
 		id: "mobile",
 		name: "\"Wunderwaffe\" mobile site",
-		description: "Powerful defensive unit. Has the highest defensive armor value among all units in the game. Can perform defensive strike multiple times in one turn.",
+		description: '<div class="fl-skill">- Can strike in defense multiple times in one turn</div>' +
+			'<div class="fl-info">Powerful defensive unit. Has the highest defensive armor ' +
+			'value among all units in the game.</div>',
 		damage: 3,
 		armor: 8,
 		defense: 4,

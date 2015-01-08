@@ -50,6 +50,6 @@ JW.extend(FL.UnitInfo.Stats, JW.UI.Component, {
 	},
 
 	renderDescription: function(el) {
-		el.text(this.type.description);
+		el.html(this.type.description);
 	}
 });
