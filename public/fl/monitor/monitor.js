@@ -3,6 +3,7 @@ FL.Monitor = function(data) {
 	this.data = data;
 	this.cellSelect = null;
 	this.cellAnimation = this.own(new JW.Property()).ownValue();
+	this.selectNextAnimation = this.own(new JW.Property()).ownValue();
 	this.endTurnAnimation = this.own(new JW.Property()).ownValue();
 	this.army = this.own(new JW.Property()).ownValue();
 	this.panel = this.own(new JW.Property()).ownValue();
@@ -101,6 +102,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			this.cellAnimation.set(null);
 		}
 		this.baseExitAttachment.set(null);
+		this.selectNextAnimation.set(null);
 		this.unitSelection = [];
 		this.cellSelect = ij ? this.data.map.getCell(ij) : null;
 		if (this.cellSelect) {
@@ -140,9 +142,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}
 		while (this.selectionTail < this.selectionQueue.length) {
 			var cell = this.data.map.getCell(this.selectionQueue[this.selectionTail++]);
-			var isUnit = this._isUnitAutoSelectable(cell.unit);
-			var isBase = this._isBaseAutoSelectable(cell.base);
-			if (isUnit || isBase) {
+			if (this._isCellAutoSelectable(cell)) {
 				this.selectCell(cell.ij);
 				return;
 			}
@@ -294,8 +294,12 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	_onLeftMouseDown: function(cellEl, ij) {
-		if (!this.collapsed) {
-			this.selectCell(ij);
+		if (this.collapsed) {
+			return;
+		}
+		this.selectCell(ij);
+		if (!this._isCellAutoSelectable(this.cellSelect) && !this.endTurnAnimation.get()) {
+			this.selectNextAnimation.set(new FL.ButtonAnimation(this.getElement("next")));
 		}
 	},
 
@@ -353,11 +357,15 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	_isUnitAutoSelectable: function(unit) {
-		return unit && (unit.player === 0) && (unit.movement.get() !== 0) &&
+		return (unit != null) && (unit.player === 0) && (unit.movement.get() !== 0) &&
 			!unit.hold && !unit.skipped && !unit.ijTarget;
 	},
 
 	_isBaseAutoSelectable: function(base) {
-		return base && (base.player === 0) && (base.unitType.get() == null);
+		return (base != null) && (base.player === 0) && (base.unitType.get() == null);
+	},
+
+	_isCellAutoSelectable: function(cell) {
+		return (cell != null) && (this._isUnitAutoSelectable(cell.unit) || this._isBaseAutoSelectable(cell.base));
 	}
 });
