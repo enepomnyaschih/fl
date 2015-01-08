@@ -73,6 +73,20 @@ JW.extend(FL.Base, JW.Class, {
 		if (this.health.get() === 0) {
 			this.data.destroyBase(this);
 		}
+	},
+
+	getTotalMining: function() {
+		var value = 0;
+		this.data.map.eachWithin(this.ij, FL.baseMiningRangeSqr, function(cell) {
+			if (cell.rock) {
+				return;
+			}
+			value += cell.hill ? 2 : 1;
+			if (cell.resource && cell.resource.bonus) {
+				value += cell.resource.bonus;
+			}
+		}, this);
+		return value;
 	}
 });
 

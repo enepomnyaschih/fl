@@ -493,7 +493,6 @@ JW.extend(FL.Data, JW.Class, {
 						this._generateResource(cell.resource);
 						cell.setResource(null);
 					} else if (cell.resource.bonus && (base.mining - cell.resource.bonus >= 20)) {
-						base.mining -= cell.resource.bonus;
 						cell.setResource(null);
 					}
 				}
@@ -533,11 +532,11 @@ JW.extend(FL.Data, JW.Class, {
 					return;
 				}
 				currentRockCells.push(ij);
-				this.map.getCell(ij).rock = true;
+				this.map.getCell(ij).setRock(true);
 				for (var d = 0; d < 4; ++d) {
 					var hij = FL.Vector.add(ij, FL.dir4[d]);
 					if (this.map.inMatrix(hij) && (Math.random() < FL.rockHillChance)) {
-						this.map.getCell(hij).hill = true;
+						this.map.getCell(hij).setHill(true);
 					}
 				}
 			}, this);
@@ -605,7 +604,7 @@ JW.extend(FL.Data, JW.Class, {
 				for (var j = -1; j <= 1; ++j) {
 					var cell = this.map.getCell(FL.Vector.add(ij, [i, j]));
 					if (cell) {
-						cell.rock = false;
+						cell.setRock(false);
 					}
 				}
 			}
@@ -664,6 +663,14 @@ JW.extend(FL.Data, JW.Class, {
 			base.overflow = production - type.cost;
 			base.unitType.set(null);
 			base.unitBehaviour = null;
+		}, this);
+	},
+
+	_testBasesMining: function() {
+		this.bases.each(function(base) {
+			if (base.mining !== base.getTotalMining()) {
+				throw new Error("Base mining is spoiled");
+			}
 		}, this);
 	}
 });

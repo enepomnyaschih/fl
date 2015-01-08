@@ -15,7 +15,7 @@ FL.Cell = function(data, ij) {
 	this.scouted = [FL.revealAll, false]; // removes black mask
 	this.visible = [FL.revealAll, false]; // reveals units
 	this.invalid = false; // forces to redraw
-	this._resetMining();
+	this.resetMining();
 };
 
 JW.extend(FL.Cell, JW.Class, {
@@ -79,18 +79,34 @@ JW.extend(FL.Cell, JW.Class, {
 		this._updateMiningBase();
 	},
 
+	setRock: function(value) {
+		if (this.rock === value) {
+			return;
+		}
+		this.rock = value;
+		this.resetMining();
+	},
+
+	setHill: function(value) {
+		if (this.hill === value) {
+			return;
+		}
+		this.hill = value;
+		this.resetMining();
+	},
+
 	setResource: function(resource) {
 		if (this.resource === resource) {
 			return;
 		}
-		if (this.miningBase) {
+		if (this.miningBase && this.resource) {
 			this.miningBase.removeResource(this.resource);
 		}
 		this.resource = resource;
-		if (this.miningBase) {
+		if (this.miningBase && this.resource) {
 			this.miningBase.addResource(this.resource);
 		}
-		this._resetMining();
+		this.resetMining();
 	},
 
 	isAirportBy: function(player) {
@@ -98,7 +114,7 @@ JW.extend(FL.Cell, JW.Class, {
 			(this.resource != null) && (this.resource.id === "airport");
 	},
 
-	_resetMining: function() {
+	resetMining: function() {
 		var mining = this.rock ? 0 : this.hill ? 2 : 1;
 		if (this.resource && this.resource.bonus) {
 			mining += this.resource.bonus;
