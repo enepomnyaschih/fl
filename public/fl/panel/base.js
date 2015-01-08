@@ -14,8 +14,11 @@ JW.extend(FL.Panel.Base, JW.UI.Component, {
 		el.html(
 			((value === 1) ?
 				('<span class="fl-good">' + FL.baseArmor + '</span>') :
-				('<span class="fl-bad">' + (FL.baseArmor * value).toFixed(1) + '</span>')) +
-			"/" + FL.baseArmor);
+				('<span class="fl-bad">' + (FL.baseArmor * value).toFixed(1) + '</span>')));
+	},
+
+	renderArmor: function(el) {
+		el.text(FL.baseArmor);
 	},
 
 	renderMining: function(el) {

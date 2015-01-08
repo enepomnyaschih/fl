@@ -17,7 +17,10 @@ JW.extend(FL.App, JW.UI.Component, {
 		this.data.lostEvent.bind(this._onLost, this);
 		this.el.tooltip({
 			hide: false,
-			show: false
+			show: false,
+			content: function () {
+				return $(this).prop('title');
+			}
 		});
 	},
 

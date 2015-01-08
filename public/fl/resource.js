@@ -6,15 +6,17 @@ FL.Resource = {
 				html += resource.description + "<br>";
 			}
 			if (resource.bonus) {
-				html += "Increases production by " + resource.bonus + ".<br>";
+				html += 'Increases production by <span class="fl-id">' + resource.bonus + '</span>.<br>';
 			}
 			var unitTypes = JW.Array.filter(FL.Unit.typeArray, function(unitType) {
 				return (unitType.resources != null) &&
 					JW.Array.containsItem(unitType.resources, resource.id);
 			});
 			if (unitTypes.length) {
-				var names = JW.Array.map(unitTypes, JW.byField("name"));
-				html += "Required to produce units: " + names.join(", ") + "<br />";
+				var names = JW.Array.map(unitTypes, function(unitType) {
+					return '<span class="fl-id">' + unitType.name + '</span>';
+				});
+				html += 'Required to produce units: ' + names.join(", ") + '<br />';
 			}
 			resource.descriptionHtml = html;
 		});

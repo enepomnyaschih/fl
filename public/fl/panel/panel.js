@@ -22,9 +22,9 @@ JW.extend(FL.Panel, JW.UI.Component, {
 		} else if (this.cell.rock) {
 			el.text("Doesn't make production. Units can not pass.")
 		} else if (this.cell.hill) {
-			el.text("Improves defense and sight. Production: 2.")
+			el.html('Improves defense and sight. Production: <span class="fl-id">2</span>.')
 		} else {
-			el.text("Increases production by 1.")
+			el.html('Increases production by <span class="fl-id">1</span>.')
 		}
 	},
 
