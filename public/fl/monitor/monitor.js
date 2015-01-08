@@ -5,6 +5,7 @@ FL.Monitor = function(data) {
 	this.cellAnimation = this.own(new JW.Property()).ownValue();
 	this.selectNextAnimation = this.own(new JW.Property()).ownValue();
 	this.endTurnAnimation = this.own(new JW.Property()).ownValue();
+	this.endTurnSound = this.own(new JW.Property()).ownValue();
 	this.army = this.own(new JW.Property()).ownValue();
 	this.panel = this.own(new JW.Property()).ownValue();
 	this.selectionQueue = [];
@@ -48,6 +49,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			}
 			this.selectionQueue = [];
 			this.endTurnAnimation.set(null);
+			this.endTurnSound.set(null);
 			this.selectCell(null);
 			this.data.endTurn();
 		}, this));
@@ -217,6 +219,9 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		}
 		this.selectCell(null);
 		this.endTurnAnimation.set(new FL.ButtonAnimation(this.getElement("end-turn")));
+
+		FL.sound("end-turn");
+		this.endTurnSound.set(new JW.Interval(function() { FL.sound("end-turn"); }, this, 2000));
 	},
 
 	selectNextIfDone: function() {

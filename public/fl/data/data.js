@@ -13,6 +13,7 @@ FL.Data = function() {
 	this.baseNames = FL.baseNames.concat();
 	this.unitNames = [];
 	this.ai = null; // FL.AI
+	this.enemyScouted = false;
 	for (var i = 0; i < 2; ++i) {
 		this.unitNames.push({
 			worker   : this.own(new FL.UnitNameList(["Worker"])),
@@ -40,6 +41,9 @@ JW.extend(FL.Data, JW.Class, {
 			cell.addNearBase(base);
 		}, this);
 		this.reveal(ij, FL.baseSightRangeSqr, player);
+		if (cell.visible[0] && (this.turn.get() > 1)) {
+			FL.sound("base-build");
+		}
 		this.mapUpdateEvent.trigger();
 		return base;
 	},
@@ -60,7 +64,7 @@ JW.extend(FL.Data, JW.Class, {
 
 	createUnit: function(ij, player, type, behaviour, name) {
 		var unit = new FL.Unit(this, ij, player, type, behaviour);
-		var unitNameList = this.unitNames[player][type.category];
+		var unitNameList = this.unitNames[player][type.naming];
 		unit.name = unitNameList.checkout(name);
 		this.units.add(unit);
 		this.reveal(ij, unit.getSightRangeSqr(), player);
@@ -112,6 +116,7 @@ JW.extend(FL.Data, JW.Class, {
 			unit = unit.split(selection);
 		}
 		var useful = false;
+		var moved = false;
 		for (var i = 0; (i < path.length) && unit.movement.get(); ++i) {
 			var tij = FL.Vector.add(unit.ij.get(), FL.dir8[path[i]]);
 			var outcome = this.getMoveOutcome(unit, tij, FL.Vector.equal(tij, unit.ijTarget));
@@ -139,6 +144,7 @@ JW.extend(FL.Data, JW.Class, {
 				unit.ijTarget = null;
 				break;
 			}
+			moved = true;
 			unit.decreaseMovement();
 			unit.ij.set(tij);
 			if (outcome === 4) {
@@ -152,6 +158,9 @@ JW.extend(FL.Data, JW.Class, {
 		if ((unit.cell.unit != null) && (unit.cell.unit !== unit) && unit.alive) {
 			unit.cell.unit.merge(unit.persons.get());
 			this.destroyUnit(unit);
+		}
+		if (moved && unit.visible[0]) {
+			FL.sound(unit.type.movementSound);
 		}
 		if (useful) {
 			this.mapUpdateEvent.trigger();

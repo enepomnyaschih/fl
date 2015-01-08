@@ -91,6 +91,7 @@ JW.extend(FL.Base, JW.Class, {
 });
 
 FL.Base.deathAnimation = {
+	sound: "death-heavy",
 	originCount: 1,
 	spreadCount: 1,
 	originDistance: 0,

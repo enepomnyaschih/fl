@@ -27,7 +27,7 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 			}
 			this.data.reveal(ij, this.getSightRangeSqr(), this.player);
 			var animate = this.visible[0] || this.cell.visible[0];
-			this.visible[0] = this.cell.visible[0];
+			this.setVisible(this.cell.visible[0], 0);
 			if (!animate && !this.animations.length) {
 				this.resetAnimation();
 			} else {
@@ -195,12 +195,27 @@ JW.extend(FL.Unit, JW.Class, {
 		this.ijTarget = null;
 		this.hold = false;
 		this.ij.set(ij);
+		if (this.visible[0]) {
+			FL.sound("paradrop");
+		}
 		this.data.mapUpdateEvent.trigger();
+	},
+
+	setVisible: function(visible, player) {
+		if (this.visible[player] === visible) {
+			return;
+		}
+		this.visible[player] = visible;
+		if (visible && (this.player !== 0) && !this.data.enemyScouted) {
+			this.data.enemyScouted = true;
+			FL.sound("enemy-units-approaching");
+		}
 	}
 });
 
 FL.Unit.shotAnimations = {
 	rifle: {
+		sound: "rifle",
 		countPerDamage: 8,
 		originCount: 1,
 		spreadCount: 1,
@@ -214,6 +229,7 @@ FL.Unit.shotAnimations = {
 		}
 	},
 	lightCannon: {
+		sound: "light-cannon",
 		countPerDamage: 2,
 		originCount: 1,
 		spreadCount: 1,
@@ -229,6 +245,7 @@ FL.Unit.shotAnimations = {
 		}
 	},
 	heavyCannon: {
+		sound: "heavy-cannon",
 		countPerDamage: .5,
 		originCount: 1,
 		spreadCount: 1,
@@ -247,6 +264,7 @@ FL.Unit.shotAnimations = {
 
 FL.Unit.deathAnimations = {
 	mcv: {
+		sound: "death-heavy",
 		originCount: 1,
 		spreadCount: 1,
 		originDistance: 0,
@@ -262,6 +280,7 @@ FL.Unit.deathAnimations = {
 		}
 	},
 	infantry: {
+		sound: "death-infantry",
 		originCount: 2,
 		spreadCount: 4,
 		originDistance: .3,
@@ -274,6 +293,7 @@ FL.Unit.deathAnimations = {
 		}
 	},
 	lightVehicle: {
+		sound: "death-light",
 		originCount: 1,
 		spreadCount: 1,
 		originDistance: .3,
@@ -289,6 +309,7 @@ FL.Unit.deathAnimations = {
 		}
 	},
 	heavyVehicle: {
+		sound: "death-heavy",
 		originCount: 1,
 		spreadCount: 1,
 		originDistance: .2,
@@ -321,9 +342,10 @@ FL.Unit.typeArray = [
 		ai: ["build"],
 		capacity: 1,
 		aiPreferred: true,
-		category: "worker",
+		naming: "worker",
 		shotAnimation: FL.Unit.shotAnimations.rifle,
-		deathAnimation: FL.Unit.deathAnimations.mcv
+		deathAnimation: FL.Unit.deathAnimations.mcv,
+		movementSound: "move-infantry"
 	},
 	{
 		id: "militia",
@@ -343,9 +365,10 @@ FL.Unit.typeArray = [
 		ai: ["hold", "rush"],
 		capacity: 5,
 		aiPreferred: false,
-		category: "infantry",
+		naming: "infantry",
 		shotAnimation: FL.Unit.shotAnimations.rifle,
-		deathAnimation: FL.Unit.deathAnimations.infantry
+		deathAnimation: FL.Unit.deathAnimations.infantry,
+		movementSound: "move-infantry"
 	},
 	{
 		id: "infantry",
@@ -363,9 +386,10 @@ FL.Unit.typeArray = [
 		ai: ["attack"],
 		capacity: 5,
 		aiPreferred: false,
-		category: "infantry",
+		naming: "infantry",
 		shotAnimation: FL.Unit.shotAnimations.rifle,
-		deathAnimation: FL.Unit.deathAnimations.infantry
+		deathAnimation: FL.Unit.deathAnimations.infantry,
+		movementSound: "move-infantry"
 	},
 	/*{
 		id: "ack",
@@ -397,9 +421,10 @@ FL.Unit.typeArray = [
 		ai: ["hold", "rush"],
 		capacity: 5,
 		aiPreferred: true,
-		category: "infantry",
+		naming: "infantry",
 		shotAnimation: FL.Unit.shotAnimations.rifle,
-		deathAnimation: FL.Unit.deathAnimations.infantry
+		deathAnimation: FL.Unit.deathAnimations.infantry,
+		movementSound: "move-infantry"
 	},
 	{
 		id: "paratrooper",
@@ -420,9 +445,10 @@ FL.Unit.typeArray = [
 		ai: ["drop"],
 		capacity: 5,
 		aiPreferred: true,
-		category: "infantry",
+		naming: "infantry",
 		shotAnimation: FL.Unit.shotAnimations.rifle,
-		deathAnimation: FL.Unit.deathAnimations.infantry
+		deathAnimation: FL.Unit.deathAnimations.infantry,
+		movementSound: "move-infantry"
 	},
 	/*{
 		id: "artillery",
@@ -455,9 +481,10 @@ FL.Unit.typeArray = [
 		ai: ["patrol", "attack"],
 		capacity: 5,
 		aiPreferred: true,
-		category: "vehicle",
+		naming: "vehicle",
 		shotAnimation: FL.Unit.shotAnimations.rifle,
-		deathAnimation: FL.Unit.deathAnimations.lightVehicle
+		deathAnimation: FL.Unit.deathAnimations.lightVehicle,
+		movementSound: "move-light"
 	},
 	/*{
 		id: "sam",
@@ -493,9 +520,10 @@ FL.Unit.typeArray = [
 		ai: ["patrol", "hold", "rush"],
 		capacity: 5,
 		aiPreferred: true,
-		category: "vehicle",
+		naming: "vehicle",
 		shotAnimation: FL.Unit.shotAnimations.lightCannon,
-		deathAnimation: FL.Unit.deathAnimations.lightVehicle
+		deathAnimation: FL.Unit.deathAnimations.lightVehicle,
+		movementSound: "move-light"
 	},
 	{
 		id: "tank",
@@ -516,9 +544,10 @@ FL.Unit.typeArray = [
 		blitz: true,
 		capacity: 3,
 		aiPreferred: true,
-		category: "vehicle",
+		naming: "vehicle",
 		shotAnimation: FL.Unit.shotAnimations.heavyCannon,
-		deathAnimation: FL.Unit.deathAnimations.heavyVehicle
+		deathAnimation: FL.Unit.deathAnimations.heavyVehicle,
+		movementSound: "move-heavy"
 	},
 	{
 		id: "mobile",
@@ -539,9 +568,10 @@ FL.Unit.typeArray = [
 		cover: true,
 		capacity: 3,
 		aiPreferred: true,
-		category: "vehicle",
+		naming: "vehicle",
 		shotAnimation: FL.Unit.shotAnimations.lightCannon,
-		deathAnimation: FL.Unit.deathAnimations.heavyVehicle
+		deathAnimation: FL.Unit.deathAnimations.heavyVehicle,
+		movementSound: "move-heavy"
 	}/*,
 	{
 		id: "helicopter",

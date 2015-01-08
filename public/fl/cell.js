@@ -27,7 +27,7 @@ JW.extend(FL.Cell, JW.Class, {
 		this.visible[player] = true;
 		this.invalid = true;
 		if (this.unit) {
-			this.unit.visible[player] = true;
+			this.unit.setVisible(true, player);
 			this.unit.resetAnimation();
 		}
 	},
@@ -42,7 +42,7 @@ JW.extend(FL.Cell, JW.Class, {
 		this.visible[player] = false;
 		this.invalid = true;
 		if (this.unit && (player === 0)) {
-			this.unit.visible[player] = false;
+			this.unit.setVisible(false, player);
 			this.unit.resetAnimation();
 		}
 	},

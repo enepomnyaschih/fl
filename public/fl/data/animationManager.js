@@ -65,6 +65,9 @@ JW.extend(FL.Data.AnimationManager, JW.Class, {
 		if (!config) {
 			return;
 		}
+		if (config.sound) {
+			FL.sound(config.sound);
+		}
 		for (var i = 0; i < config.originCount; ++i) {
 			var origin = FL.Vector.mult(this._randomVectorInCircle(), config.originDistance);
 			var xyOrigin = FL.Vector.add(xy, FL.Vector.mult(origin, FL.cellSize));
