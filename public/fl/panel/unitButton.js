@@ -10,7 +10,7 @@ JW.extend(FL.Panel.UnitButton, JW.UI.Component, {
 		el.attr("fl-type", this.type.id);
 		if (this.base.isUnitTypeAvailable(this.type)) {
 			el.attr("title", 'Produce <span class="fl-id">' + this.type.name + '</span> ' +
-				'(cost: <span class="fl-id">' + this.type.cost + '</span>)');
+				'(cost:&nbsp;<span class="fl-id">' + this.type.cost + '</span>)');
 			el.attr("fl-player", this.base.player);
 			el.click(JW.inScope(function(event) {
 				FL.sound("production-selected");
