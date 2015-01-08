@@ -75,14 +75,18 @@ JW.extend(FL.Data, JW.Class, {
 		this.checkDefeat(unit.player);
 	},
 
+	lose: function(player) {
+		this.revealAll(0);
+		this.lostEvent.trigger(player);
+	},
+
 	checkDefeat: function(player) {
 		var baseCount = this.bases.count(JW.byValue("player", player));
 		var mcvCount = this.units.count(function(unit) {
 			return unit.alive && (unit.player === player) && (unit.type.id === "mcv");
 		}, this);
 		if (baseCount === 0 && mcvCount === 0) {
-			this.revealAll(0);
-			this.lostEvent.trigger(player);
+			this.lose(player);
 		}
 	},
 

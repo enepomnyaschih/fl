@@ -29,6 +29,12 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this.own(new JW.UI.TextUpdater(el, this.data.turn));
 	},
 
+	renderSurrender: function(el) {
+		el.click(JW.inScope(function() {
+			this.getElement("surrender-dialog").dialog("open");
+		}, this));
+	},
+
 	renderNext: function(el) {
 		el.click(JW.inScope(function() {
 			this.selectNext();
@@ -94,9 +100,37 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		return this.panel;
 	},
 
+	renderSurrenderDialog: function(el) {
+		var data = this.data;
+		el.dialog({
+			autoOpen: false,
+			title: "Surrender confirmation",
+			buttons: [
+				{
+					text: "No",
+					click: function() {
+						jQuery(this).dialog("close");
+					}
+				},
+				{
+					text: "Yes",
+					click: function() {
+						jQuery(this).dialog("close");
+						data.lose(0);
+					}
+				}
+			]
+		});
+	},
+
 	afterRender: function() {
 		this._super();
 		this.selectNext();
+	},
+
+	unrender: function() {
+		this.getElement("surrender-dialog").dialog("destroy");
+		this._super();
 	},
 
 	selectCell: function(ij) {
