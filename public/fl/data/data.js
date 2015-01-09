@@ -530,6 +530,7 @@ JW.extend(FL.Data, JW.Class, {
 				}
 			}, this);
 		}, this);
+		this._equalizeResources();
 	},
 
 	_generateRocks: function() {
@@ -592,6 +593,104 @@ JW.extend(FL.Data, JW.Class, {
 			result = result || (cell.resource === resource);
 		}, this);
 		return result;
+	},
+
+	_equalizeResources: function() {
+		if (this.map.every(function(cell) { return cell.resource == null; })) {
+			return;
+		}
+
+		function getDistanceCoef(distance) {
+			var value = Math.max(0, 1 - distance / FL.resourceEqualizeRange);
+			return value * value;
+		}
+
+		var profitMatrix = new FL.Matrix(this.map.size);
+		this.map.every(function(cell, ij) {
+			var distance = this.map.getSideDistance(ij);
+			var profit = FL.resourceEqualizeSideBuff * getDistanceCoef(distance);
+			profitMatrix.setCell(ij, Math.max(0, profit));
+		}, this);
+
+		var countMatrices = JW.Map.map(FL.Resource.types, function(resource) {
+			var matrix = new FL.Matrix(this.map.size);
+			matrix.fill(0);
+			return matrix;
+		}, this);
+
+		var setResource = JW.inScope(function(ij, resource, checkin) {
+			if (!resource) {
+				return;
+			}
+			var sign = checkin ? 1 : -1;
+			this.map.everyWithin8(ij, FL.resourceEqualizeRange, function(c, p) {
+				var distance = FL.Vector.length(FL.Vector.diff(p, ij));
+				var profit = sign * resource.profit * getDistanceCoef(distance);
+				profitMatrix.setCell(p, profitMatrix.getCell(p) + profit);
+			}, this);
+			if (!resource.minDistanceSqr) {
+				return;
+			}
+			var countMatrix = countMatrices[resource.id];
+			this.map.eachWithin(ij, resource.minDistanceSqr, function(c, p) {
+				countMatrix.setCell(p, countMatrix.getCell(p) + sign);
+			}, this);
+		}, this);
+
+		this.map.every(function(cell, ij) {
+			setResource(ij, cell.resource, true);
+		}, this);
+
+		while (true) {
+			var highestProfit = -1,
+				highestProfitCell;
+			this.map.every(function(cell, ij) {
+				if (!cell.resource || cell.miningBase) {
+					return;
+				}
+				var profit = profitMatrix.getCell(ij);
+				if (highestProfit < profit) {
+					highestProfit = profit;
+					highestProfitCell = cell;
+				}
+			}, this);
+			if (highestProfit < 0) {
+				break;
+			}
+
+			var resource = highestProfitCell.resource;
+			var countMatrix = countMatrices[resource.id];
+			highestProfitCell.setResource(null);
+			setResource(highestProfitCell.ij, resource, false);
+
+			var lowestProfit = Number.POSITIVE_INFINITY,
+				lowestProfitCell;
+			this.map.every(function(cell, ij) {
+				if (cell.rock || cell.resource || cell.miningBase || countMatrix.getCell(ij)) {
+					return;
+				}
+				var profit = profitMatrix.getCell(ij);
+				if (lowestProfit > profit) {
+					lowestProfit = profit;
+					lowestProfitCell = cell;
+				}
+			}, this);
+
+			lowestProfitCell.setResource(resource);
+			setResource(lowestProfitCell.ij, resource, true);
+			profitMatrix.setCell(lowestProfitCell.ij, Number.NEGATIVE_INFINITY);
+		}
+		/*
+		console.log("Lowest: ", lowestProfitCell.ij, ", ", lowestProfit, ", ", resource.id);
+		for (var i = 0; i < this.map.size; ++i) {
+			console.log(JW.Array.map(profitMatrix.cells[i], function(profit) {
+				if (profit < 0) {
+					return " -1";
+				}
+				return JW.String.prepend(Math.round(profit).toString(), 3, " ");
+			}, this).join(","));
+		}
+		*/
 	},
 
 	_generateBases: function() {

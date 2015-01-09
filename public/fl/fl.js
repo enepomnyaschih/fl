@@ -15,6 +15,8 @@ var FL = {
 	baseArmor: 10,
 	baseMiningRangeSqr: 5,
 	animationStepsPerSecond: 20,
+	resourceEqualizeRange: 7,
+	resourceEqualizeSideBuff: 20,
 
 	dir4: [
 		[0, 1],

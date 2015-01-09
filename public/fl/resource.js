@@ -28,43 +28,50 @@ FL.Resource.typeArray = [
 		id: "copper",
 		name: "Copper",
 		bonus: 4,
-		count: 20
+		count: 20,
+		profit: 4, // to equalize resources in map generator
 	}, {
 		id: "iron",
 		name: "Iron",
 		bonus: 6,
-		count: 15
+		count: 15,
+		profit: 6
 	}, {
 		id: "oil",
 		name: "Oil",
 		bonus: 10,
-		count: 10
+		count: 10,
+		profit: 10
 	}, {
 		id: "aluminum",
 		name: "Aluminum",
 		bonus: 15,
-		count: 5
+		count: 5,
+		profit: 15
 	}, {
 		id: "yard",
 		name: "Advanced training yard",
 		count: 10,
 		deniedAtStart: true,
 		minDistanceSqr: 30,
-		aiProduction: true
+		aiProduction: true,
+		profit: 10
 	}, {
 		id: "light",
 		name: "Light vehicle factory",
 		count: 10,
 		deniedAtStart: true,
 		minDistanceSqr: 30,
-		aiProduction: true
+		aiProduction: true,
+		profit: 12
 	}, {
 		id: "heavy",
 		name: "Heavy vehicle factory",
 		count: 6,
 		deniedAtStart: true,
 		minDistanceSqr: 50,
-		aiProduction: true
+		aiProduction: true,
+		profit: 15
 	}, {
 		id: "airport",
 		name: "Airport",
@@ -72,7 +79,8 @@ FL.Resource.typeArray = [
 		count: 4,
 		deniedAtStart: true,
 		minDistanceSqr: 100,
-		aiProfit: 8
+		aiProfit: 8,
+		profit: 8
 	}
 ];
 

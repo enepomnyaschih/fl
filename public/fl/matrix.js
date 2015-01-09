@@ -16,6 +16,14 @@ JW.extend(FL.Matrix, JW.Class, {
 		this.cells[ij[0]][ij[1]] = value;
 	},
 
+	fill: function(value) {
+		for (var i = 0; i < this.size; ++i) {
+			for (var j = 0; j < this.size; ++j) {
+				this.cells[i][j] = value;
+			}
+		}
+	},
+
 	inMatrix: function(ij) {
 		return (ij[0] >= 0) && (ij[0] < this.size) && (ij[1] >= 0) && (ij[1] < this.size);
 	},
@@ -35,6 +43,10 @@ JW.extend(FL.Matrix, JW.Class, {
 			jMin: Math.max(0, cij[1] - distance),
 			jMax: Math.min(this.size - 1, cij[1] + distance)
 		};
+	},
+
+	getSideDistance: function(ij) {
+		return Math.min(ij[0], ij[1], this.size - ij[0] - 1, this.size - ij[1] - 1);
 	},
 
 	every: function(callback, scope) {

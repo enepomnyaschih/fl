@@ -206,7 +206,7 @@ JW.extend(FL.Unit, JW.Class, {
 			return;
 		}
 		this.visible[player] = visible;
-		if (visible && (this.player !== 0) && !this.data.enemyScouted) {
+		if (visible && (this.player !== 0) && !this.data.enemyScouted && !FL.revealAll) {
 			this.data.enemyScouted = true;
 			FL.sound("enemy-units-approaching");
 		}
