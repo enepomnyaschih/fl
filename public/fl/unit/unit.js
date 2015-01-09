@@ -19,7 +19,7 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 	this.opacity = this.own(new JW.Property(0));
 	this.animations = []; // <FL.Unit.Animation>
 
-	this.own(new JW.Switcher([this.ij], {
+	this.ijSwitcher = this.own(new JW.Property(new JW.Switcher([this.ij], {
 		init: function(ij) {
 			this.cell = this.data.map.getCell(ij);
 			if (!this.cell.unit) {
@@ -44,7 +44,7 @@ FL.Unit = function(data, ij, player, type, behaviour) {
 			}
 		},
 		scope: this
-	}));
+	}))).ownValue();
 };
 
 // implements FL.BattleAnimatable
@@ -53,6 +53,14 @@ JW.extend(FL.Unit, JW.Class, {
 		this.alive = false;
 		this.movement.set(0);
 		this._super();
+	},
+
+	kill: function() {
+		if (!this.alive) {
+			return;
+		}
+		this.alive = false;
+		this.ijSwitcher.set(null);
 	},
 
 	resetAnimation: function() {
@@ -122,7 +130,7 @@ JW.extend(FL.Unit, JW.Class, {
 	setPersons: function(persons, animateDeath) {
 		if (persons.length === 0) {
 			if (animateDeath) {
-				this.alive = false;
+				this.kill();
 			} else {
 				this.data.destroyUnit(this);
 			}

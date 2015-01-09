@@ -210,6 +210,9 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	fightBase: function(attacker, base) {
+		if (base.health.get() === 0) {
+			return false;
+		}
 		var defenderSurvivors = [base.toPerson()];
 		var attackerHits = attacker.getAttackCount();
 		if (attackerHits === 0) {
