@@ -199,7 +199,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	selectNext: function() {
-		if (!this.data.isControllable()) {
+		if (!this.data.isControllable() || (this.data.lostPlayer != null)) {
 			this.selectCell(null);
 			return;
 		}
@@ -291,6 +291,7 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 				"width": 0
 			}, 2000);
 		this.panel.set(null);
+		this.endTurnSound.set(null);
 		this.selectCell(null);
 		this.collapsed = true;
 	},

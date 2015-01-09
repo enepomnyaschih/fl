@@ -30,6 +30,7 @@ JW.extend(FL.Cell, JW.Class, {
 			this.unit.setVisible(true, player);
 			this.unit.resetAnimation();
 		}
+		this._checkEnemyApproaching();
 	},
 
 	hide: function(player) {
@@ -153,5 +154,14 @@ JW.extend(FL.Cell, JW.Class, {
 		this.data.map.everyWithin8(this.ij, 1, function(cell) {
 			cell.invalid = true;
 		}, this);
+		this._checkEnemyApproaching();
+	},
+
+	_checkEnemyApproaching: function() {
+		if (!this.data.enemyScouted && !FL.revealAll && this.visible[0] &&
+				this.miningBase && (this.miningBase.player !== 0)) {
+			this.data.enemyScouted = true;
+			FL.sound("enemy-units-approaching");
+		}
 	}
 });

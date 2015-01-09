@@ -14,6 +14,7 @@ FL.Data = function() {
 	this.unitNames = [];
 	this.ai = null; // FL.AI
 	this.enemyScouted = false;
+	this.lostPlayer = null;
 	for (var i = 0; i < 2; ++i) {
 		this.unitNames.push({
 			worker   : this.own(new FL.UnitNameList(["Worker"])),
@@ -82,6 +83,7 @@ JW.extend(FL.Data, JW.Class, {
 	lose: function(player) {
 		this.enemyScouted = true;
 		this.revealAll(0);
+		this.lostPlayer = player;
 		this.lostEvent.trigger(player);
 	},
 
@@ -413,24 +415,22 @@ JW.extend(FL.Data, JW.Class, {
 		var movementHead = 0;
 
 		/*
-		dirs values:
-		- number - direction to go from
+		labels values:
+		- number - distance from source, source is 0
 		- boolean - result of callback function if already determined
-		- empty string - source cell
 		*/
-		var dirs = new FL.Matrix(this.map.size);
-		dirs.setCell(sij, "");
+		var labels = new FL.Matrix(this.map.size);
+		labels.setCell(sij, 0);
 		while (tail < queue.length) {
 			if (tail == movementHead) {
 				++movement;
 				movementHead = queue.length;
 			}
 			var cij = queue[tail++];
-			for (var d = 0; d < FL.dir8.length; ++d) {
-				var dir = (d < 4) ? (2 * d) : (2 * d - 7);
+			for (var dir = 0; dir < FL.dir8.length; ++dir) {
 				var dij = FL.Vector.add(cij, FL.dir8[dir]);
-				var label = dirs.getCell(dij);
-				if (!this.map.inMatrix(dij) || (typeof label === "number") || (typeof label === "string")) {
+				var label = labels.getCell(dij);
+				if (!this.map.inMatrix(dij) || (typeof label === "number")) {
 					continue;
 				}
 				var cell = this.map.getCell(dij);
@@ -450,7 +450,7 @@ JW.extend(FL.Data, JW.Class, {
 					fits = label;
 				} else {
 					fits = callback.call(scope || this, cell, dij) !== false;
-					dirs.setCell(dij, fits);
+					labels.setCell(dij, fits);
 				}
 				if (unit && (everythingVisible || unit.visible[player]) && !fits) {
 					continue;
@@ -462,9 +462,9 @@ JW.extend(FL.Data, JW.Class, {
 				if (movement < movementLimit) {
 					queue.push(dij);
 				}
-				dirs.setCell(dij, dir);
+				labels.setCell(dij, movement);
 				if (fits) {
-					return this._backtracePath(dirs, dij);
+					return this._backtracePath(labels, dij, player, everythingVisible);
 				}
 			}
 		}
@@ -731,16 +731,36 @@ JW.extend(FL.Data, JW.Class, {
 		}
 	},
 
-	_backtracePath: function(dirs, tij) {
+	_backtracePath: function(labels, tij, player, everythingVisible) {
 		var path = [];
+		var distance = labels.getCell(tij);
+		var targetUnit = this.map.getCell(tij).unit;
+		var tByEnemy, sByEnemy;
+		if (targetUnit && (targetUnit.player !== player)) {
+			tByEnemy = false;
+		} else {
+			tByEnemy = this.isByEnemy(tij, player, !everythingVisible);
+		}
 		while (true) {
-			var d = dirs.getCell(tij);
-			if (d === "") {
+			if (distance === 0) {
 				path.reverse();
 				return path;
 			}
-			path.push([d, tij]);
-			tij = FL.Vector.diff(tij, FL.dir8[d]);
+			--distance;
+			var dir, sij;
+			for (var d = 0; d < 8; ++d) {
+				dir = (d < 4) ? (2 * d) : (2 * d - 7);
+				sij = FL.Vector.diff(tij, FL.dir8[dir]);
+				if (labels.getCell(sij) === distance) {
+					sByEnemy = this.isByEnemy(sij, player, !everythingVisible);
+					if (!tByEnemy || !sByEnemy) {
+						break;
+					}
+				}
+			}
+			path.push([dir, tij]);
+			tByEnemy = sByEnemy;
+			tij = sij;
 		}
 	},
 
