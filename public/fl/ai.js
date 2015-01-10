@@ -444,7 +444,7 @@ JW.extend(FL.AI, JW.Class, {
 			nearestTargetDistanceSqr = Number.POSITIVE_INFINITY;
 		var placementFactor = FL.random(2);
 		this.data.map.everyWithin8(vulnerableBase.ij, 1, function(cell, ij) {
-			if (cell.base || cell.unit) {
+			if (cell.rock || cell.base || cell.unit) {
 				return;
 			}
 			var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(ij, vulnerableBaseNearestUnit.ij.get()));

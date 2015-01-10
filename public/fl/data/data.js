@@ -402,9 +402,12 @@ JW.extend(FL.Data, JW.Class, {
 		return path ? JW.Array.map(path, JW.byField("0")) : null;
 	},
 
-	findTarget: function(sij, player, callback, scope, everythingVisible, movementLimit) {
-		if (callback.call(scope || this, this.map.getCell(sij))) {
-			return [];
+	getDistanceMatrix: function(sij, player, callback, scope, everythingVisible, movementLimit) {
+		var distances = new FL.Matrix(this.map.size);
+		distances.setCell(sij, 0);
+
+		if (callback.call(scope || this, this.map.getCell(sij), sij)) {
+			return [distances, sij];
 		}
 		if (movementLimit == null) {
 			movementLimit = Number.POSITIVE_INFINITY;
@@ -414,13 +417,6 @@ JW.extend(FL.Data, JW.Class, {
 		var movement = 0;
 		var movementHead = 0;
 
-		/*
-		labels values:
-		- number - distance from source, source is 0
-		- boolean - result of callback function if already determined
-		*/
-		var labels = new FL.Matrix(this.map.size);
-		labels.setCell(sij, 0);
 		while (tail < queue.length) {
 			if (tail == movementHead) {
 				++movement;
@@ -429,8 +425,8 @@ JW.extend(FL.Data, JW.Class, {
 			var cij = queue[tail++];
 			for (var dir = 0; dir < FL.dir8.length; ++dir) {
 				var dij = FL.Vector.add(cij, FL.dir8[dir]);
-				var label = labels.getCell(dij);
-				if (!this.map.inMatrix(dij) || (typeof label === "number")) {
+				var distance = distances.getCell(dij);
+				if (!this.map.inMatrix(dij) || (distance != null)) {
 					continue;
 				}
 				var cell = this.map.getCell(dij);
@@ -445,30 +441,31 @@ JW.extend(FL.Data, JW.Class, {
 						this.isByEnemy(dij, player, !everythingVisible)) {
 					continue;
 				}
-				var fits;
-				if (typeof label === "boolean") {
-					fits = label;
-				} else {
-					fits = callback.call(scope || this, cell, dij) !== false;
-					labels.setCell(dij, fits);
+				distances.setCell(dij, movement);
+				if (callback.call(scope || this, cell, dij) !== false) {
+					return [distances, dij];
 				}
-				if (unit && (everythingVisible || unit.visible[player]) && !fits) {
+
+				// check if it is possible to move out from this tile
+				if (movement >= movementLimit) {
+					continue;
+				}
+				if (unit && (everythingVisible || unit.visible[player])) {
 					continue;
 				}
 				if ((everythingVisible || cell.visible[player]) && cell.base &&
-						(cell.base.player !== player) && !fits) {
+						(cell.base.player !== player)) {
 					continue;
 				}
-				if (movement < movementLimit) {
-					queue.push(dij);
-				}
-				labels.setCell(dij, movement);
-				if (fits) {
-					return this._backtracePath(labels, dij, player, everythingVisible);
-				}
+				queue.push(dij);
 			}
 		}
 		return null;
+	},
+
+	findTarget: function(sij, player, callback, scope, everythingVisible, movementLimit) {
+		var matrix = this.getDistanceMatrix(sij, player, callback, scope, everythingVisible, movementLimit);
+		return matrix ? this._backtracePath(matrix[0], matrix[1], player, everythingVisible) : null;
 	},
 
 	isControllable: function() {
@@ -751,12 +748,24 @@ JW.extend(FL.Data, JW.Class, {
 			for (var d = 0; d < 8; ++d) {
 				dir = (d < 4) ? (2 * d) : (2 * d - 7);
 				sij = FL.Vector.diff(tij, FL.dir8[dir]);
-				if (labels.getCell(sij) === distance) {
-					sByEnemy = this.isByEnemy(sij, player, !everythingVisible);
-					if (!tByEnemy || !sByEnemy) {
-						break;
-					}
+				if (labels.getCell(sij) !== distance) {
+					continue;
 				}
+
+				// repeat all checks from getDistanceMatrix
+				sByEnemy = this.isByEnemy(sij, player, !everythingVisible);
+				if (tByEnemy && sByEnemy) {
+					continue;
+				}
+				var cell = this.map.getCell(sij);
+				if (distance && cell.unit && (everythingVisible || cell.unit.visible[player])) {
+					continue;
+				}
+				if ((everythingVisible || cell.visible[player]) && cell.base &&
+						(cell.base.player !== player)) {
+					continue;
+				}
+				break;
 			}
 			path.push([dir, tij]);
 			tByEnemy = sByEnemy;
