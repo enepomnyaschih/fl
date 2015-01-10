@@ -10,6 +10,10 @@ FL.Monitor = function(data) {
 	this.panel = this.own(new JW.Property()).ownValue();
 	this.selectionQueue = [];
 	this.selectionTail = 0;
+	this.distanceMatrix = null;
+	this.hoverCell = null;
+	this.activePath = this.own(new JW.Property()).ownValue();
+	this.hoverPath = this.own(new JW.Property()).ownValue();
 	this.baseExitAttachment = this.own(new JW.Property()).ownValue();
 	this.order = null;
 	this.cells = new FL.Matrix(this.data.map.size);
@@ -25,6 +29,8 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	arrowsRotationPeriod: 4000,
 	arrowsScalingPeriod: 1000,
 	arrowsSize: 100,
+	activePathColor: "#0F0",
+	hoverPathColor: "#FF0",
 
 	renderTurn: function(el) {
 		this.own(new JW.UI.TextUpdater(el, this.data.turn));
@@ -63,7 +69,9 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	renderCells: function(el) {
-		el.mousedown(JW.inScope(this._onMapMouseDown, this));
+		el.mousedown (JW.inScope(this._onMapMouseDown,  this));
+		el.mouseover (JW.inScope(this._onMapMouseOver,  this));
+		el.mouseleave(JW.inScope(this._onMapMouseLeave, this));
 		var map = this.data.map;
 		for (var i = 0; i < map.size; ++i) {
 			var rowEl = jQuery('<div class="fl-monitor-row"></div>');
@@ -99,6 +107,14 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			destroyItem: JW.destroy,
 			scope: this
 		}).target;
+	},
+
+	renderActivePath: function() {
+		return this.activePath;
+	},
+
+	renderHoverPath: function() {
+		return this.hoverPath;
 	},
 
 	renderPanel: function() {
@@ -194,7 +210,19 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		} else {
 			this.army.set(null);
 			this.panel.set(null);
+			this.distanceMatrix = null;
 			this.getElement("arrows").css("display", "none");
+		}
+		if (this.cellSelect && this.cellSelect.unit && (this.cellSelect.unit.player === 0)) {
+			this.distanceMatrix = this.data.getDistanceMatrix(ij, 0, function() {
+				return false;
+			}, this)[0];
+			this._updatePath(this.activePath, this.activePathColor, this.cellSelect.unit.ijTarget);
+			this._updatePath(this.hoverPath, this.hoverPathColor, this.hoverCell ? this.hoverCell.ij : null);
+		} else {
+			this.distanceMatrix = null;
+			this.activePath.set(null);
+			this.hoverPath.set(null);
 		}
 	},
 
@@ -343,38 +371,32 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 
 	_onMapMouseDown: function(event) {
 		event.preventDefault();
-		var cellEl = jQuery(event.target);
-		if (!cellEl.hasClass("fl-monitor-cell")) {
-			cellEl = cellEl.parents(".fl-monitor-cell").eq(0);
-		}
-		if (!cellEl.hasClass("fl-monitor-cell")) {
+		var cell = this._getCellByEl(jQuery(event.target));
+		if (!cell) {
 			return;
 		}
-		var ij = [
-			+cellEl.attr("fl-i"),
-			+cellEl.attr("fl-j")
-		];
 		switch (event.which) {
-			case 1: this._onLeftMouseDown(cellEl, ij); break;
-			case 3: this._onRightMouseDown(cellEl, ij); break;
+			case 1: this._onLeftMouseDown(cell); break;
+			case 3: this._onRightMouseDown(cell); break;
 		}
 	},
 
-	_onLeftMouseDown: function(cellEl, ij) {
+	_onLeftMouseDown: function(cell) {
 		if (this.collapsed) {
 			return;
 		}
 		FL.sound("button");
-		this.selectCell(ij);
+		this.selectCell(cell.ij);
 		if (!this._isCellAutoSelectable(this.cellSelect) && !this.endTurnAnimation.get()) {
 			this.selectNextAnimation.set(new FL.ButtonAnimation(this.getElement("next")));
 		}
 	},
 
-	_onRightMouseDown: function(cellEl, ij) {
+	_onRightMouseDown: function(cell) {
 		if (!this.data.isControllable()) {
 			return;
 		}
+		var ij = cell.ij;
 		if (this.order) {
 			if (!this.order.test.call(this.order.scope || this, ij)) {
 				return;
@@ -408,6 +430,33 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		} else {
 			this.selectNextIfDone();
 		}
+	},
+
+	_onMapMouseOver: function(event) {
+		var cell = this._getCellByEl(jQuery(event.target));
+		if (!cell) {
+			this.hoverPath.set(null);
+			return;
+		}
+		this._updatePath(this.hoverPath, this.hoverPathColor, cell ? cell.ij : null);
+	},
+
+	_onMapMouseLeave: function(event) {
+		this.hoverPath.set(null);
+	},
+
+	_getCellByEl: function(cellEl) {
+		if (!cellEl.hasClass("fl-monitor-cell")) {
+			cellEl = cellEl.parents(".fl-monitor-cell").eq(0);
+		}
+		if (!cellEl.hasClass("fl-monitor-cell")) {
+			return null;
+		}
+		var ij = [
+			+cellEl.attr("fl-i"),
+			+cellEl.attr("fl-j")
+		];
+		return this.data.map.getCell(ij);
 	},
 
 	_refreshSelectionQueue: function() {
@@ -448,5 +497,16 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 		this.getElement("arrows").css("transform",
 			"rotate(" + Math.round(rotation) + "deg) " +
 			"scale(" + scaling.toFixed(3) + ")");
+	},
+
+	_updatePath: function(path, color, target) {
+		if (this.distanceMatrix && target) {
+			var steps = this.data.backtracePath(this.distanceMatrix, target, 0);
+			if (steps) {
+				path.set(new FL.Monitor.Path(steps, color));
+				return;
+			}
+		}
+		path.set(null);
 	}
 });

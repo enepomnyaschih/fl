@@ -460,12 +460,12 @@ JW.extend(FL.Data, JW.Class, {
 				queue.push(dij);
 			}
 		}
-		return null;
+		return [distances, null];
 	},
 
 	findTarget: function(sij, player, callback, scope, everythingVisible, movementLimit) {
 		var matrix = this.getDistanceMatrix(sij, player, callback, scope, everythingVisible, movementLimit);
-		return matrix ? this._backtracePath(matrix[0], matrix[1], player, everythingVisible) : null;
+		return matrix[1] ? this.backtracePath(matrix[0], matrix[1], player, everythingVisible) : null;
 	},
 
 	isControllable: function() {
@@ -728,9 +728,12 @@ JW.extend(FL.Data, JW.Class, {
 		}
 	},
 
-	_backtracePath: function(labels, tij, player, everythingVisible) {
+	backtracePath: function(distanceMatrix, tij, player, everythingVisible) {
 		var path = [];
-		var distance = labels.getCell(tij);
+		var distance = distanceMatrix.getCell(tij);
+		if (distance == null) {
+			return null;
+		}
 		var targetUnit = this.map.getCell(tij).unit;
 		var tByEnemy, sByEnemy;
 		if (targetUnit && (targetUnit.player !== player)) {
@@ -748,7 +751,7 @@ JW.extend(FL.Data, JW.Class, {
 			for (var d = 0; d < 8; ++d) {
 				dir = (d < 4) ? (2 * d) : (2 * d - 7);
 				sij = FL.Vector.diff(tij, FL.dir8[dir]);
-				if (labels.getCell(sij) !== distance) {
+				if (distanceMatrix.getCell(sij) !== distance) {
 					continue;
 				}
 

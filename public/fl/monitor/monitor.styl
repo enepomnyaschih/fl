@@ -52,8 +52,24 @@
 
 	&-units
 	&-particles
+	&-path
 	&-arrows
 		pointer-events none
+
+	&-path
+		position absolute
+		size 512px 512px
+		xy 5px 5px
+		z-index 1
+
+		&-dot
+			border 1px solid black
+			border-radius 3px
+			position absolute
+			size 6px 6px
+
+	&-hover-path
+		opacity .5
 
 	&-arrows
 		background transparent url(../../images/selection.png) no-repeat 0 0

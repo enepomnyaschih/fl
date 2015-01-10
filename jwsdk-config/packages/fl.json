@@ -30,6 +30,7 @@
 		"fl/monitor/monitor.jw.html : FL.Monitor",
 		"fl/monitor/monitor.styl",
 		"fl/monitor/particle.js",
+		"fl/monitor/path.js",
 		"fl/names.js",
 		"fl/panel/panel.js",
 		"fl/panel/panel.jw.html : FL.Panel",
