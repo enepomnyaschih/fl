@@ -168,7 +168,7 @@ JW.extend(FL.Data, JW.Class, {
 		if (useful) {
 			this.mapUpdateEvent.trigger();
 		}
-		return useful;
+		return useful ? unit : false;
 	},
 
 	moveUnits: function(player) {

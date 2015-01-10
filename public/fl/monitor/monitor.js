@@ -398,9 +398,13 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 			return;
 		}
 		unit.ijTarget = ij;
-		this.data.moveUnit(unit, this.unitSelection);
-		if (unit.alive && unit.movement.get()) {
-			this.selectCell(unit.ij.get());
+		var movedUnit = this.data.moveUnit(unit, this.unitSelection);
+		if (!movedUnit) {
+			this.reselectCell();
+		} else if (movedUnit.alive && movedUnit.movement.get()) {
+			this.selectCell(movedUnit.ij.get());
+		} else if (unit.alive && unit.movement.get()) {
+			this.reselectCell();
 		} else {
 			this.selectNextIfDone();
 		}
