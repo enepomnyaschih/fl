@@ -415,13 +415,13 @@ FL.Unit.typeArray = [
 	{
 		id: "marine",
 		name: "Marine \"Hotheads\"",
-		description: '<div class="fl-skill">- Has enhanced heal reate</div>' +
+		description: '<div class="fl-skill">- Has enhanced heal rate</div>' +
 			'<div class="fl-info">Strong defensive unit. Increased heal rate and low cost make ' +
 			'them essential in the choke points protection.</div>',
 		damage: 2,
 		armor: 4,
 		defense: 2,
-		healRate: .25,
+		healRate: .2,
 		movement: 1,
 		sightRangeSqr: 5,
 		sightRangeSqrHill: 10,

@@ -52,6 +52,7 @@ FL.AI = function(data, player) {
 		}
 		++this.totalBehaviourCount[unit.behaviour];
 	}, this);
+	//console.log(JSON.stringify(this.totalBehaviourCount));
 
 	JW.Array.each(this.bases, function(base) {
 		var type = base.unitType.get();
@@ -74,20 +75,22 @@ FL.AI = function(data, player) {
 			base.unitType.set(cell.unit.type);
 			return;
 		}
+		var availableBehaviours = (Math.random() < this.forcedHoldProbability) ?
+			["build", "hold"] : this.availableBehaviours;
 		var unitType;
 		if (this.totalBehaviourCount["build"] === 0) {
 			unitType = FL.Unit.types["mcv"];
 		} else {
 			if (this.totalBehaviourCount["build"] >= this.mcvLimit) {
-				JW.Array.removeItem(this.availableBehaviours, "build");
+				JW.Array.removeItem(availableBehaviours, "build");
 			}
 			if (this.totalBehaviourCount["patrol"] >= this.patrolInitial + this.patrolPerBase * this.bases.length) {
-				JW.Array.removeItem(this.availableBehaviours, "patrol");
+				JW.Array.removeItem(availableBehaviours, "patrol");
 			}
 			var availableUnitTypes = base.getAvailableUnitTypes();
 			availableUnitTypes = JW.Array.filter(availableUnitTypes, function(unitType) {
 				return JW.Array.some(unitType.ai, function(behaviour) {
-					return JW.Array.containsItem(this.availableBehaviours, behaviour);
+					return JW.Array.containsItem(availableBehaviours, behaviour);
 				}, this);
 			}, this);
 			var preferredUnitTypes = JW.Array.filter(availableUnitTypes, JW.byField("aiPreferred"));
@@ -99,7 +102,7 @@ FL.AI = function(data, player) {
 		base.unitType.set(unitType);
 		++this.totalUnitCount[unitType.id];
 		var unitAvailableBehaviours = JW.Array.filter(unitType.ai, function(behaviour) {
-			return JW.Array.containsItem(this.availableBehaviours, behaviour);
+			return JW.Array.containsItem(availableBehaviours, behaviour);
 		}, this);
 		var behaviour = unitAvailableBehaviours.length ?
 			unitAvailableBehaviours[FL.random(unitAvailableBehaviours.length)] :
@@ -108,9 +111,18 @@ FL.AI = function(data, player) {
 		++this.totalBehaviourCount[behaviour];
 	}, this);
 
-	// reset hold matrix
-	JW.Array.each(this.behaviourUnits["hold"], function(unit) {
-		unit.hold = false;
+	this.holdMap = new FL.Matrix(this.data.map.size);
+	JW.Array.each(this.bases, function(base) {
+		this.data.map.eachWithin(base.ij, this.baseHoldRangeSqr, function(cell, ij) {
+			if (!cell.resource || (cell.resource.id === "airport")) {
+				this.holdMap.setCell(ij, true);
+			}
+		}, this);
+	}, this);
+	this.data.map.every(function(cell, ij) {
+		if (!this.data.isPassable(ij) || this.data.isChoke(ij) || cell.base) {
+			this.holdMap.setCell(ij, true);
+		}
 	}, this);
 };
 
@@ -138,6 +150,7 @@ JW.extend(FL.AI, JW.Class, {
 	baseDistanceProfit: -2,
 	stackCostInitial: -50,
 	stackCostPerBase: 100,
+	forcedHoldProbability: .35,
 
 	doSomething: function() {
 		if (this.build()) {
@@ -544,48 +557,44 @@ JW.extend(FL.AI, JW.Class, {
 	},
 
 	hold: function() {
-		var holdMap = new FL.Matrix(this.data.map.size);
-		JW.Array.each(this.bases, function(base) {
-			this.data.map.eachWithin(base.ij, this.baseHoldRangeSqr, function(cell, ij) {
-				if (!cell.resource || (cell.resource.id === "airport")) {
-					holdMap.setCell(ij, true);
-				}
-			}, this);
-		}, this);
-		this.data.map.every(function(cell, ij) {
-			if (!this.data.isPassable(ij) || this.data.isChoke(ij)) {
-				holdMap.setCell(ij, true);
-			}
-		}, this);
-		return JW.Array.some(this.behaviourUnits["hold"].concat(), function(unit) {
-			if (!holdMap.getCell(unit.ij.get())) {
-				unit.hold = true;
-			}
-			if (unit.hold) {
-				this.data.map.eachWithin(unit.ij.get(), this.unitHoldRangeSqr, function(cell, ij) {
-					if (!cell.resource || FL.Vector.equal(ij, unit.ij.get())) {
-						holdMap.setCell(ij, true);
+		var result = JW.Array.some(this.behaviourUnits["hold"].concat(), function(unit) {
+			var target;
+			if (!this.holdMap.getCell(unit.ij.get())) {
+				target = unit.ij.get();
+			} else {
+				var targetDistanceSqr = Number.POSITIVE_INFINITY;
+				this.holdMap.every(function(held, ij) {
+					if (held) {
+						return;
+					}
+					var cell = this.data.map.getCell(ij);
+					if (cell.unit) {
+						return;
+					}
+					var distanceSqr = FL.Vector.length(FL.Vector.diff(unit.ij.get(), ij)) +
+						.2 * FL.Vector.length(FL.Vector.diff(this.data.map.ijCenter(), ij));
+					if (distanceSqr < targetDistanceSqr) {
+						target = ij;
+						targetDistanceSqr = distanceSqr;
 					}
 				}, this);
-				this.makeUseless(unit);
-				return false;
 			}
-			var nearestTarget,
-				nearestTargetDistanceSqr = Number.POSITIVE_INFINITY;
-			holdMap.every(function(held, ij) {
-				if (held) {
-					return;
-				}
-				var distanceSqr = FL.Vector.length(FL.Vector.diff(unit.ij.get(), ij)) +
-					.2 * FL.Vector.length(FL.Vector.diff(this.data.map.ijCenter(), ij));
-				if (distanceSqr < nearestTargetDistanceSqr) {
-					nearestTarget = ij;
-					nearestTargetDistanceSqr = distanceSqr;
-				}
-			}, this);
-			this.moveUnit(unit, nearestTarget);
-			return (nearestTarget !== null);
+			if (target) {
+				this.data.map.eachWithin(target, this.unitHoldRangeSqr, function(cell, ij) {
+					if (!cell.resource || FL.Vector.equal(ij, target)) {
+						this.holdMap.setCell(ij, true);
+					}
+				}, this);
+			}
+			return this.moveUnit(unit, target);
 		}, this);
+		/*
+		if (!result) {
+			for (var i = 0; i < this.data.map.size; ++i) {
+				console.log(JW.Array.map(this.holdMap.cells[i], function(v) { return v ? 1 : 0; }).join(" "));
+			}
+		}*/
+		return result;
 	},
 
 	isUnitReady: function(unit) {

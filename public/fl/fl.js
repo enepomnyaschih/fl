@@ -8,7 +8,7 @@ var FL = {
 	playerCount: 2,
 	minBaseDistanceSqr: 8,
 	minMainBaseDistanceSqr: 200,
-	minMainBaseSideDistance: 4,
+	minMainBaseSideDistance: 6,
 	minMainBaseCenterDistance: 6,
 	baseHealRate: .1,
 	baseSightRangeSqr: 12,
@@ -16,7 +16,7 @@ var FL = {
 	baseMiningRangeSqr: 5,
 	animationStepsPerSecond: 20,
 	resourceEqualizeRange: 7,
-	resourceEqualizeSideBuff: 20,
+	resourceEqualizeSideBuff: 10,
 
 	dir4: [
 		[0, 1],
