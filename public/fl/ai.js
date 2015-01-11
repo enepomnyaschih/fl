@@ -148,8 +148,8 @@ JW.extend(FL.AI, JW.Class, {
 	baseFirstProductionProfit: 15,
 	baseExtraProductionProfit: -4,
 	baseDistanceProfit: -2,
-	stackCostInitial: -50,
-	stackCostPerBase: 100,
+	stackCostInitial: -30,
+	stackCostPerBase: 80,
 	forcedHoldProbability: .35,
 
 	doSomething: function() {
