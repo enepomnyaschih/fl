@@ -573,7 +573,7 @@ FL.Unit.typeArray = [
 		sightRangeSqrHill: 10,
 		cost: 200,
 		resources: ["heavy"],
-		ai: ["patrol", "attack", "rush"],
+		ai: ["patrol", "assaulting", "rush"],
 		cover: true,
 		capacity: 3,
 		aiPreferred: true,

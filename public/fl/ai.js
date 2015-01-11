@@ -211,9 +211,6 @@ JW.extend(FL.AI, JW.Class, {
 			if (!unit.type.damage || !unit.getAttackCount()) {
 				return;
 			}
-			if (unit.type.defense && unit.cell.resource && !unit.cell.nearBases.isEmpty()) {
-				return;
-			}
 			this.data.findTarget(unit.ij.get(), unit.player, function(cell, ij) {
 				if (!this.allEnemies[ij]) {
 					return false;
@@ -253,14 +250,20 @@ JW.extend(FL.AI, JW.Class, {
 				}, this);
 			}
 			JW.Array.each(punishers, function(punisher) {
+				var punisherScore = 0;
 				var damage = punisher.type.damage * punisher.getAttackCount();
 				if (punisher.type.blitz && (FL.Vector.length8(FL.Vector.diff(punisher.ij.get(), ij)) === 1)) {
 					damage *= 1.5; // tanks can die in the first battle, so 2 is too much =(
 				}
-				vulnerability += damage;
+				punisherScore += damage;
 				JW.Array.each(punisher.persons.get(), function(person) {
-					vulnerability += .5 * person.health * person.type.armor;
+					punisherScore += .5 * person.health * person.type.armor;
 				}, this);
+				if (punisher.type.defense && punisher.cell.resource && !punisher.cell.nearBases.isEmpty()) {
+					vulnerability += .5 * punisherScore;
+				} else {
+					vulnerability += punisherScore;
+				}
 			}, this);
 			if (vulnerableVulnerability <= vulnerability) {
 				vulnerableTarget = ij;

@@ -433,15 +433,16 @@ JW.extend(FL.Monitor, JW.UI.Component, {
 	},
 
 	_onMapMouseOver: function(event) {
-		var cell = this._getCellByEl(jQuery(event.target));
-		if (!cell) {
+		this.hoverCell = this._getCellByEl(jQuery(event.target));
+		if (!this.hoverCell) {
 			this.hoverPath.set(null);
 			return;
 		}
-		this._updatePath(this.hoverPath, this.hoverPathColor, cell ? cell.ij : null);
+		this._updatePath(this.hoverPath, this.hoverPathColor, this.hoverCell ? this.hoverCell.ij : null);
 	},
 
 	_onMapMouseLeave: function(event) {
+		this.hoverCell = null;
 		this.hoverPath.set(null);
 	},
 

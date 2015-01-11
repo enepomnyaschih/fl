@@ -436,7 +436,9 @@ JW.extend(FL.Data, JW.Class, {
 					}
 				}
 				var unit = cell.unit;
-				if ((!unit || unit.player === player) &&
+				var isVisibleEnemy = unit && (unit.player !== player) &&
+					(everythingVisible || unit.visible[player]);
+				if (!isVisibleEnemy &&
 						this.isByEnemy(cij, player, !everythingVisible) &&
 						this.isByEnemy(dij, player, !everythingVisible)) {
 					continue;
@@ -701,14 +703,11 @@ JW.extend(FL.Data, JW.Class, {
 				if (!this.isBaseBuildable(ij, FL.minMainBaseDistanceSqr)) {
 					continue;
 				}
-				var ijCenter = this.map.ijCenter();
-				var ijDistance = FL.Vector.diff(ij, ijCenter);
-				var centerDistance = FL.Vector.length8(ijDistance);
-				if (centerDistance < FL.minMainBaseCenterDistance) {
+				var sideDistance = this.map.getSideDistance(ij);
+				if (sideDistance < FL.minMainBaseSideDistance) {
 					continue;
 				}
-				var sideDistance = this.map.size / 2 - centerDistance;
-				if (sideDistance < FL.minMainBaseSideDistance) {
+				if (sideDistance > FL.maxMainBaseSideDistance) {
 					continue;
 				}
 				break;
@@ -736,7 +735,7 @@ JW.extend(FL.Data, JW.Class, {
 		}
 		var targetUnit = this.map.getCell(tij).unit;
 		var tByEnemy, sByEnemy;
-		if (targetUnit && (targetUnit.player !== player)) {
+		if (targetUnit && (targetUnit.player !== player) && (everythingVisible || targetUnit.visible[player])) {
 			tByEnemy = false;
 		} else {
 			tByEnemy = this.isByEnemy(tij, player, !everythingVisible);
