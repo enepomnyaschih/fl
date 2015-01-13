@@ -76,29 +76,25 @@ FL.AI = function(data, player) {
 			return;
 		}
 		var availableBehaviours = (Math.random() < this.forcedHoldProbability) ?
-			["build", "hold"] : this.availableBehaviours;
+			["hold"] : this.availableBehaviours;
 		var unitType;
-		if (this.totalBehaviourCount["build"] === 0) {
-			unitType = FL.Unit.types["mcv"];
-		} else {
-			if (this.totalBehaviourCount["build"] >= this.mcvLimit) {
-				JW.Array.removeItem(availableBehaviours, "build");
-			}
-			if (this.totalBehaviourCount["patrol"] >= this.patrolInitial + this.patrolPerBase * this.bases.length) {
-				JW.Array.removeItem(availableBehaviours, "patrol");
-			}
-			var availableUnitTypes = base.getAvailableUnitTypes();
-			availableUnitTypes = JW.Array.filter(availableUnitTypes, function(unitType) {
-				return JW.Array.some(unitType.ai, function(behaviour) {
-					return JW.Array.containsItem(availableBehaviours, behaviour);
-				}, this);
-			}, this);
-			var preferredUnitTypes = JW.Array.filter(availableUnitTypes, JW.byField("aiPreferred"));
-			if (preferredUnitTypes.length) {
-				availableUnitTypes = preferredUnitTypes;
-			}
-			unitType = availableUnitTypes[FL.random(availableUnitTypes.length)];
+		if (this.totalBehaviourCount["build"] >= this.mcvLimit) {
+			JW.Array.removeItem(availableBehaviours, "build");
 		}
+		if (this.totalBehaviourCount["patrol"] >= this.patrolInitial + this.patrolPerBase * this.bases.length) {
+			JW.Array.removeItem(availableBehaviours, "patrol");
+		}
+		var availableUnitTypes = base.getAvailableUnitTypes();
+		availableUnitTypes = JW.Array.filter(availableUnitTypes, function(unitType) {
+			return JW.Array.some(unitType.ai, function(behaviour) {
+				return JW.Array.containsItem(availableBehaviours, behaviour);
+			}, this);
+		}, this);
+		var preferredUnitTypes = JW.Array.filter(availableUnitTypes, JW.byField("aiPreferred"));
+		if (preferredUnitTypes.length) {
+			availableUnitTypes = preferredUnitTypes;
+		}
+		unitType = availableUnitTypes[FL.random(availableUnitTypes.length)];
 		base.unitType.set(unitType);
 		++this.totalUnitCount[unitType.id];
 		var unitAvailableBehaviours = JW.Array.filter(unitType.ai, function(behaviour) {
@@ -327,7 +323,7 @@ JW.extend(FL.AI, JW.Class, {
 			if (cell.rock || cell.miningBase) {
 				return;
 			}
-			if (cell.unit && (cell.unit.player !== this.player)) {
+			if (cell.unit && cell.unit.type.damage && (cell.unit.player !== this.player)) {
 				profit -= 10000;
 			}
 			profit += cell.mining;

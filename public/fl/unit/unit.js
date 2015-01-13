@@ -357,11 +357,30 @@ FL.Unit.typeArray = [
 		movementSound: "move-infantry"
 	},
 	{
+		id: "scout",
+		name: "Scout \"4 pool\"",
+		description: '<div class="fl-info">Early game scout. Used to execute the rush.</div>',
+		damage: 0,
+		armor: 2,
+		defense: 0,
+		healRate: .1,
+		movement: 2,
+		sightRangeSqr: 5,
+		sightRangeSqrHill: 10,
+		cost: 50,
+		ai: [],
+		capacity: 1,
+		aiPreferred: false,
+		naming: "infantry",
+		shotAnimation: FL.Unit.shotAnimations.rifle,
+		deathAnimation: FL.Unit.deathAnimations.infantry,
+		movementSound: "move-infantry"
+	},
+	{
 		id: "militia",
 		name: "Militia \"Meat shield\"",
 		description: '<div class="fl-info">Weak defensive unit. Used for base defense in ' +
-			'emergencies. Can be used for scouting in the early stages of ' +
-			'the game. In the late game, can be used to slow down the enemy ' +
+			'emergencies. In the late game, can be used to slow down the enemy ' +
 			'forces.</div>',
 		damage: 1,
 		armor: 3,

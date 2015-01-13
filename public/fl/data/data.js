@@ -358,7 +358,7 @@ JW.extend(FL.Data, JW.Class, {
 
 	isByEnemy: function(cij, player, onlyVisible) {
 		return this.map.someWithin8(cij, 1, function(cell) {
-			return cell.unit && (cell.unit.player !== player) &&
+			return cell.unit && cell.unit.type.damage && (cell.unit.player !== player) &&
 				(!onlyVisible || cell.unit.visible[player]);
 		}, this);
 	},
@@ -720,10 +720,9 @@ JW.extend(FL.Data, JW.Class, {
 					}
 				}
 			}
-			this.createBase(ij, p).health.set(1);
-			for (var d = 0; d < 4; ++d) {
-				this.createUnit(FL.Vector.add(ij, FL.dir4[d]), p, FL.Unit.types["militia"], "hold");
-			}
+			this.createBase(ij, p);
+			this.createUnit(FL.Vector.add(ij, [0, 1]), p, FL.Unit.types["militia"], "hold");
+			this.createUnit(FL.Vector.add(ij, [0, -1]), p, FL.Unit.types["scout"], "hold");
 		}
 	},
 

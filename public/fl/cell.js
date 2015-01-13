@@ -130,7 +130,7 @@ JW.extend(FL.Cell, JW.Class, {
 		var nearestBase = null;
 		var nearestBaseDistanceSqr = Number.POSITIVE_INFINITY;
 		this.nearBases.each(function(base) {
-			if (this.unit && (this.unit.player !== base.player)) {
+			if (this.unit && this.unit.type.damage && (this.unit.player !== base.player)) {
 				return;
 			}
 			var distanceSqr = FL.Vector.lengthSqr(FL.Vector.diff(this.ij, base.ij));
