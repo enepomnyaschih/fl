@@ -65,6 +65,9 @@ FL.AI = function(data, player) {
 	}, this);
 
 	// produce units
+	this.isLowTierBase = JW.Array.some(this.bases, function(base) {
+		return !JW.Array.some(base.resources, JW.byField("aiProduction"));
+	}, this);
 	this.availableBehaviours = this.behaviours.concat();
 	JW.Array.each(this.bases, function(base) {
 		if (base.unitType.get()) {
@@ -75,7 +78,8 @@ FL.AI = function(data, player) {
 			base.unitType.set(cell.unit.type);
 			return;
 		}
-		var availableBehaviours = (Math.random() < this.forcedHoldProbability) ?
+		var availableBehaviours = ((Math.random() < this.forcedHoldProbability) ||
+			(this.totalBehaviourCount["hold"] < this.minHoldUnits)) ?
 			["hold"] : this.availableBehaviours;
 		var unitType;
 		if (this.totalBehaviourCount["build"] >= this.mcvLimit) {
@@ -90,7 +94,7 @@ FL.AI = function(data, player) {
 				return JW.Array.containsItem(availableBehaviours, behaviour);
 			}, this);
 		}, this);
-		var preferredUnitTypes = JW.Array.filter(availableUnitTypes, JW.byField("aiPreferred"));
+		var preferredUnitTypes = JW.Array.filter(availableUnitTypes, this.isUnitTypePreferred, this);
 		if (preferredUnitTypes.length) {
 			availableUnitTypes = preferredUnitTypes;
 		}
@@ -147,6 +151,7 @@ JW.extend(FL.AI, JW.Class, {
 	stackCostInitial: -30,
 	stackCostPerBase: 80,
 	forcedHoldProbability: .35,
+	minHoldUnits: 4,
 
 	doSomething: function() {
 		if (this.build()) {
@@ -175,7 +180,9 @@ JW.extend(FL.AI, JW.Class, {
 				return false;
 			}
 			if (ijTarget && FL.Vector.equal(ijTarget, unit.ij.get())) {
-				this.data.buildBase(unit);
+				var base = this.data.buildBase(unit);
+				base.unitType.set(FL.Unit.types["militia"]);
+				base.unitBehaviour = "hold";
 			} else {
 				this.moveUnit(unit, ijTarget);
 			}
@@ -580,9 +587,10 @@ JW.extend(FL.AI, JW.Class, {
 			}
 			if (target) {
 				this.data.map.eachWithin(target, this.unitHoldRangeSqr, function(cell, ij) {
-					if (!cell.resource || FL.Vector.equal(ij, target)) {
-						this.holdMap.setCell(ij, true);
+					if (!FL.Vector.equal(ij, target) && cell.resource && cell.nearBases.length) {
+						return;
 					}
+					this.holdMap.setCell(ij, true);
 				}, this);
 			}
 			return this.moveUnit(unit, target);
@@ -594,6 +602,10 @@ JW.extend(FL.AI, JW.Class, {
 			}
 		}*/
 		return result;
+	},
+
+	isUnitTypePreferred: function(unitType) {
+		return (unitType.id === "mcv") ? !this.isLowTierBase : unitType.aiPreferred;
 	},
 
 	isUnitReady: function(unit) {

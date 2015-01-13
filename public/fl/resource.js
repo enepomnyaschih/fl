@@ -29,24 +29,28 @@ FL.Resource.typeArray = [
 		name: "Copper",
 		bonus: 4,
 		count: 20,
-		profit: 4, // to equalize resources in map generator
+		aiProduction: false,
+		profit: 4 // to equalize resources in map generator
 	}, {
 		id: "iron",
 		name: "Iron",
 		bonus: 6,
 		count: 15,
+		aiProduction: false,
 		profit: 6
 	}, {
 		id: "oil",
 		name: "Oil",
 		bonus: 10,
 		count: 10,
+		aiProduction: false,
 		profit: 10
 	}, {
 		id: "aluminum",
 		name: "Aluminum",
 		bonus: 15,
 		count: 5,
+		aiProduction: false,
 		profit: 15
 	}, {
 		id: "yard",
@@ -79,6 +83,7 @@ FL.Resource.typeArray = [
 		count: 4,
 		deniedAtStart: true,
 		minDistanceSqr: 100,
+		aiProduction: false,
 		aiProfit: 8,
 		profit: 8
 	}

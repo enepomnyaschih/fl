@@ -294,8 +294,9 @@ JW.extend(FL.Data, JW.Class, {
 	},
 
 	buildBase: function(unit) {
-		this.createBase(unit.ij.get(), unit.player);
+		var base = this.createBase(unit.ij.get(), unit.player);
 		this.destroyUnit(unit);
+		return base;
 	},
 
 	isBaseBuildable: function(ij, minDistance) {
